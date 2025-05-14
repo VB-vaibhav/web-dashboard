@@ -51,13 +51,21 @@ exports.login = async (req, res) => {
     "SELECT * FROM users WHERE email = ? OR username = ?",
     [emailOrUsername, emailOrUsername],
     async (err, results) => {
-      if (err || results.length === 0)
-        return res.status(401).send("Invalid credentials");
+      if (err){
+        console.error("DB error:", err);
+        return res.status(401).send("Server Error");
+      }
 
+      if (results.length === 0) {
+        console.log("No matching user found");
+        return res.status(401).send("Invalid credentials");
+      }
       const user = results[0];
       const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) return res.status(401).send("Invalid credentials");
-
+      if (!isMatch){
+        console.log("Password mismatch");
+        return res.status(401).send("Invalid credentials");
+      }
       const accessToken = generateAccessToken(user);
       const refreshToken = generateRefreshToken(user);
 
