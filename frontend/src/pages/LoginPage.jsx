@@ -65,7 +65,8 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       const data = await login(emailOrUsername, password);
-      alert(`Welcome, ${data.username}`);
+      console.log(`Welcome ${data.username}`)
+    //   alert(`Welcome, ${data.username}`);
       navigate('/');
     } catch (err) {
       setError("Login failed. Check your credentials.");
