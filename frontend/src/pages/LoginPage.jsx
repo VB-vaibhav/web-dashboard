@@ -1,4 +1,4 @@
-// // src/pages/LoginPage.jsx
+// src/pages/LoginPage.jsx
 // import React, { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { login } from '../auth/authService';
@@ -69,7 +69,8 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       const data = await login(emailOrUsername, password);
-      alert(`Welcome, ${data.username}`);
+      // alert(`Welcome, ${data.username}`);
+      console.log(`Welcome, ${data.username}`)
       navigate('/');
     } catch (err) {
       setError("Login failed. Check your credentials.");
@@ -77,13 +78,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-100 via-white to-blue-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-300 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md">
+        {/* <img
+          src="/logo.png" // assumes it's placed in public folder
+          alt="Logo"
+          className="w-28 h-28 mx-auto mb-6 rounded-full object-cover"
+        /> */}
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Username or Email*
+              Username or Email<span className='text-indigo-600'>*</span>
             </label>
             <input
               id="email"
@@ -91,13 +97,13 @@ export default function LoginPage() {
               placeholder="Enter your username"
               value={emailOrUsername}
               onChange={(e) => setEmailOrUsername(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600"
               required
             />
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password*
+              Password<span className='text-indigo-600'>*</span>
             </label>
             <input
               id="password"
@@ -105,7 +111,7 @@ export default function LoginPage() {
               placeholder="Min. 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600"
               required
             />
           </div>
@@ -115,17 +121,17 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={keepLoggedIn}
                 onChange={() => setKeepLoggedIn(!keepLoggedIn)}
-                className="accent-blue-500"
+                className="accent-indigo-600"
               />
               Keep me logged in
             </label>
-            <a href="#" className="text-blue-600 hover:underline">
+            <a href="#" className="text-indigo-600 hover:underline">
               Forgot Password?
             </a>
           </div>
           <button
             type="submit"
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
+            className="w-full py-2 bg-indigo-600 hover:bg-blue-900 text-white font-semibold rounded-lg transition"
           >
             Login
           </button>
