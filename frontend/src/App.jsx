@@ -10,7 +10,8 @@ const App = () => {
           <a href="#" className="hover:text-blue-500">Dashboard</a>
           <a href="#" className="hover:text-blue-500">Manage Renewals</a>
           <a href="#" className="hover:text-blue-500">Clients</a>
-          <a href="#" className="hover:text-yellow-500">Reports</a>
+          <a href="#" className="hover:text-blue-500">Reports</a>
+          <a href="#" className="hover:text-amber-200">Proxy Clients</a>
         </nav>
       </aside>
 
