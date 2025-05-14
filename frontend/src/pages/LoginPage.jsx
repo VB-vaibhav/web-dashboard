@@ -9,22 +9,20 @@
 //   const [error, setError] = useState('');
 //   const navigate = useNavigate();
 
-
 //   const handleLogin = async (e) => {
 //     e.preventDefault();
 //     try {
 //       const data = await login(emailOrUsername, password);
-//       // alert(`Welcome, ${data.username}`);
-//       console.log(`Welcome ${data.username}`);
-//       // window.location.href = '/dashboard'; // redirect after login
-//       navigate('/');
+//       console.log(`Welcome ${data.username}`)
+//     //   alert(`Welcome, ${data.username}`);
+//       navigate('/'); // redirects to App.jsx via route protection
 //     } catch (err) {
-//       setError("Login failed. Check credentials.");
+//       setError("Login failed. Check your credentials.");
 //     }
 //   };
 
 //   return (
-//     <div className="p-4 max-w-md mx-auto">
+//     <div className="p-6 max-w-sm mx-auto mt-24 bg-white shadow rounded">
 //       <h2 className="text-xl font-bold mb-4">Login</h2>
 //       <form onSubmit={handleLogin} className="space-y-4">
 //         <input
@@ -46,12 +44,11 @@
 //         <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
 //           Login
 //         </button>
-//         {error && <p className="text-red-500 text-sm">{error}</p>}
+//         {error && <p className="text-red-500">{error}</p>}
 //       </form>
 //     </div>
 //   );
 // }
-
 
 // src/pages/LoginPage.jsx
 import React, { useState } from 'react';
