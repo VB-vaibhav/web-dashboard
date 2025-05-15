@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
+
 // Generate Access Token
 const generateAccessToken = (user) => {
   return jwt.sign(
@@ -51,7 +52,7 @@ exports.login = async (req, res) => {
     "SELECT * FROM users WHERE email = ? OR username = ?",
     [emailOrUsername, emailOrUsername],
     async (err, results) => {
-      if (err){
+      if (err) {
         console.error("DB error:", err);
         return res.status(401).send("Server Error");
       }
@@ -62,7 +63,7 @@ exports.login = async (req, res) => {
       }
       const user = results[0];
       const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch){
+      if (!isMatch) {
         console.log("Password mismatch");
         return res.status(401).send("Invalid credentials");
       }
@@ -105,3 +106,139 @@ exports.logout = (req, res) => {
   res.clearCookie('refreshToken');
   res.send("Logged out");
 };
+
+// =================== FORGOT PASSWORD ===================
+
+const nodemailer = require('nodemailer');
+
+exports.forgotPassword = async (req, res) => {
+  const { emailOrUsername } = req.body;
+
+  db.query(
+    "SELECT * FROM users WHERE email = ? OR username = ?",
+    [emailOrUsername, emailOrUsername],
+    async (err, results) => {
+      if (err || results.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const user = results[0];
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+      // Save OTP
+      db.query(
+        "INSERT INTO password_resets (user_id, otp_code, expires_at) VALUES (?, ?, ?)",
+        [user.id, otp, expiresAt],
+        (insertErr) => {
+          if (insertErr) return res.status(500).send("Error saving OTP");
+
+          const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT),
+            secure: true,
+            auth: {
+              user: process.env.SMTP_USER,
+              pass: process.env.SMTP_PASS,
+            }
+          });
+
+          const mailOptions = {
+            from: process.env.SMTP_USER,
+            to: user.email,
+            subject: "Password Reset OTP",
+            html: `<p>Your OTP is <strong>${otp}</strong>. It is valid for 10 minutes.</p>`
+          };
+
+          transporter.sendMail(mailOptions, (emailErr) => {
+            if (emailErr) {
+              return res.status(500).json({ message: "Error sending email" });
+            }
+            return res.json({ message: "OTP sent successfully to your email." });
+          });
+        }
+      );
+    }
+  );
+};
+
+// =================== USER VERIFY OTP ===================
+
+exports.verifyOtp = (req, res) => {
+  const { emailOrUsername, otp } = req.body;
+
+  db.query(
+    "SELECT id FROM users WHERE email = ? OR username = ?",
+    [emailOrUsername, emailOrUsername],
+    (err, users) => {
+      if (err || users.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const userId = users[0].id;
+
+      db.query(
+        "SELECT * FROM password_resets WHERE user_id = ? ORDER BY id DESC LIMIT 1",
+        [userId],
+        (err, results) => {
+          if (err || results.length === 0) {
+            return res.status(400).json({ message: "OTP not found" });
+          }
+
+          const record = results[0];
+          const isExpired = new Date(record.expires_at) < new Date();
+          const isMatch = record.otp_code === otp;
+
+          if (!isMatch || isExpired) {
+            return res.status(401).json({ message: "Invalid or expired OTP" });
+          }
+
+          res.json({ message: "OTP verified" });
+        }
+      );
+    }
+  );
+};
+
+// =================== RESET PASSWORD ===================
+
+// const bcrypt = require('bcrypt');
+
+exports.resetPassword = async (req, res) => {
+  const { emailOrUsername, newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 8) {
+    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  db.query(
+    "SELECT id FROM users WHERE email = ? OR username = ?",
+    [emailOrUsername, emailOrUsername],
+    (err, users) => {
+      if (err || users.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const userId = users[0].id;
+
+      db.query(
+        "UPDATE users SET password = ? WHERE id = ?",
+        [hashedPassword, userId],
+        (updateErr) => {
+          if (updateErr) {
+            return res.status(500).json({ message: "Error updating password" });
+          }
+
+          // Optional: remove used OTP
+          db.query("DELETE FROM password_resets WHERE user_id = ?", [userId]);
+
+          res.json({ message: "Password has been reset successfully" });
+        }
+      );
+    }
+  );
+};
+
+

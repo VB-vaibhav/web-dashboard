@@ -51,20 +51,40 @@
 // }
 
 // src/pages/LoginPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../auth/authService';
+import logo from '../assets/logo.png'; // adjust path if filename differs
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { Link } from 'react-router-dom';
+
+
 
 export default function LoginPage() {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // ✅ Load saved username/email if present
+  useEffect(() => {
+    const saved = localStorage.getItem('rememberMeUsername');
+    if (saved) {
+      setEmailOrUsername(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      if (rememberMe) {
+        localStorage.setItem('rememberMeUsername', emailOrUsername);
+      } else {
+        localStorage.removeItem('rememberMeUsername');
+      }
       const data = await login(emailOrUsername, password);
       // alert(`Welcome, ${data.username}`);
       console.log(`Welcome, ${data.username}`)
@@ -77,11 +97,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-300 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md">
-        {/* <img
-          src="/logo.png" // assumes it's placed in public folder
+        <img
+          src={logo} // assumes it's placed in public folder
           alt="Logo"
           className="w-28 h-28 mx-auto mb-6 rounded-full object-cover"
-        /> */}
+        />
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
@@ -94,37 +114,53 @@ export default function LoginPage() {
               placeholder="Enter your username"
               value={emailOrUsername}
               onChange={(e) => setEmailOrUsername(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600 "
               required
             />
           </div>
-          <div>
+          <div className="relative">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password<span className='text-indigo-600'>*</span>
             </label>
             <input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Min. 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600 pr-10"
               required
+              aria-label="Password"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-8.5 text-gray-500 hover:text-indigo-600"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
           </div>
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={keepLoggedIn}
-                onChange={() => setKeepLoggedIn(!keepLoggedIn)}
+                checked={rememberMe}
+                onChange={() => setRememberMe(!rememberMe)}
                 className="accent-indigo-600"
               />
-              Keep me logged in
+              Remember Me
             </label>
-            <a href="#" className="text-indigo-600 hover:underline">
+            
+
+            <Link to="/forgot-password" state={{ emailOrUsername }} className="text-indigo-600 hover:underline">
               Forgot Password?
-            </a>
+            </Link>
+
           </div>
           <button
             type="submit"
