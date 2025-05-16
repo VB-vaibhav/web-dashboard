@@ -54,10 +54,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../auth/authService';
-import logo from '../assets/logo.png'; // adjust path if filename differs
+import logo from '../assets/logo.png';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
-
 
 
 export default function LoginPage() {
@@ -85,6 +84,12 @@ export default function LoginPage() {
       } else {
         localStorage.removeItem('rememberMeUsername');
       }
+      if (rememberMe) {
+        localStorage.setItem('rememberMeUsername', emailOrUsername);
+      } else {
+        localStorage.removeItem('rememberMeUsername');
+      }
+
       const data = await login(emailOrUsername, password);
       // alert(`Welcome, ${data.username}`);
       console.log(`Welcome, ${data.username}`)
@@ -95,7 +100,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-300 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-100 px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md">
         <img
           src={logo} // assumes it's placed in public folder
@@ -106,21 +111,21 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Username or Email<span className='text-indigo-600'>*</span>
+              Username or Email<span className='text-indigo-500'>*</span>
             </label>
             <input
               id="email"
               type="text"
-              placeholder="Enter your username"
+              placeholder="Enter your username or email"
               value={emailOrUsername}
               onChange={(e) => setEmailOrUsername(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600 "
+              className="mt-1 w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500"
               required
             />
           </div>
           <div className="relative">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password<span className='text-indigo-600'>*</span>
+              Password<span className='text-indigo-500'>*</span>
             </label>
             <input
               id="password"
@@ -128,14 +133,14 @@ export default function LoginPage() {
               placeholder="Min. 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-600 pr-10"
+              className="mt-1 w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 pr-10"
               required
               aria-label="Password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-8.5 text-gray-500 hover:text-indigo-600"
+              className="absolute right-3 top-8.5 text-gray-500 hover:text-indigo-500"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
@@ -151,20 +156,19 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={() => setRememberMe(!rememberMe)}
-                className="accent-indigo-600"
+                className="accent-indigo-500"
               />
               Remember Me
             </label>
-            
-
-            <Link to="/forgot-password" state={{ emailOrUsername }} className="text-indigo-600 hover:underline">
+            <Link to="/forgot-password" 
+            state={{ emailOrUsername }}
+            className="text-indigo-500 hover:underline">
               Forgot Password?
             </Link>
-
           </div>
           <button
             type="submit"
-            className="w-full py-2 bg-indigo-600 hover:bg-blue-900 text-white font-semibold rounded-lg transition"
+            className="w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg transition"
           >
             Login
           </button>

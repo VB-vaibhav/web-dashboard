@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
-
 export default function ResetPassword() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -51,25 +50,9 @@ export default function ResetPassword() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-neutral-100 px-4">
             <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 rounded shadow space-y-4">
                 <h2 className="text-xl font-semibold text-center text-gray-800">Reset Password</h2>
-                {/* <input
-                    type="password"
-                    placeholder="New password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-                <input
-                    type="password"
-                    placeholder="Confirm password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
-                /> */}
                 <div className="relative">
                     <input
                         type={showNewPassword ? "text" : "password"}
@@ -77,7 +60,7 @@ export default function ResetPassword() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded pr-12"
+                        className="w-full px-4 py-2 border border-slate-200 rounded pr-12"
                     />
                     <button
                         type="button"
@@ -99,7 +82,7 @@ export default function ResetPassword() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded pr-12"
+                        className="w-full px-4 py-2 border border-slate-200 rounded pr-12"
                     />
                     <button
                         type="button"
@@ -117,7 +100,7 @@ export default function ResetPassword() {
 
                 <button
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+                    className="w-full bg-indigo-500 text-white py-2 hover:bg-indigo-600 font-semibold rounded-lg transition"
                 >
                     Set New Password
                 </button>

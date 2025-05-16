@@ -107,8 +107,8 @@ exports.logout = (req, res) => {
   res.send("Logged out");
 };
 
-// =================== FORGOT PASSWORD ===================
 
+// =================== FORGOT PASSWORD ===================
 const nodemailer = require('nodemailer');
 
 exports.forgotPassword = async (req, res) => {
@@ -162,8 +162,7 @@ exports.forgotPassword = async (req, res) => {
   );
 };
 
-// =================== USER VERIFY OTP ===================
-
+// =================== USER VERIFIES OTP ===================
 exports.verifyOtp = (req, res) => {
   const { emailOrUsername, otp } = req.body;
 
@@ -200,8 +199,7 @@ exports.verifyOtp = (req, res) => {
   );
 };
 
-// =================== RESET PASSWORD ===================
-
+// =================== USER SETS NEW PASSWORD ===================
 // const bcrypt = require('bcrypt');
 
 exports.resetPassword = async (req, res) => {
@@ -240,5 +238,3 @@ exports.resetPassword = async (req, res) => {
     }
   );
 };
-
-

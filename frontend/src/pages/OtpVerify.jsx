@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+
 
 export default function OtpVerify() {
     const [emailOrUsername, setEmailOrUsername] = useState('');
@@ -13,10 +15,10 @@ export default function OtpVerify() {
         }
     }, [location]);
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
 
         try {
             const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
@@ -35,7 +37,7 @@ export default function OtpVerify() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-neutral-100 px-4">
             <form onSubmit={handleSubmit} className="max-w-md w-full bg-white p-6 rounded shadow space-y-4">
                 <h2 className="text-xl font-semibold text-center text-gray-800">Verify OTP</h2>
                 <input
@@ -44,7 +46,7 @@ export default function OtpVerify() {
                     value={emailOrUsername}
                     onChange={(e) => setEmailOrUsername(e.target.value)}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                    className="w-full px-4 py-2 border border-slate-200 rounded"
                 />
                 <input
                     type="text"
@@ -52,11 +54,11 @@ export default function OtpVerify() {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                    className="w-full px-4 py-2 border border-slate-200 rounded"
                 />
                 <button
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+                    className="w-full bg-indigo-500 text-white py-2 hover:bg-indigo-600 font-semibold rounded-lg transition"
                 >
                     Verify OTP
                 </button>

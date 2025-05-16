@@ -17,12 +17,10 @@ router.post('/logout', authController.logout);
 // === FORGOT PASSWORD ===
 router.post('/forgot-password', authController.forgotPassword);
 
-// === USER VERIFY OTP  ===
+// === USER VERIFIES OTP ===
 router.post('/verify-otp', authController.verifyOtp);
 
-// === RESET PASSWORD  ===
+// === USER SETS NEW PASSWORD ===
 router.post('/reset-password', authController.resetPassword);
-
-
 
 module.exports = router;
