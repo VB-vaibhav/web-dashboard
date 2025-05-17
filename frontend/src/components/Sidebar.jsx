@@ -96,6 +96,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }) => {
   const location = useLocation();
   const role = localStorage.getItem('role') || 'superadmin';
+  const permissions = JSON.parse(localStorage.getItem('permissions')) || {};
 
   const linksTop = [
     { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, roles: ['superadmin', 'admin', 'middleman'] },
@@ -116,13 +117,13 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
   ];
   return (
     <div className={`
-      fixed md:relative h-full z-40 transition-all duration-300 ease-in-out shadow
+      fixed md:relative h-full z-40 transition-all duration-300 ease-in-out shadow-md
       ${collapsed ? 'w-16' : 'w-64'} ${isMobile ? 'block' : 'hidden'} md:block
       ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
     `}>
-      <div className="relative flex justify-between items-center h-16 px-4">
-        {!collapsed && <h2 className="font-bold text-lg">Management Panel</h2>}
-        <button onClick={() => isMobile ? setIsMobileOpen(false) : toggleCollapsed()} className="w-5 h-5 flex items-center justify-center rounded-full border border-gray-100 bg-white dark:bg-gray-800 text-gray-900 dark:border-gray-600 dark:text-white shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 absolute right-[-10px] top-6">
+      <div className="relative flex justify-between items-center h-16 px-4 border-b border-gray-200">
+        {!collapsed && <h2 className="font-semibold text-lg">Management Panel</h2>}
+        <button onClick={() => isMobile ? setIsMobileOpen(false) : toggleCollapsed()} className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 bg-white  dark:bg-gray-800 text-gray-900 dark:border-gray-600 dark:text-white shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 absolute right-[-10px] top-6">
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
       </div>
@@ -174,7 +175,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium
                 ${location.pathname === to
                   ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500 dark:text-white'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                  : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-400'}`}
             >
               <Icon size={18} />
               {!collapsed && label}

@@ -70,6 +70,19 @@ exports.login = async (req, res) => {
       const accessToken = generateAccessToken(user);
       const refreshToken = generateRefreshToken(user);
 
+      res.json({
+        accessToken,
+        role: user.role,
+        username: user.username,
+        permissions: {
+          is_cerberus: user.is_cerberus,
+          is_vps: user.is_vps,
+          is_proxy: user.is_proxy,
+          is_storage: user.is_storage,
+          is_varys: user.is_varys
+        }
+      });
+
       // Send refresh token via secure HTTP-only cookie
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
