@@ -2,3 +2,6 @@
 body {
   font-family: 'DM Sans', sans-serif;
 }
+html, body, #root {
+  height: 100%;
+}

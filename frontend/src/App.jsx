@@ -1,7 +1,9 @@
 import React from "react";
+import ClientTable from './components/ClientTable';
 
 const App = () => {
   return (
+    // <></>
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Sidebar */}
       <aside className="w-64 bg-white dark:bg-gray-800 shadow-md hidden md:flex flex-col p-4">
@@ -28,13 +30,16 @@ const App = () => {
         </header>
 
         {/* Page Body */}
-        <main className="flex-1 p-6 overflow-auto">
+        {/* <main className="flex-1 p-6 overflow-auto">
           <div className="text-2xl font-bold mb-4">Main Content</div>
           <p className="text-gray-600 dark:text-gray-300">
             This is your placeholder. Replace it with your dashboard cards, tables, or charts.
           </p>
-        </main>
+        </main> */}
       </div>
+        <div>
+          <ClientTable />
+        </div>
     </div>
   );
 };
