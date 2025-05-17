@@ -91,6 +91,20 @@ exports.login = async (req, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
+      return res.json({
+        accessToken,
+        role: user.role,
+        username: user.username,
+        permissions: {
+          is_cerberus: user.is_cerberus,
+          is_vps: user.is_vps,
+          is_proxy: user.is_proxy,
+          is_storage: user.is_storage,
+          is_varys: user.is_varys
+        }
+      });
+
+
       // Send access token in response
       res.json({
         accessToken,

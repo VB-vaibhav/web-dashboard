@@ -114,7 +114,7 @@ const AdminLayout = () => {
   const toggleTheme = () => setDark(prev => !prev);
 
   return (
-    <div className={`flex h-screen font-sans ${dark ? 'dark' : ''}`}>
+    <div className={`flex min-h-screen font-sans ${dark ? 'dark' : ''}`}>
       <Sidebar
         dark={dark}
         collapsed={collapsed}
