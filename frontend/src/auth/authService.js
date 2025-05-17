@@ -15,6 +15,10 @@ export const login = async (emailOrUsername, password) => {
 
   const data = await res.json();
   localStorage.setItem('accessToken', data.accessToken);
+  localStorage.setItem('role', data.role);
+  if (data.permissions) {
+    localStorage.setItem('permissions', JSON.stringify(data.permissions));
+  }
   return data;
 };
 

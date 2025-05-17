@@ -51,7 +51,7 @@ exports.login = async (req, res) => {
     "SELECT * FROM users WHERE email = ? OR username = ?",
     [emailOrUsername, emailOrUsername],
     async (err, results) => {
-      if (err){
+      if (err) {
         console.error("DB error:", err);
         return res.status(401).send("Server Error");
       }
@@ -62,7 +62,7 @@ exports.login = async (req, res) => {
       }
       const user = results[0];
       const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch){
+      if (!isMatch) {
         console.log("Password mismatch");
         return res.status(401).send("Invalid credentials");
       }
@@ -76,6 +76,20 @@ exports.login = async (req, res) => {
         sameSite: 'Strict',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
+
+      return res.json({
+        accessToken,
+        role: user.role,
+        username: user.username,
+        permissions: {
+          is_cerberus: user.is_cerberus,
+          is_vps: user.is_vps,
+          is_proxy: user.is_proxy,
+          is_storage: user.is_storage,
+          is_varys: user.is_varys
+        }
+      });
+
 
       // Send access token in response
       res.json({
