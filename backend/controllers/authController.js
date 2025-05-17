@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
+
 // Generate Access Token
 const generateAccessToken = (user) => {
   return jwt.sign(

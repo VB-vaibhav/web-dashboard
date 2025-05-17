@@ -84,6 +84,11 @@ export default function LoginPage() {
       } else {
         localStorage.removeItem('rememberMeUsername');
       }
+      if (rememberMe) {
+        localStorage.setItem('rememberMeUsername', emailOrUsername);
+      } else {
+        localStorage.removeItem('rememberMeUsername');
+      }
 
       const data = await login(emailOrUsername, password);
       // alert(`Welcome, ${data.username}`);
@@ -130,6 +135,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 pr-10"
               required
+              aria-label="Password"
             />
             <button
               type="button"

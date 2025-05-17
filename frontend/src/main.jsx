@@ -23,7 +23,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import App from './App';
+// import App from './App';
 import LoginPage from './pages/LoginPage'; // ensure this path is correct
 import ForgotPassword from './pages/ForgotPassword';
 import OtpVerify from './pages/OtpVerify';
@@ -42,7 +42,7 @@ createRoot(document.getElementById('root')).render(
     <Router>
       <Routes>
         {/* Default route: show login if not logged in */}
-        <Route path="/" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} />
+        {/* <Route path="/" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} /> */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-otp" element={<OtpVerify />} />
