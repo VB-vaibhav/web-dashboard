@@ -25,13 +25,13 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 // import App from './App';
 import LoginPage from './pages/LoginPage'; // ensure this path is correct
-import './index.css';
 import ForgotPassword from './pages/ForgotPassword';
 import OtpVerify from './pages/OtpVerify';
 import ResetPassword from './pages/ResetPassword';
-import AdminLayout from './layouts/AdminLayout'; // ✅ ADD THIS
+import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/DashboardPage'; // if implemented
 import RenewalsPage from './pages/RenewalsPage';   // if implemented
+import './index.css';
 
 const isLoggedIn = () => {
   return !!localStorage.getItem('accessToken');
@@ -48,9 +48,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/verify-otp" element={<OtpVerify />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         {/* Optional: Protect /app or /dashboard if user types it manually */}
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-otp" element={<OtpVerify />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        {/* <Route path="/dashboard" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} /> */}
         <Route path="/" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
@@ -58,8 +56,6 @@ createRoot(document.getElementById('root')).render(
           {/* More routes */}
         </Route>
 
-
-        {/* <Route path="/dashboard" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} /> */}
       </Routes>
     </Router>
   </React.StrictMode>

@@ -3,8 +3,8 @@ import React from 'react';
 const RenewalsPage = () => {
   return (
     <div>
-      <h2 className="text-xl font-bold">Renewals</h2>
-      <p>Dashboard content goes here.</p>
+      <h2 className="text-xl font-bold">RenewalsPage</h2>
+      <p>RenewalsPage content goes here.</p>
     </div>
   );
 };
