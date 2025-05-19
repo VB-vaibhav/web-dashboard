@@ -2,6 +2,9 @@ const db = require('../config/db');
 
 // ✅ Update middleman's visibility flags based on current clients
 function updateMiddlemanServiceFlags(middlemanName) {
+  const flagValue = results[0].count > 0 ? 1 : 0;
+  const updateSql = `UPDATE users SET is_${service} = ? WHERE username = ?`;
+
   const services = ['vps', 'cerberus', 'proxy', 'storage', 'varys'];
 
   services.forEach(service => {
@@ -72,7 +75,7 @@ exports.addClient = (req, res) => {
 
   db.query(sql, values, (err, result) => {
     if (err) return res.status(500).json({ error: "Insert failed", details: err });
-    
+
     if (client.middleman_name) {
       updateMiddlemanServiceFlags(client.middleman_name);
     }

@@ -26,3 +26,21 @@ exports.requireRole = (...allowedRoles) => {
     next();
   };
 };
+
+const db = require('../config/db');
+
+exports.checkServiceAccess = (serviceKey) => {
+  return (req, res, next) => {
+    if (req.user.role === 'superadmin') return next();
+
+    const sql = `SELECT ?? FROM users WHERE id = ?`;
+    db.query(sql, [serviceKey, req.user.id], (err, rows) => {
+      if (err || rows.length === 0) return res.status(403).send("Access error");
+
+      if (rows[0][serviceKey] !== 1) {
+        return res.status(403).send("Not authorized for this service");
+      }
+      next();
+    });
+  };
+};

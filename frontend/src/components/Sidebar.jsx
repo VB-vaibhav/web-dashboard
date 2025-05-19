@@ -42,9 +42,9 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
   return (
     <div 
     className={`
-      fixed md:relative z-40 transition-[width] duration-300 ease-in-out shadow
+      fixed md:relative z-40 transition-[width] duration-300 ease-in-out 
       ${collapsed ? 'w-16' : 'w-64'} ${isMobile ? 'block' : 'hidden'} md:block
-      ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
+      ${dark ? 'bg-gray-800 text-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.3)]' : 'bg-white text-gray-800 shadow-2xl'}
       h-screen flex flex-col
     `}>
       {/* Top Heading and Collapse Button */}
@@ -95,7 +95,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
         <div className="px-2 pb-6 pt-4">
           <hr className={`my-4 mx-4 border-t ${dark ? 'border-gray-700' : 'border-gray-200'}`} />
 
-          <nav className="px-2 space-y-2">
+          <nav className=" space-y-2">
             {linksBottom.map(({ label, to, icon: Icon, roles }) =>
               roles.includes(role) && (
                 <Link
