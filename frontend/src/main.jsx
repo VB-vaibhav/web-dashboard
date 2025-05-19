@@ -35,7 +35,10 @@ import './index.css';
 
 const isLoggedIn = () => {
   return !!localStorage.getItem('accessToken');
+
 };
+const role = localStorage.getItem('role');
+const permissions = JSON.parse(localStorage.getItem('permissions')) || {};
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
