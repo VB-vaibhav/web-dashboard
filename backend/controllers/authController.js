@@ -70,6 +70,7 @@ exports.login = async (req, res) => {
       const accessToken = generateAccessToken(user);
       const refreshToken = generateRefreshToken(user);
 
+
       // Send refresh token via secure HTTP-only cookie
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
