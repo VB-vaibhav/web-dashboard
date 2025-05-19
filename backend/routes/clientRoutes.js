@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const clientController = require('../controllers/clientController');
-const { verifyToken, requireRole } = require('../middleware/authMiddleware');
+const { verifyToken, requireRole, checkServiceAccess } = require('../middleware/authMiddleware');
 
 // GET all clients (filtered by role)
 router.get('/', verifyToken, clientController.getClients);
@@ -14,5 +14,13 @@ router.put('/:id', verifyToken, requireRole('admin', 'superadmin'), clientContro
 
 // DELETE (cancel) a client (superadmin only)
 router.delete('/:id', verifyToken, requireRole('superadmin'), clientController.deleteClient);
+
+
+// router.get('/cerberus', 
+//   verifyToken, 
+//   requireRole('admin', 'superadmin'), 
+//   checkServiceAccess('is_cerberus'), 
+//   clientController.getCerberusClients
+// );
 
 module.exports = router;

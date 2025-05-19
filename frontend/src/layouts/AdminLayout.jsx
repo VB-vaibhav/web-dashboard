@@ -122,14 +122,14 @@ const AdminLayout = () => {
         isMobile={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen}
       />
-      <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
+      <div className="flex-1 flex flex-col transition-colors duration-300 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
         <Header
           dark={dark}
           onToggleMobile={() => setIsMobileOpen(!isMobileOpen)}
           onToggleTheme={toggleTheme}
         />
         {/* <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"> */}
-        <main className={`flex-1 overflow-y-auto p-6  duration-300 ease-in-out shadow ${dark ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
+        <main className={`flex-1 overflow-y-auto p-6 duration-300 ease-in-out shadow ${dark ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
           <Outlet context={{ dark }}/>
         </main>
       </div>
