@@ -1,70 +1,81 @@
 const db = require('../config/db');
 
-// ✅ Update middleman's visibility flags based on current clients
-function updateMiddlemanServiceFlags(middlemanName) {
-  const flagValue = results[0].count > 0 ? 1 : 0;
-  const updateSql = `UPDATE users SET is_${service} = ? WHERE username = ?`;
-
-  const services = ['vps', 'cerberus', 'proxy', 'storage', 'varys'];
-
-  services.forEach(service => {
-    const checkSql = `
-      SELECT COUNT(*) AS count FROM clients
-      WHERE service = ? AND middleman_name = ? AND is_cancelled = FALSE
-    `;
-
-    db.query(checkSql, [service, middlemanName], (err, results) => {
-      if (!err) {
-        const flagValue = results[0].count > 0 ? 1 : 0;
-        const updateSql = `UPDATE users SET is_${service} = ? WHERE username = ?`;
-        db.query(updateSql, [flagValue, middlemanName]);
-      }
-    });
-  });
-}
 
 // ✅ GET /clients (with role-based filtering)
-exports.getClients = (req, res) => {
-  const { role, id: userId } = req.user;
+// exports.getClients = (req, res) => {
+//   const { role, id: userId } = req.user;
 
-  let sql = "SELECT * FROM clients WHERE is_cancelled = FALSE";
-  const params = [];
+//   let sql = "SELECT * FROM clients WHERE is_cancelled = FALSE";
+//   const params = [];
 
-  if (role === 'admin') {
-    const serviceFields = ['is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'];
-    db.query("SELECT ?? FROM users WHERE id = ?", [serviceFields, userId], (err, rows) => {
-      if (err || rows.length === 0) return res.status(500).json({ error: 'Service access error' });
+//   if (role === 'admin') {
+//     const serviceFields = ['is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'];
+//     db.query("SELECT ?? FROM users WHERE id = ?", [serviceFields, userId], (err, rows) => {
+//       if (err || rows.length === 0) return res.status(500).json({ error: 'Service access error' });
 
-      const allowedServices = serviceFields
-        .filter(service => rows[0][service] === 1)
-        .map(service => service.replace('is_', ''));
+//       const allowedServices = serviceFields
+//         .filter(service => rows[0][service] === 1)
+//         .map(service => service.replace('is_', ''));
 
-      if (allowedServices.length === 0) return res.json([]);
+//       if (allowedServices.length === 0) return res.json([]);
 
-      sql += ` AND service IN (${allowedServices.map(() => '?').join(',')})`;
-      db.query(sql, allowedServices, (err2, results) => {
-        if (err2) return res.status(500).json({ error: 'Client fetch error' });
-        res.json(results);
-      });
-    });
+//       sql += ` AND service IN (${allowedServices.map(() => '?').join(',')})`;
+//       db.query(sql, allowedServices, (err2, results) => {
+//         if (err2) return res.status(500).json({ error: 'Client fetch error' });
+//         res.json(results);
+//       });
+//     });
 
-  } else if (role === 'middleman') {
-    sql += " AND middleman_name = (SELECT username FROM users WHERE id = ?)";
-    params.push(userId);
-    db.query(sql, params, (err, results) => {
-      if (err) return res.status(500).json({ error: 'Client fetch error' });
-      res.json(results);
-    });
+//   } else if (role === 'middleman') {
+//     sql += " AND middleman_name = (SELECT username FROM users WHERE id = ?)";
+//     params.push(userId);
+//     db.query(sql, params, (err, results) => {
+//       if (err) return res.status(500).json({ error: 'Client fetch error' });
+//       res.json(results);
+//     });
 
-  } else {
-    db.query(sql, (err, results) => {
-      if (err) return res.status(500).json({ error: 'Client fetch error' });
-      res.json(results);
-    });
-  }
-};
+//   } else {
+//     db.query(sql, (err, results) => {
+//       if (err) return res.status(500).json({ error: 'Client fetch error' });
+//       res.json(results);
+//     });
+//   }
+// };
 
 // ✅ POST /clients
+
+// ✅ GET /clients/:service (dynamic, secure, smart)
+exports.getClients = (req, res) => {
+  const { role, id: userId } = req.user;
+  const { service } = req.params;
+
+  const validServices = ['cerberus', 'vps', 'proxy', 'storage', 'varys'];
+
+  // If it's a general GET /clients call (not /:service), no filter needed
+  const isServiceSpecific = !!service;
+  if (isServiceSpecific && !validServices.includes(service)) {
+    return res.status(400).json({ error: 'Invalid service name' });
+  }
+
+  let sql = `SELECT * FROM clients WHERE is_cancelled = FALSE`;
+  const params = [];
+
+  if (isServiceSpecific) {
+    sql += ` AND service = ?`;
+    params.push(service);
+  }
+
+  if (role === 'middleman') {
+    sql += ` AND middleman_name = (SELECT username FROM users WHERE id = ?)`;
+    params.push(userId);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ error: "Client fetch error", details: err });
+    res.json(results);
+  });
+};
+
 exports.addClient = (req, res) => {
   const client = req.body;
   const fields = Object.keys(client).join(", ");
@@ -132,3 +143,46 @@ exports.deleteClient = (req, res) => {
     });
   });
 };
+
+// ✅ Update middleman's visibility flags based on current clients
+// function updateMiddlemanServiceFlags(middlemanName) {
+//   const flagValue = results[0].count > 0 ? 1 : 0;
+//   const updateSql = `UPDATE users SET is_${service} = ? WHERE username = ?`;
+
+//   const services = ['vps', 'cerberus', 'proxy', 'storage', 'varys'];
+
+//   services.forEach(service => {
+//     const checkSql = `
+//           SELECT COUNT(*) AS count FROM clients
+//           WHERE service = ? AND middleman_name = ? AND is_cancelled = FALSE
+//         `;
+
+//     db.query(checkSql, [service, middlemanName], (err, results) => {
+//       if (!err) {
+//         const flagValue = results[0].count > 0 ? 1 : 0;
+//         const updateSql = `UPDATE users SET is_${service} = ? WHERE username = ?`;
+//         db.query(updateSql, [flagValue, middlemanName]);
+//       }
+//     });
+//   });
+// }
+
+// Utility to dynamically update middleman service flags
+function updateMiddlemanServiceFlags(middlemanName) {
+  const services = ['vps', 'cerberus', 'proxy', 'storage', 'varys'];
+
+  services.forEach(service => {
+    const checkSql = `
+      SELECT COUNT(*) AS count FROM clients
+      WHERE service = ? AND middleman_name = ? AND is_cancelled = FALSE
+    `;
+
+    db.query(checkSql, [service, middlemanName], (err, results) => {
+      if (!err) {
+        const flagValue = results[0].count > 0 ? 1 : 0;
+        const updateSql = `UPDATE users SET is_${service} = ? WHERE username = ?`;
+        db.query(updateSql, [flagValue, middlemanName]);
+      }
+    });
+  });
+}
