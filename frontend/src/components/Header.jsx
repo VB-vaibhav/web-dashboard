@@ -181,7 +181,7 @@ const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
       </div> */}
       <div className="flex items-center gap-2 text-xl">
 
-        <button className={iconClass('refresh')} title="Refresh">
+        {/* <button className={iconClass('refresh')} title="Refresh">
           <RefreshCcw size={18} />
         </button>
 
@@ -195,7 +195,7 @@ const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
 
         <button className={iconClass('addons')} title="Add-ons">
           <Grid size={18} />
-        </button>
+        </button> */}
 
         <button
           onClick={onToggleTheme}
