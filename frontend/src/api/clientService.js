@@ -1,12 +1,23 @@
 import axios from './axios';
 
-// GET /clients
+// export const getClients = async () => {
+//   const res = await axios.get('/clients', {
+//     headers: {
+//       Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+//     }
+//   });
+//   return res.data;
+// };
+
+// ✅ General list — for default usage if needed
 export const getClients = async () => {
-  const res = await axios.get('/clients', {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-    }
-  });
+  const res = await axios.get('/clients');
+  return res.data;
+};
+
+// ✅ New: GET /clients/:service
+export const getClientsByService = async (service) => {
+  const res = await axios.get(`/clients/${service}`);
   return res.data;
 };
 

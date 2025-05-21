@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { getClients, deleteClient } from '../api/clientService';
+import { getClientsByService, deleteClient } from '../api/clientService';
 
-export default function ClientTable() {
+export default function ClientTable({ service }) {
   const [clients, setClients] = useState([]);
   const [error, setError] = useState('');
 
   const fetchClients = async () => {
     try {
-      const data = await getClients();
+      const data = await getClientsByService(service);
       setClients(data);
     } catch (err) {
       setError('Failed to load clients.');
@@ -26,11 +26,11 @@ export default function ClientTable() {
 
   useEffect(() => {
     fetchClients();
-  }, []);
+  }, [service]);
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Clients</h2>
+      <h2 className="text-xl font-bold mb-4">{service} Clients</h2>
       {error && <p className="text-red-500">{error}</p>}
       <table className="min-w-full border bg-white">
         <thead>

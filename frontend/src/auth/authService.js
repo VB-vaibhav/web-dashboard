@@ -1,4 +1,6 @@
 // src/auth/authService.js
+import { setCredentials,clearCredentials } from '../slices/authSlice';
+import store from '../store';
 import axios from '../api/axios';
 
 const API_URL = 'http://localhost:5000/api/auth';
@@ -14,11 +16,21 @@ export const login = async (emailOrUsername, password) => {
   if (!res.ok) throw new Error("Login failed");
 
   const data = await res.json();
-  localStorage.setItem('accessToken', data.accessToken);
-  localStorage.setItem('role', data.role);
-  if (data.permissions) {
-    localStorage.setItem('permissions', JSON.stringify(data.permissions));
-  }
+
+//   localStorage.setItem('accessToken', data.accessToken);
+//   localStorage.setItem('role', data.role);
+//   if (data.permissions) {
+//     localStorage.setItem('permissions', JSON.stringify(data.permissions));
+//   }
+//   return data;
+// };
+store.dispatch(setCredentials({
+    accessToken: data.accessToken,
+    role: data.role,
+    permissions: data.permissions,
+  }));
+
+  localStorage.setItem('accessToken', data.accessToken); // Optional
   return data;
 };
 
@@ -27,7 +39,8 @@ export const logout = async () => {
     method: 'POST',
     credentials: 'include'
   });
-  localStorage.removeItem('accessToken');
+  // localStorage.removeItem('accessToken');
+  store.dispatch(clearCredentials());
 };
 
 export const refreshAccessToken = async () => {

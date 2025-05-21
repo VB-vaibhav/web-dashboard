@@ -11,16 +11,22 @@ import {
   Bell,
   Mail,
   BarChart2,
-  Settings
+  Settings, HelpCircle, Grid, Sun, Moon, User
 } from 'lucide-react';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { hasAccess } from '../utils/accessUtils';
 
-const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }) => {
+
+const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, onToggleTheme }) => {
   const location = useLocation();
-  const role = localStorage.getItem('role') || 'superadmin';
-  const permissions = JSON.parse(localStorage.getItem('permissions')) || {};
+  const role = useSelector(state => state.auth.role);
+  const permissions = useSelector(state => state.auth.permissions) || {};
+  const isActive = (path) =>
+  location.pathname === path || (path === '/dashboard' && location.pathname === '/');
+  const iconClass = `p-2 rounded-full transition ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-500'}`;
 
   const linksTop = [
     { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, roles: ['superadmin', 'admin', 'middleman'] },
@@ -34,14 +40,28 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
   ];
 
   const linksBottom = [
-    { label: 'Notification scheduler', to: '/notification-scheduler', icon: Bell, roles: ['admin', 'superadmin'] },
-    { label: 'Mail scheduler', to: '/mail-scheduler', icon: Mail, roles: ['superadmin'] },
-    { label: 'Reports', to: '/reports', icon: BarChart2, roles: ['superadmin'] },
+    { label: 'Notification scheduler', to: '/notification-scheduler', icon: Bell, roles: ['superadmin', 'admin', 'middleman'], key: 'is_notification' },
+    { label: 'Mail scheduler', to: '/mail-scheduler', icon: Mail, roles: ['superadmin', 'admin', 'middleman'], key: 'is_mail' },
+    { label: 'Reports', to: '/reports', icon: BarChart2, roles: ['superadmin', 'admin', 'middleman'], key: 'is_reports' },
     { label: 'Settings', to: '/settings', icon: Settings, roles: ['superadmin'] },
   ];
+  const mobileOnlyLinks = [
+    { label: 'Help', icon: HelpCircle },
+    { label: 'Add-ons', icon: Grid },
+    { label: 'Theme', icon: dark ? Sun : Moon, onClick: onToggleTheme },
+    {
+      label: 'Profile', icon: () => (
+        <img
+          src="https://i.pravatar.cc/40?img=4"
+          alt="User"
+          className="w-5 h-5 rounded-full object-cover"
+        />
+      )
+    }
+  ];
   return (
-    <div 
-    className={`
+    <div
+      className={`
       fixed md:relative z-40 transition-[width] duration-300 ease-in-out 
       ${collapsed ? 'w-16' : 'w-64'} ${isMobile ? 'block' : 'hidden'} md:block
       ${dark ? 'bg-gray-800 text-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.3)]' : 'bg-white text-gray-800 shadow-2xl'}
@@ -68,7 +88,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
                 if (!roles.includes(role)) return null;
 
                 // For admin or middleman, check flag key
-                if ((role === 'admin' || role === 'middleman') && key && permissions[key] !== 1) return null;
+                if (key && !hasAccess(role, permissions, key)) return null;
 
                 return (
                   <Link
@@ -76,7 +96,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
                     key={label}
                     className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium
                 
-                ${location.pathname === to
+                ${isActive(to)
                         ? (dark ? 'bg-gray-600 text-white' : 'bg-indigo-100 text-indigo-600')
                         : (dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-500')}
                   `}
@@ -96,13 +116,16 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
           <hr className={`my-4 mx-4 border-t ${dark ? 'border-gray-700' : 'border-gray-200'}`} />
 
           <nav className=" space-y-2">
-            {linksBottom.map(({ label, to, icon: Icon, roles }) =>
-              roles.includes(role) && (
+            {linksBottom.map(({ label, to, icon: Icon, roles, key }) => {
+              if (!roles.includes(role)) return null;
+              if ((role === 'admin' || role === 'middleman') && key && permissions[key] !== 1) return null;
+
+              return (
                 <Link
                   to={to}
                   key={label}
                   className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium
-                ${location.pathname === to
+                ${isActive(to)
                       ? (dark ? 'bg-gray-600 text-white' : 'bg-indigo-100 text-indigo-600')
                       : (dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-500')}
                   `}
@@ -110,8 +133,25 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen }
                   <Icon size={18} />
                   {!collapsed && label}
                 </Link>
-              )
+              );
+            }
             )}
+
+            {/* ✅ MOBILE-ONLY EXTRA ICONS */}
+            <div className="block md:hidden space-y-2">
+              {mobileOnlyLinks.map(({ label, icon: Icon, onClick }) => (
+                <button
+                  key={label}
+                  onClick={onClick}
+                  className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium w-full ${iconClass} ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-500'}`}
+                  title={label}
+                >
+                  {typeof Icon === 'function' ? <Icon /> : <Icon size={18} />}
+                  {!collapsed && label}
+                </button>
+              ))}
+            </div>
+
           </nav>
         </div >
       </div>

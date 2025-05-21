@@ -88,7 +88,10 @@ exports.login = async (req, res) => {
           is_vps: user.is_vps,
           is_proxy: user.is_proxy,
           is_storage: user.is_storage,
-          is_varys: user.is_varys
+          is_varys: user.is_varys,
+          is_notification: user.is_notification,
+          is_mail: user.is_mail,
+          is_reports: user.is_reports
         }
       });
 

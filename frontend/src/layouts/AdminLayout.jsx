@@ -121,6 +121,7 @@ const AdminLayout = () => {
         toggleCollapsed={() => setCollapsed(!collapsed)}
         isMobile={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen}
+        onToggleTheme={toggleTheme}
       />
       <div className="flex-1 flex flex-col transition-colors duration-300 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
         <Header
