@@ -18,14 +18,18 @@ import { Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { hasAccess } from '../utils/accessUtils';
+import { useProfile } from '../context/ProfileContext';
 
 
-const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, onToggleTheme }) => {
+const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, onToggleTheme, setShowHelp }) => {
   const location = useLocation();
   const role = useSelector(state => state.auth.role);
   const permissions = useSelector(state => state.auth.permissions) || {};
+  const { openProfile } = useProfile();
+
   const isActive = (path) =>
-  location.pathname === path || (path === '/dashboard' && location.pathname === '/');
+    location.pathname === path || (path === '/dashboard' && location.pathname === '/');
+
   const iconClass = `p-2 rounded-full transition ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-500'}`;
 
   const linksTop = [
@@ -46,17 +50,20 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
     { label: 'Settings', to: '/settings', icon: Settings, roles: ['superadmin'] },
   ];
   const mobileOnlyLinks = [
-    { label: 'Help', icon: HelpCircle },
+    { label: 'Help', icon: HelpCircle, onClick: () => setShowHelp(true) },
     { label: 'Add-ons', icon: Grid },
     { label: 'Theme', icon: dark ? Sun : Moon, onClick: onToggleTheme },
+    // {
+    //   label: 'Profile', icon: () => (
+    //     <img
+    //       src="https://i.pravatar.cc/40?img=4"
+    //       alt="User"
+    //       className="w-5 h-5 rounded-full object-cover"
+    //     />
+    //   )
+    // }
     {
-      label: 'Profile', icon: () => (
-        <img
-          src="https://i.pravatar.cc/40?img=4"
-          alt="User"
-          className="w-5 h-5 rounded-full object-cover"
-        />
-      )
+      label: 'Profile', icon: User, to: '/profile'
     }
   ];
   return (
@@ -139,17 +146,29 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
 
             {/* ✅ MOBILE-ONLY EXTRA ICONS */}
             <div className="block md:hidden space-y-2">
-              {mobileOnlyLinks.map(({ label, icon: Icon, onClick }) => (
-                <button
-                  key={label}
-                  onClick={onClick}
-                  className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium w-full ${iconClass} ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-500'}`}
-                  title={label}
-                >
-                  {typeof Icon === 'function' ? <Icon /> : <Icon size={18} />}
-                  {!collapsed && label}
-                </button>
-              ))}
+              {mobileOnlyLinks.map(({ label, icon: Icon, to, onClick }) => 
+               to ? (
+                  <Link
+                    to={to}
+                    key={label}
+                    className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium w-full ${iconClass}`}
+                    title={label}
+                  >
+                    {typeof Icon === 'function' ? <Icon /> : <Icon size={18} />}
+                    {!collapsed && label}
+                  </Link>
+                ) : (
+                  <button
+                    key={label}
+                    onClick={onClick}
+                    className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium w-full ${iconClass} ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-500'}`}
+                    title={label}
+                  >
+                    {typeof Icon === 'function' ? <Icon /> : <Icon size={18} />}
+                    {!collapsed && label}
+                  </button>
+                )
+              )}
             </div>
 
           </nav>
