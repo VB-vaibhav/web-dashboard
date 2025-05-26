@@ -315,6 +315,7 @@
 
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import HelpModal from './HelpModal';
 import {
   Sun, Moon, RefreshCcw, Bell, User, HelpCircle, Grid, Search
 } from 'lucide-react';
@@ -338,6 +339,8 @@ const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
   const location = useLocation();
   const pageTitle = routeTitles[location.pathname] || 'Dashboard';
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+
 
   const iconClass = (icon) =>
     `p-2 rounded-full transition ${activeIcon === icon
@@ -400,7 +403,7 @@ const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
 
           {/* Desktop-only Icons */}
           <div className="hidden lg:flex items-center gap-2">
-            <button className={iconClass('help')} title="Help & Support">
+            <button className={iconClass('help')} title="Help & Support" onClick={() => setShowHelp(true)}>
               <HelpCircle size={18} />
             </button>
             <button className={iconClass('addons')} title="Add-ons">
@@ -446,7 +449,11 @@ const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
           </div>
         </div>
       )}
-    </>
+
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} dark={dark}/> </>
+      
+   
+    
   );
 };
 
