@@ -28,14 +28,17 @@ import VarysClientsPage from './pages/VarysClientsPage';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { hasAccess } from './utils/accessUtils';
-
-
+import { RefreshProvider } from './context/RefreshContext';
+import { ProfileProvider } from './context/ProfileContext';
+import ProfilePage from './pages/ProfilePage';
+import EditProfilePageMobile from './pages/EditProfilePageMobile';
 import './index.css';
 
 const isLoggedIn = () => {
   return !!localStorage.getItem('accessToken');
 
 };
+
 // const role = localStorage.getItem('role');
 // const permissions = JSON.parse(localStorage.getItem('permissions')) || {};
 
@@ -75,7 +78,18 @@ const ProtectedRoutes = () => {
         <Route path="reports" element={
           hasAccess(role, permissions, 'is_reports') ? <ReportsPage /> : <Navigate to="/unauthorized" />
         } />
-        <Route path="settings" element={<SettingsPage />} />
+        {/* <Route path="settings" element={<SettingsPage />} /> */}
+        <Route path="settings" element={role === 'superadmin' ? <SettingsPage /> : <Navigate to="/unauthorized" />}>
+          <Route index element={<Navigate to="service-access" />} />
+          <Route path="service-access" element={<div>Service Access Settings</div>} />
+          <Route path="panel-access" element={<div>Panel Access Settings</div>} />
+          <Route path="exclude-clients" element={<div>Exclude Clients Settings</div>} />
+          <Route path="role-management" element={<div>Role Management Settings</div>} />
+          <Route path="users" element={<div>User Management Settings</div>} />
+        </Route>
+
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/edit" element={<EditProfilePageMobile />} />
         <Route path="unauthorized" element={<h2 className="p-8 text-red-600">Unauthorized</h2>} />
       </Route>
     </Routes>
@@ -86,17 +100,20 @@ createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
       <PersistGate loading={<div className="p-8">Loading session...</div>} persistor={persistor}>
-        <Router>
-          <Routes>
-            {/* Default route: show login if not logged in */}
-            {/* <Route path="/" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} /> */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify-otp" element={<OtpVerify />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            {/* Optional: Protect /app or /dashboard if user types it manually */}
-            {/* <Route path="/dashboard" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} /> */}
-            {/* <Route path="/" element={<AdminLayout />}>
+        <RefreshProvider>
+          <ProfileProvider>
+            <Router>
+              <Routes>
+                {/* Default route: show login if not logged in */}
+                {/* <Route path="/" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} /> */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/verify-otp" element={<OtpVerify />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                {/* <Route path="/profile" element={<ProfilePage />} /> */}
+                {/* Optional: Protect /app or /dashboard if user types it manually */}
+                {/* <Route path="/dashboard" element={isLoggedIn() ? <App /> : <Navigate to="/login" />} /> */}
+                {/* <Route path="/" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="renewals" element={
@@ -144,10 +161,12 @@ createRoot(document.getElementById('root')).render(
           <Route path="settings" element={<SettingsPage />} />
           <Route path="unauthorized" element={<h2 className="p-8 text-red-600">Unauthorized</h2>} />
         </Route> */}
-            <Route path="/*" element={<ProtectedRoutes />} />
+                <Route path="/*" element={<ProtectedRoutes />} />
 
-          </Routes>
-        </Router>
+              </Routes>
+            </Router>
+          </ProfileProvider>
+        </RefreshProvider>
       </PersistGate>
     </Provider>
   </React.StrictMode>

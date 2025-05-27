@@ -1,3 +1,4 @@
 npm install lucide-react
 npm install redux-persist
 
+backend: npm install multer

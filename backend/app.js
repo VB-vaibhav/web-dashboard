@@ -1,12 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const adminRoutes = require('./routes/adminRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
-
 const app = express();
 app.use((req, res, next) => {
   const userAgent = req.get('User-Agent') || '';
@@ -20,6 +20,9 @@ app.use((req, res, next) => {
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
+
+// ✅ Serve uploaded avatars statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);

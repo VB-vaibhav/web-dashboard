@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { getClientsByService, deleteClient } from '../api/clientService';
+import { useRefresh } from '../context/RefreshContext';
 
 export default function ClientTable({ service }) {
   const [clients, setClients] = useState([]);
   const [error, setError] = useState('');
+  const { refreshSignal } = useRefresh();
 
   const fetchClients = async () => {
     try {
@@ -26,7 +28,7 @@ export default function ClientTable({ service }) {
 
   useEffect(() => {
     fetchClients();
-  }, [service]);
+  }, [service, refreshSignal]);
 
   return (
     <div className="p-4">

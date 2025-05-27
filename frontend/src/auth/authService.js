@@ -1,5 +1,5 @@
 // src/auth/authService.js
-import { setCredentials,clearCredentials } from '../slices/authSlice';
+import { setCredentials, clearCredentials } from '../slices/authSlice';
 import store from '../store';
 import axios from '../api/axios';
 
@@ -17,20 +17,24 @@ export const login = async (emailOrUsername, password) => {
 
   const data = await res.json();
 
-//   localStorage.setItem('accessToken', data.accessToken);
-//   localStorage.setItem('role', data.role);
-//   if (data.permissions) {
-//     localStorage.setItem('permissions', JSON.stringify(data.permissions));
-//   }
-//   return data;
-// };
-store.dispatch(setCredentials({
+  //   localStorage.setItem('accessToken', data.accessToken);
+  //   localStorage.setItem('role', data.role);
+  //   if (data.permissions) {
+  //     localStorage.setItem('permissions', JSON.stringify(data.permissions));
+  //   }
+  //   return data;
+  // };
+  store.dispatch(setCredentials({
     accessToken: data.accessToken,
     role: data.role,
     permissions: data.permissions,
   }));
 
   localStorage.setItem('accessToken', data.accessToken); // Optional
+
+  // ✅ Fetch full profile info (username, email, etc.)
+  await refreshUserState();
+
   return data;
 };
 
@@ -47,4 +51,48 @@ export const refreshAccessToken = async () => {
   const res = await axios.post(`${API_URL}/refresh`, {}, { withCredentials: true });
   localStorage.setItem('accessToken', res.data.accessToken);
   return res.data.accessToken;
+};
+
+export const refreshUserState = async () => {
+  const res = await fetch('http://localhost:5000/api/auth/me', {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+    }
+  });
+
+  const data = await res.json();
+  store.dispatch(setCredentials({
+    accessToken: localStorage.getItem('accessToken'),
+    role: data.role,
+    permissions: data.permissions,
+    username: data.username,
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    joinDate: data.join_date,
+    // userId: data.user_id,
+    avatarUrl: data.avatar ? `http://localhost:5000${data.avatar}` // ✅ Fix relative path here
+    : null
+  }));
+};
+
+export const uploadAvatar = async (file) => {
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  const res = await fetch('http://localhost:5000/api/auth/upload-avatar', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+    },
+    body: formData
+  });
+
+  if (!res.ok) throw new Error("Upload failed");
+  return res.json(); // { avatarUrl: '/uploads/...jpg' }
+};
+
+
+export const updateProfile = async ({ name, email, phone }) => {
+  return await axios.post('/auth/update-profile', { name, email, phone });
 };

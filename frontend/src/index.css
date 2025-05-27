@@ -6,3 +6,12 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
 }
+@keyframes blinkFade {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.animate-blink {
+  animation: blinkFade 0.3s ease-in-out;
+}

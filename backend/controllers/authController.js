@@ -218,7 +218,6 @@ exports.verifyOtp = (req, res) => {
 };
 
 // =================== USER SETS NEW PASSWORD ===================
-// const bcrypt = require('bcrypt');
 
 exports.resetPassword = async (req, res) => {
   const { emailOrUsername, newPassword } = req.body;
@@ -255,4 +254,38 @@ exports.resetPassword = async (req, res) => {
       );
     }
   );
+};
+
+
+
+// =================== GLOBAL REFRESH ===================
+exports.getMe = (req, res) => {
+  const userId = req.user.id;
+  db.query("SELECT * FROM users WHERE id = ?", [userId], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(404).send("User not found");
+    }
+
+    const user = results[0];
+    return res.json({
+      role: user.role,
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      join_date: user.created_at,
+      // user_id: user.id,
+      avatar: user.avatar_url,
+      permissions: {
+        is_cerberus: user.is_cerberus,
+        is_vps: user.is_vps,
+        is_proxy: user.is_proxy,
+        is_storage: user.is_storage,
+        is_varys: user.is_varys,
+        is_notification: user.is_notification,
+        is_mail: user.is_mail,
+        is_reports: user.is_reports
+      }
+    });
+  });
 };
