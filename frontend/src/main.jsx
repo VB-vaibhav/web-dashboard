@@ -17,6 +17,8 @@ import RenewalsPage from './pages/RenewalsPage';   // if implemented
 import ClientsPage from './pages/ClientsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
+import ServiceAccessSettings from './pages/settings/ServiceAccessSettings';
+
 import NotificationSchedulerPage from './pages/NotificationSchedulerPage';
 import MailSchedulerPage from './pages/MailSchedulerPage';
 // Service-specific
@@ -82,7 +84,7 @@ const ProtectedRoutes = () => {
         {/* <Route path="settings" element={<SettingsPage />} /> */}
         <Route path="settings" element={role === 'superadmin' ? <SettingsPage /> : <Navigate to="/unauthorized" />}>
           <Route index element={<Navigate to="service-access" />} />
-          <Route path="service-access" element={<div>Service Access Settings</div>} />
+          <Route path="service-access" element={<ServiceAccessSettings />} />
           <Route path="panel-access" element={<div>Panel Access Settings</div>} />
           <Route path="exclude-clients" element={<div>Exclude Clients Settings</div>} />
           <Route path="role-management" element={<div>Role Management Settings</div>} />
