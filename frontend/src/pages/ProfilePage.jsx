@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { uploadAvatar, refreshUserState } from '../auth/authService';
 import { Pencil } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
 
 export default function ProfilePage() {
     const navigate = useNavigate();
-    const dark = document.documentElement.classList.contains('dark');
+    const { dark } = useOutletContext();
 
     const avatarUrl = useSelector(state => state.auth.avatarUrl);
     const role = useSelector(state => state.auth.role);
@@ -38,7 +39,7 @@ export default function ProfilePage() {
 
 
     return (
-        <div className={`rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} p-4`}>
+        <div className={`flex flex-col min-h-[calc(100vh-100px)] p-4 rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
             {/* <div className={`flex justify-between items-center mb-6 pb-2 border-b ${dark ? 'border-gray-700' : 'border-gray-200'}`}>
                 <h2 className={`text-xl font-bold ${dark ? 'text-white' : 'text-blue-900'}`}>Profile</h2>
                 <button onClick={() => navigate(-1)} className="text-xl font-md text-blue-900">✖</button>
@@ -74,25 +75,25 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-start mt-4 space-y-3 text-sm px-2">
                     <div className={`font-bold text-md ${dark ? 'text-white' : 'text-black'}`}>Information</div>
                     <div className="grid grid-cols-[90px_1fr] gap-y-3">
-                        <div className="font-medium">Name:</div>
-                        <div className="break-words truncate text-sm">{name}</div>
-                        <div className="font-medium">Email:</div>
-                        <div className="break-words truncate text-sm leading-snug" title={email}>{email}</div>
-                        <div className="font-medium">Phone:</div>
-                        <div className="break-words truncate text-sm">{phone}</div>
-                        <div className="font-medium">Join Date:</div>
-                        <div>{formattedJoinDate}</div>
+                        <div className="font-medium text-left">Name:</div>
+                        <div className="text-right break-words truncate text-sm">{name}</div>
+                        <div className="font-medium text-left">Email:</div>
+                        <div className="text-right break-words truncate text-sm leading-snug" title={email}>{email}</div>
+                        <div className="font-medium text-left">Phone:</div>
+                        <div className="text-right break-words truncate text-sm">{phone}</div>
+                        <div className="font-medium text-left">Join Date:</div>
+                        <div className="text-right">{formattedJoinDate}</div>
                     </div>
                 </div>
             </div>
 
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 mt-auto">
                 <button
                     onClick={() => {
                         localStorage.clear();
                         navigate('/login');
                     }}
-                    className={`mt-12 w-full py-2 rounded-md border ${dark ? 'border-slate-300 text-slate-300 hover:bg-gray-700 hover:text-white' : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'}  transition font-medium`}
+                    className={` w-full py-2 rounded-md border ${dark ? 'border-slate-300 text-slate-300 hover:bg-gray-700 hover:text-white' : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'}  transition font-medium`}
                 >
                     Log out
                 </button>

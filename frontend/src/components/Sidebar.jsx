@@ -14,7 +14,7 @@ import {
   Settings, HelpCircle, Grid, Sun, Moon, User
 } from 'lucide-react';
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { hasAccess } from '../utils/accessUtils';
@@ -23,9 +23,15 @@ import { useProfile } from '../context/ProfileContext';
 
 const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, onToggleTheme, setShowHelp }) => {
   const location = useLocation();
-  const role = useSelector(state => state.auth.role);
   const permissions = useSelector(state => state.auth.permissions) || {};
   const { openProfile } = useProfile();
+
+  const username = useSelector(state => state.auth.username);
+  const name = useSelector(state => state.auth.name); // if available
+  const role = useSelector(state => state.auth.role);
+  const avatarUrl = useSelector(state => state.auth.avatarUrl) || 'https://i.pravatar.cc/100?u=default';
+  const navigate = useNavigate(); // to handle navigation
+
 
   const isActive = (path) =>
     location.pathname === path || (path === '/dashboard' && location.pathname === '/');
@@ -50,7 +56,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
     { label: 'Settings', to: '/settings', icon: Settings, roles: ['superadmin'] },
   ];
   const mobileOnlyLinks = [
-    { label: 'Help', icon: HelpCircle, onClick: () => setShowHelp(true) },
+    { label: 'Help', icon: HelpCircle, to: '/help' },
     { label: 'Add-ons', icon: Grid },
     { label: 'Theme', icon: dark ? Sun : Moon, onClick: onToggleTheme },
     // {
@@ -62,9 +68,9 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
     //     />
     //   )
     // }
-    {
-      label: 'Profile', icon: User, to: '/profile'
-    }
+    // {
+    //   label: 'Profile', icon: User, to: '/profile'
+    // }
   ];
   return (
     <div
@@ -75,11 +81,29 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
       h-screen flex flex-col
     `}>
       {/* Top Heading and Collapse Button */}
-      <div className="relative flex justify-between items-center h-16 px-4">
+      <div className="px-4 pt-4">
         {/* {!collapsed && <h2 className="font-bold text-lg">Management Panel</h2>} */}
-        <h2 className="font-bold text-lg tracking-wide">
+        <h2 className="font-bold text-lg tracking-wide mb-4">
           {collapsed ? 'MP' : 'Management Panel'}
         </h2>
+        {!collapsed && isMobile && (
+          <div
+            className="flex items-center gap-3 mt-4 px-2 cursor-pointer"
+            onClick={() => 
+              navigate('/profile')
+            }
+          >
+            <img
+              src={avatarUrl}
+              alt="Profile"
+              className="w-10 h-10 rounded-full object-cover border"
+            />
+            <div className="leading-tight">
+              <div className={`text-sm font-semibold ${dark ? 'text-white' : 'text-indigo-600'} `}>{name || username}</div>
+              <div className="text-xs text-gray-500 capitalize">{role}</div>
+            </div>
+          </div>
+        )}
         <button onClick={() => isMobile ? setIsMobileOpen(false) : toggleCollapsed()} className={`w-5 h-5 flex items-center justify-center rounded-full border ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-800 border-gray-200'} absolute right-[-10px] top-6`}>
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -146,8 +170,8 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
 
             {/* ✅ MOBILE-ONLY EXTRA ICONS */}
             <div className="block md:hidden space-y-2">
-              {mobileOnlyLinks.map(({ label, icon: Icon, to, onClick }) => 
-               to ? (
+              {mobileOnlyLinks.map(({ label, icon: Icon, to, onClick }) =>
+                to ? (
                   <Link
                     to={to}
                     key={label}

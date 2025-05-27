@@ -25,6 +25,8 @@ const routeTitles = {
   '/reports': 'Reports',
   '/settings': 'Settings',
   '/profile': 'Profile',
+  '/profile/edit': 'Edit Profile',
+  '/help':'Help',
 };
 
 const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
@@ -61,7 +63,7 @@ const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
   const userId = useSelector(state => state.auth.userId);
   const avatarUrl = useSelector(state => state.auth.avatarUrl);
 
-  const hideIconsOnRoutes = ['/profile'];
+  const hideIconsOnRoutes = ['/profile', '/profile/edit', '/help'];
   const shouldHideIcons = hideIconsOnRoutes.includes(pathname);
 
   return (

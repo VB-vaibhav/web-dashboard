@@ -32,6 +32,7 @@ import { RefreshProvider } from './context/RefreshContext';
 import { ProfileProvider } from './context/ProfileContext';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePageMobile from './pages/EditProfilePageMobile';
+import HelpPage from './pages/HelpPage';
 import './index.css';
 
 const isLoggedIn = () => {
@@ -81,6 +82,7 @@ const ProtectedRoutes = () => {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/edit" element={<EditProfilePageMobile />} />
+        <Route path="help" element={<HelpPage />}/>
         <Route path="unauthorized" element={<h2 className="p-8 text-red-600">Unauthorized</h2>} />
       </Route>
     </Routes>
