@@ -33,6 +33,8 @@ import { ProfileProvider } from './context/ProfileContext';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePageMobile from './pages/EditProfilePageMobile';
 import HelpPage from './pages/HelpPage';
+import ServiceAccessSettings from './pages/settings/ServiceAccessSettings';
+
 import './index.css';
 
 const isLoggedIn = () => {
@@ -82,7 +84,7 @@ const ProtectedRoutes = () => {
         {/* <Route path="settings" element={<SettingsPage />} /> */}
         <Route path="settings" element={role === 'superadmin' ? <SettingsPage /> : <Navigate to="/unauthorized" />}>
           <Route index element={<Navigate to="service-access" />} />
-          <Route path="service-access" element={<div>Service Access Settings</div>} />
+          <Route path="service-access" element={<ServiceAccessSettings />} />
           <Route path="panel-access" element={<div>Panel Access Settings</div>} />
           <Route path="exclude-clients" element={<div>Exclude Clients Settings</div>} />
           <Route path="role-management" element={<div>Role Management Settings</div>} />

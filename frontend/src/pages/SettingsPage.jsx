@@ -1,17 +1,5 @@
-// import React from 'react';
-
-// const SettingsPage = () => {
-//   return (
-//     <div className="p-4 bg-white rounded shadow text-gray-800">
-//       <h2 className="text-xl font-semibold mb-2">SettingsPage</h2>
-//       <p className="text-sm text-gray-600">This is a placeholder for reports.</p>
-//     </div>
-//   );
-// };
-
-// export default SettingsPage;
-
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 
 const SETTINGS_SECTIONS = [
   { label: 'Access to Service Panels', value: 'service-access' },
@@ -30,23 +18,33 @@ export default function SettingsPage() {
     navigate(`/settings/${e.target.value}`);
   };
 
+  const { dark } = useOutletContext();
+
   return (
-    <div className="space-y-6">
+    <div className={`flex flex-col min-h-[calc(100vh-100px)] p-4 rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] space-y-6 ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Settings</h2>
+        {/* <h2 className={`text-xl font-bold ${dark ? 'text-white' : 'text-gray-800'}`}>Settings</h2> */}
         <select
           value={current}
           onChange={handleChange}
-          className="px-3 py-2 border rounded-md bg-white dark:bg-gray-800 text-sm"
+          className={`px-3 py-2 rounded-md text-md font-medium transition-all
+            ${dark
+              ? 'bg-gray-800 text-white'
+              : 'bg-white text-indigo-600'}`}
         >
           {SETTINGS_SECTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
       </div>
 
-      <div className="mt-6 border p-4 rounded shadow bg-white dark:bg-gray-800">
-        <Outlet />
+      <div className={` p-4 rounded  transition-all
+        ${dark
+          ? 'bg-gray-800 text-white'
+          : 'bg-white text-gray-800'}`}>
+        <Outlet context={{ dark }} />
       </div>
     </div>
   );
