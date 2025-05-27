@@ -76,22 +76,35 @@ export const refreshUserState = async () => {
   }));
 };
 
+// export const uploadAvatar = async (file) => {
+//   const formData = new FormData();
+//   formData.append('avatar', file);
+
+//   const res = await fetch('http://localhost:5000/api/auth/upload-avatar', {
+//     method: 'POST',
+//     headers: {
+//       Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+//     },
+//     body: formData
+//   });
+
+//   if (!res.ok) throw new Error("Upload failed");
+//   return res.json(); // { avatarUrl: '/uploads/...jpg' }
+// };
+
 export const uploadAvatar = async (file) => {
   const formData = new FormData();
   formData.append('avatar', file);
 
-  const res = await fetch('http://localhost:5000/api/auth/upload-avatar', {
-    method: 'POST',
+  const token = localStorage.getItem('accessToken'); // ✅ correct key
+
+  return await axios.post('/auth/upload-avatar', formData, {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-    },
-    body: formData
+      Authorization: `Bearer ${token}`,              // ✅ required by verifyToken
+      'Content-Type': 'multipart/form-data',
+    }
   });
-
-  if (!res.ok) throw new Error("Upload failed");
-  return res.json(); // { avatarUrl: '/uploads/...jpg' }
 };
-
 
 export const updateProfile = async ({ name, email, phone }) => {
   return await axios.post('/auth/update-profile', { name, email, phone });

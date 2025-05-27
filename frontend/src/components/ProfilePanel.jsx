@@ -68,10 +68,10 @@ const ProfilePanel = ({ user, dark }) => {
     };
 
     if (!isOpen) return null;
-    
+
     // ✅ Desktop Floating Panel
     return (
-        <div ref={panelRef} className={`absolute right-4 top-11 w-80 z-50 rounded-xl shadow-xl border ${dark ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-800 border-gray-200'}`}>
+        <div ref={panelRef} className={`absolute right-4 top-13 w-80 z-50 rounded-xl shadow-xl border ${dark ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-800 border-gray-200'}`}>
             {/* Header */}
             <div className={`flex items-center justify-between p-4 border-b ${dark ? 'border-gray-700' : 'border-gray-200'}`}>
                 <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-blue-900'}`}>Profile</h2>
@@ -81,7 +81,7 @@ const ProfilePanel = ({ user, dark }) => {
             </div>
 
             {/* Avatar & Name */}
-            <div className="p-5 text-center">
+            {/* <div className="p-5 text-center">
                 <div className="relative w-24 h-24 mx-auto rounded-full shadow">
                     <img src={avatar} alt="Avatar" className={`rounded-full w-full h-full object-cover border-4 ${dark ? 'border-gray-800' : 'border-white'}`} />
                     <button
@@ -104,7 +104,42 @@ const ProfilePanel = ({ user, dark }) => {
                 </div>
                 <div className={`mt-3 font-semibold ${dark ? 'text-white' : 'text-indigo-600'} text-lg`}>{user.username}</div>
                 <div className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{user.role}</div>
+            </div> */}
+
+            <div className="flex items-center gap-4 px-4 py-3">
+                {/* Avatar + pencil */}
+                <div className="relative w-16 h-16 shrink-0">
+                    <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        className={`rounded-full w-full h-full object-cover border-4 ${dark ? 'border-gray-800' : 'border-white'}`}
+                    />
+                    <button
+                        onClick={(e) =>{
+                            e.stopPropagation();
+                            openEdit();
+                        }}
+                        className={`absolute right-0 bottom-0 p-1 bg-gray-200 text-white rounded-full border-2 shadow-sm ${dark ? 'border-gray-800' : 'border-white'}`}
+                        title="Edit"
+                    >
+                        <Pencil size={16} className={` ${dark ? 'text-gray-700' : 'text-gray-600'}`} />
+                    </button>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                    />
+                </div>
+
+                {/* Username + Role */}
+                <div className="flex flex-col justify-center">
+                    <div className={`text-indigo-600 font-semibold text-base ${dark ? 'text-white' : 'text-indigo-600'} `}>{username}</div>
+                    <div className={`text-xs text-gray-500 capitalize ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{role}</div>
+                </div>
             </div>
+
 
             {/* Details */}
             <div className="px-6 pb-5 text-sm space-y-2">

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { uploadAvatar, updateProfile, refreshUserState } from '../auth/authService';
 import { useNavigate } from 'react-router-dom';
 import { Pencil } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
 
 const EditProfilePageMobile = () => {
     const avatarUrl = useSelector(state => state.auth.avatarUrl);
@@ -16,7 +17,7 @@ const EditProfilePageMobile = () => {
     const [email, setEmail] = useState(emailRedux || '');
     const [phone, setPhone] = useState(phoneRedux || '');
     const [preview, setPreview] = useState(avatarUrl);
-    const dark = document.documentElement.classList.contains('dark');
+    const { dark } = useOutletContext();
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -43,15 +44,15 @@ const EditProfilePageMobile = () => {
     };
 
     return (
-        <div className={`p-4 w-full max-w-lg mx-auto rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
+        <div className={`flex flex-col min-h-[calc(100vh-100px)] p-4 w-full max-w-lg mx-auto rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+            {/* <div className="flex justify-between items-center mb-4 border-b pb-2">
                 <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-blue-900'}`}>Edit Profile</h2>
-                {/* <button onClick={() => navigate('/profile')} className="text-2xl text-gray-600">✖</button> */}
-            </div>
+                <button onClick={() => navigate('/profile')} className="text-2xl text-gray-600">✖</button>
+            </div> */}
 
-            <div className="flex flex-col items-center mb-6">
-                <div className="relative w-24 h-24 mb-2">
-                    <img src={preview || 'https://i.pravatar.cc/100'} className={`w-full h-full rounded-full object-coverborder-2 ${dark ? 'border-gray-800' : 'border-white'}`} alt="avatar" />
+            <div className="space-y-4 p-4">
+                <div className="flex flex-col items-center ">
+                    <img src={preview || 'https://i.pravatar.cc/100'} className={`w-20 h-20 rounded-full object-cover border-2 ${dark ? 'border-gray-800' : 'border-white'}`} alt="avatar" />
                     <button
                         className={`mt-2 text-sm ${dark ? 'text-gray-400' : 'text-gray-500'}`}
                         onClick={() => fileInputRef.current.click()}
@@ -65,17 +66,26 @@ const EditProfilePageMobile = () => {
                         className="hidden"
                         onChange={handleImageUpload}
                     />
-                    {/* <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleImageUpload} /> */}
                 </div>
             </div>
 
             <div className="space-y-4">
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className="w-full border p-2 rounded" />
-                <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full border p-2 rounded" />
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" className="w-full border p-2 rounded" />
+                <div>
+                    <label className="block text-sm font-medium pb-2">Name</label>
+                    <input value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-2 py-1 rounded text-sm" />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium pb-2">Email</label>
+                    <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border px-2 py-1 rounded text-sm" />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium pb-2">Phone</label>
+                    <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border px-2 py-1 rounded text-sm" />
+                </div>
             </div>
-
-            <button onClick={handleSubmit} className="w-full mt-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save</button>
+            <div className="px-6 pb-6 mt-auto">
+                <button onClick={handleSubmit} className={`w-full mt-12 py-2 rounded-md transition font-medium border ${dark ? 'border-slate-300 text-slate-300 hover:bg-gray-700 hover:text-white' : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'}`}>Save</button>
+            </div>
         </div>
     );
 };

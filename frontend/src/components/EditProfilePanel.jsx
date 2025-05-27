@@ -65,7 +65,7 @@ const EditProfilePanel = ({ dark }) => {
     };
 
     return (
-        <div className={`absolute right-4 top-[4rem] w-[22rem] z-50 rounded-xl shadow-xl border ${dark ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-800 border-gray-200'}`}>
+        <div className={`absolute top-[0px] w-80 z-50 rounded-xl shadow-xl border ${dark ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-800 border-gray-200'}`}>
             <div className={`flex justify-between items-center px-4 py-3 border-b ${dark ? 'border-gray-700' : 'border-gray-200'}`}>
                 <h2 className={`font-semibold text-lg ${dark ? 'text-white' : 'text-blue-900'}`}>Edit Profile</h2>
                 <button onClick={closeEdit}><X size={20} className="hover:text-red-500"/></button>
@@ -104,7 +104,7 @@ const EditProfilePanel = ({ dark }) => {
                     </div>
                 </div>
 
-                <button onClick={handleSave} className="w-full bg-indigo-600 text-white py-2 rounded text-sm hover:bg-indigo-700">Save</button>
+                <button onClick={handleSave} className={`w-full py-2 rounded-md transition font-medium border ${dark ? 'border-slate-300 text-slate-300 hover:bg-gray-700 hover:text-white' : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'}`}>Save</button>
             </div>
         </div>
     );
