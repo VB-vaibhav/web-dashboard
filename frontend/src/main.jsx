@@ -17,7 +17,7 @@ import RenewalsPage from './pages/RenewalsPage';   // if implemented
 import ClientsPage from './pages/ClientsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
-import ServiceAccessSettings from './pages/settings/ServiceAccessSettings';
+
 
 import NotificationSchedulerPage from './pages/NotificationSchedulerPage';
 import MailSchedulerPage from './pages/MailSchedulerPage';
@@ -35,6 +35,8 @@ import { ProfileProvider } from './context/ProfileContext';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePageMobile from './pages/EditProfilePageMobile';
 import HelpPage from './pages/HelpPage';
+import ServiceAccessSettings from './pages/settings/ServiceAccessSettings';
+
 import './index.css';
 
 const isLoggedIn = () => {

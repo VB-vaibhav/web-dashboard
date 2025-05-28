@@ -24,7 +24,7 @@ const routeTitles = {
   '/notification-scheduler': 'Notification Scheduler',
   '/mail-scheduler': 'Mail Scheduler',
   '/reports': 'Reports',
-  '/settings': 'Settings',
+  // '/settings': 'Settings',
   '/settings/service-access': 'Settings',
   '/settings/panel-access': 'Settings',
   '/settings/exclude-clients': 'Settings',
