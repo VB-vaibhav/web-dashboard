@@ -1,5 +1,8 @@
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
+import Select from 'react-select';
+import { components } from 'react-select';
+
 
 const SETTINGS_SECTIONS = [
   { label: 'Access to Service Panels', value: 'service-access' },
@@ -21,30 +24,80 @@ export default function SettingsPage() {
   const { dark } = useOutletContext();
 
   return (
-    <div className={`flex flex-col min-h-[calc(100vh-100px)] p-4 rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] space-y-6 ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-      <div className="flex justify-between items-center">
-        {/* <h2 className={`text-xl font-bold ${dark ? 'text-white' : 'text-gray-800'}`}>Settings</h2> */}
-        <select
-          value={current}
-          onChange={handleChange}
-          className={`px-3 py-2 rounded-md text-md font-medium transition-all
-            ${dark
-              ? 'bg-gray-800 text-white'
-              : 'bg-white text-indigo-600'}`}
-        >
-          {SETTINGS_SECTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className='relative'>
+      <div className={`flex flex-col min-h-[calc(100vh-100px)] p-4 rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] space-y-6 ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+        <div className="flex justify-between items-center flex-wrap gap-2 mb-4">
+          <Select
+            components={{
+              IndicatorSeparator: () => null,
+              DropdownIndicator: (props) => (
+                <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
+              )
+            }}
+            value={SETTINGS_SECTIONS.find(opt => opt.value === current)}
+            onChange={(selected) => navigate(`/settings/${selected.value}`)}
+            options={SETTINGS_SECTIONS}
+            className="w-[224px] text-md ml-6"
+            styles={{
+              control: (base) => ({
+                ...base,
+                border: 'none',
+                boxShadow: 'none',
+                backgroundColor: dark ? '#1F2937' : '#ffffff',
+                color: dark ? '#E5E7EB' : '#1F2937',
+                '&:hover': {
+                  border: 'none',
+                },
+                minHeight: 36,
+                paddingRight: 2,
+              }),
+              menu: (base) => ({
+                ...base,
+                backgroundColor: dark ? '#1F2937' : '#ffffff',
+                zIndex: 99,
+                padding: '4px',
+                borderRadius: '8px',
+                overflowX: 'hidden'
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused
+                  ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
+                  : 'transparent',
+                color: dark ? '#F9FAFB' : '#1F2937',
+                borderRadius: '6px',
+                margin: '4px 0',
+                padding: '8px 10px',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }),
+              singleValue: (base) => ({
+                ...base,
+                color: dark ? '#ffffff' : '#4F46E5',
+              }),
+              valueContainer: (base) => ({
+                ...base,
+                paddingLeft: 8,
+                paddingRight: 4, // shrink right padding
+              }),
 
-      <div className={` p-4 rounded  transition-all
+              placeholder: (base) => ({
+                ...base,
+                color: dark ? '#9CA3AF' : '#6B7280',
+              }),
+            }}
+          />
+
+        </div>
+
+        <div className={` p-4 rounded  transition-all
         ${dark
-          ? 'bg-gray-800 text-white'
-          : 'bg-white text-gray-800'}`}>
-        <Outlet context={{ dark }} />
+            ? 'bg-gray-800 text-white'
+            : 'bg-white text-gray-800'}`}>
+          <Outlet context={{ dark }} />
+        </div>
       </div>
     </div>
   );

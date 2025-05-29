@@ -1,4 +1,6 @@
 npm install lucide-react
 npm install redux-persist
+npm install react-select
+
 
 backend: npm install multer

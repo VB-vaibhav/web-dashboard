@@ -4,15 +4,15 @@ const AlertModal = ({ isOpen, message, onClose, dark }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center ">
-            <div className={`${dark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] max-w-sm w-full`}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center ">
+            <div className={`${dark ? 'bg-gray-700' : 'bg-white'} p-6 rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] max-w-sm w-full`}>
                 <div className={`text-md font-medium ${dark ? 'text-white' : 'text-gray-800'} mb-4`}>
                     {message}
                 </div>
                 <div className="flex justify-end">
                     <button
                         onClick={onClose}
-                        className={`px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm ${dark ? '' : ''}`}
+                        className={`px-4 py-2  rounded  text-sm ${dark ? 'bg-gray-600 text-slate-100 hover:bg-gray-500' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                     >
                         OK
                     </button>
