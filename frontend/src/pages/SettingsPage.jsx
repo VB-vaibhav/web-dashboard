@@ -2,7 +2,7 @@ import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import Select from 'react-select';
 import { components } from 'react-select';
-
+import useIsMobile from '../hooks/useIsMobile';
 
 const SETTINGS_SECTIONS = [
   { label: 'Access to Service Panels', value: 'service-access' },
@@ -15,18 +15,21 @@ const SETTINGS_SECTIONS = [
 export default function SettingsPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   const current = location.pathname.split('/').pop();
 
-  const handleChange = (e) => {
-    navigate(`/settings/${e.target.value}`);
-  };
+  // const handleChange = (e) => {
+  //   navigate(`/settings/${e.target.value}`);
+  // };
 
   const { dark } = useOutletContext();
 
   return (
     <div className='relative'>
       <div className={`flex flex-col min-h-[calc(100vh-100px)] p-4 rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] space-y-6 ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-        <div className="flex justify-between items-center flex-wrap gap-2 mb-4">
+        {/* <div className="flex justify-between items-center flex-wrap gap-2 mb-4"> */}
+        <div className={`flex ${isMobile ? 'flex-col items-start gap-2' : 'flex-row justify-between items-center'} mb-2`}>
+          {/* {!isMobile && <h1 className="text-xl font-semibold ml-6">Settings</h1>} */}
           <Select
             components={{
               IndicatorSeparator: () => null,
@@ -37,7 +40,7 @@ export default function SettingsPage() {
             value={SETTINGS_SECTIONS.find(opt => opt.value === current)}
             onChange={(selected) => navigate(`/settings/${selected.value}`)}
             options={SETTINGS_SECTIONS}
-            className="w-[224px] text-md ml-6"
+            className="w-[224px] text-md ml-2 md:ml-4 lg:ml-6"
             styles={{
               control: (base) => ({
                 ...base,
