@@ -32,10 +32,10 @@ const routeTitles = {
   '/settings/users': 'Settings',
   '/profile': 'Profile',
   '/profile/edit': 'Edit Profile',
-  '/help':'Help',
+  '/help': 'Help',
 };
 
-const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
+const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon }) => {
   const location = useLocation();
   const pathname = location.pathname;
   const pageTitle = routeTitles[location.pathname] || 'Dashboard';
@@ -75,7 +75,10 @@ const Header = ({ dark, onToggleMobile, onToggleTheme, activeIcon }) => {
   return (
     <>
       {/* HEADER */}
-      <header className={`relative w-full h-17 px-4 py-2 flex items-center justify-between shadow-[0_8px_20px_-8px_rgba(0,0,0,0.15)]  ${dark ? 'bg-slate-800 text-white' : 'bg-white text-gray-800'}`}>
+      <header className={`fixed top-0 z-40 h-[60px] flex items-center justify-between px-4 shadow-[0_8px_20px_-8px_rgba(0,0,0,0.15)]
+    ${dark ? 'bg-slate-800 text-white' : 'bg-white text-gray-800'}
+    ${collapsed ? 'left-16 w-[calc(100%-64px)]' : 'left-[240px] w-[calc(100%-240px)]'}
+  `}>
 
         {/* LEFT: Hamburger + Title */}
         <div className="flex items-center gap-4">
