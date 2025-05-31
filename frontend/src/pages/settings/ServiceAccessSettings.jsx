@@ -170,6 +170,12 @@ export default function ServiceAccessSettings() {
   };
 
   const closeModal = () => setShowAlert(false);
+  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0 });
+  const handleHeaderRightClick = (e) => {
+    e.preventDefault();
+    setContextMenu({ visible: true, x: e.clientX, y: e.clientY });
+  };
+
 
   const renderCell = (user, key) => {
     const isIncluded = user[key] === 1;
@@ -186,7 +192,7 @@ export default function ServiceAccessSettings() {
     };
 
 
-    return (
+    return(
       <div className="flex gap-2 justify-center items-center">
         <button
           className={`px-3 py-1.5 rounded-sm text-xs font-medium border transition-all
@@ -297,13 +303,13 @@ export default function ServiceAccessSettings() {
                 <tr className={`border-b ${dark ? 'border-gray-700' : 'border-gray-300'} text-sm font-medium`}>
                   <th className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300 '}`}><input type="checkbox" checked={selected.length === users.length} onChange={() =>
                     setSelected(selected.length === users.length ? [] : users.map(u => u.id))} className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`} /></th>
-                  <th className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Name</th>
-                  <th className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Role</th>
-                  <th className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Cloud Server</th>
-                  <th className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Cerberus</th>
-                  <th className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Proxy</th>
-                  <th className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Storage Server</th>
-                  <th className="px-4 py-3 font-semibold">Varys</th>
+                  <th onContextMenu={handleHeaderRightClick} className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Name</th>
+                  <th onContextMenu={handleHeaderRightClick} className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Role</th>
+                  <th onContextMenu={handleHeaderRightClick} className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Cloud Server</th>
+                  <th onContextMenu={handleHeaderRightClick} className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Cerberus</th>
+                  <th onContextMenu={handleHeaderRightClick} className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Proxy</th>
+                  <th onContextMenu={handleHeaderRightClick} className={`px-4 py-3 font-semibold border-r ${dark ? 'border-gray-700' : 'border-gray-300'}`}>Storage Server</th>
+                  <th onContextMenu={handleHeaderRightClick} className="px-4 py-3 font-semibold">Varys</th>
                 </tr>
               </thead>
               <tbody>
@@ -752,7 +758,7 @@ export default function ServiceAccessSettings() {
 //               )}
 //             </div>
 //           </div>
-//           <div className={`overflow-x-auto rounded-sm 
+//           <div className={`overflow-x-auto rounded-sm
 //                 ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
 //             <div style={{ minWidth: '1000px' }}>
 //               <table className=" text-sm table-auto">
