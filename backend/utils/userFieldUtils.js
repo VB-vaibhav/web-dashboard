@@ -1,0 +1,36 @@
+// 📁 backend/utils/userFieldUtils.js
+const db = require('../config/db');
+
+// Map of static columns per page
+const STATIC_COLUMNS_MAP = {
+  serviceAccess: [
+    'id', 'name', 'role', 'is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'
+  ],
+  clients: [
+    'id', 'name', 'email', 'phone', 'middleman_id', 'service', 'plan', 'start_date', 'expiry_date'
+  ],
+  reports: [
+    'id', 'name', 'revenue', 'paid_to', 'status'
+  ]
+};
+
+async function getUserFieldsForPage(pageKey) {
+  const staticCols = STATIC_COLUMNS_MAP[pageKey] || [];
+
+  try {
+    const [rows] = await db.promise().query(`
+      SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = ?
+        AND TABLE_NAME = 'users'
+        AND COLUMN_NAME LIKE 'custom_%'
+    `, [process.env.DB_NAME]);
+
+    const customCols = rows.map(row => row.COLUMN_NAME);
+    return staticCols.concat(customCols);
+  } catch (err) {
+    console.error(`Error getting user fields for ${pageKey}:`, err);
+    return staticCols; // fallback to static only
+  }
+}
+
+module.exports = { getUserFieldsForPage };
