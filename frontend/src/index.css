@@ -15,3 +15,29 @@ html, body, #root {
 .animate-blink {
   animation: blinkFade 0.3s ease-in-out;
 }
+
+/* Scrollbar base style */
+::-webkit-scrollbar {
+  height: 10px;
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Thumb */
+::-webkit-scrollbar-thumb {
+  background-color: #D9D9D9; /* slate-500 with opacity */
+  border-radius: 10px;
+}
+
+/* Dark mode override */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: transparent;
+}
