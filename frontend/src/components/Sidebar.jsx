@@ -74,7 +74,6 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
   ];
   return (
     <aside className={`fixed top-0 left-0 h-screen z-50 transition-all duration-300 
-  ${collapsed ? 'w-16' : 'w-[220px]'} 
   ${dark ? 'bg-gray-900' : 'bg-white'} shadow-md`}>
       <div
         className={`

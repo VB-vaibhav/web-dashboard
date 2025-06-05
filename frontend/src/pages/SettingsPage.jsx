@@ -23,10 +23,10 @@ export default function SettingsPage() {
   // };
 
   const { dark } = useOutletContext();
-
+  // shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]
   return (
-    <div className='relative w-full max-w-[100vw] overflow-hidden'>
-      <div className={`flex flex-col min-h-[calc(100vh-100px)] duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+    <div className='relative'>
+      <div className={`flex flex-col min-h-[calc(100vh-120px)] duration-300 ease-in-out  ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
         {/* <div className="flex justify-between items-center flex-wrap gap-2 mb-4"> */}
         <div className={`flex ${isMobile ? 'flex-col items-start gap-2' : 'flex-row justify-between items-center'} mb-2`}>
           {/* {!isMobile && <h1 className="text-xl font-semibold ml-6">Settings</h1>} */}
@@ -40,7 +40,7 @@ export default function SettingsPage() {
             value={SETTINGS_SECTIONS.find(opt => opt.value === current)}
             onChange={(selected) => navigate(`/settings/${selected.value}`)}
             options={SETTINGS_SECTIONS}
-            className="w-[224px] text-md ml-2 md:ml-4 lg:ml-6"
+            className="w-[224px] text-md ml-2 top-3"
             styles={{
               control: (base) => ({
                 ...base,
@@ -95,11 +95,13 @@ export default function SettingsPage() {
 
         </div>
 
-        <div className={` p-4 rounded  transition-all
+        <div className={` p-4 rounded  transition-all overflow-x-auto
         ${dark
             ? 'bg-gray-800 text-white'
             : 'bg-white text-gray-800'}`}>
-          <Outlet context={{ dark }} />
+          
+            <Outlet context={{ dark }} />
+         
         </div>
       </div>
     </div>
