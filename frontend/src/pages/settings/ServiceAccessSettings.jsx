@@ -7,6 +7,7 @@ import { Search, MoreVertical, PlusCircle, MinusCircle, Plus, Trash2, ChevronRig
 import Select from 'react-select';
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileServiceAccessUI from './MobileServiceAccessUI';
+import { usePersistentWidths } from '../../hooks/usePersistentWidths';
 
 export default function ServiceAccessSettings() {
     const [users, setUsers] = useState([]);
@@ -55,23 +56,48 @@ export default function ServiceAccessSettings() {
         { label: 'Varys', key: 'is_varys' }
     ];
 
-    const [columnWidthsState, setColumnWidths] = useState([]);
+    // const [columnWidthsState, setColumnWidths] = useState([]);
+    const [columnWidths, setColumnWidths] = useState([]);
+    const [columnInitDone, setColumnInitDone] = useState(false);
 
     useEffect(() => {
-        // total columns = 8 static + dynamic
-        // setColumnWidths(Array(8 + dynamicColumns.length).fill(150));
-        setColumnWidths([
-            40,  // Checkbox column
-            100, // Name
-            80, // Role
-            150, // Cloud Server
-            150, // Cerberus
-            150, // Proxy
-            150, // Storage Server
-            150, // Varys
-            ...Array(dynamicColumns.length).fill(150) // dynamic columns
-        ]);
-    }, [dynamicColumns.length]);
+        if ((8 + dynamicColumns.length) > 0 && !columnInitDone) {
+            const totalCols = 8 + dynamicColumns.length;
+            const saved = localStorage.getItem('columnWidths_service_access');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.length === totalCols) {
+                        setColumnWidths(parsed);
+                    } else {
+                        setColumnWidths(Array(totalCols).fill(150));
+                    }
+                } catch {
+                    setColumnWidths(Array(totalCols).fill(150));
+                }
+            } else {
+                setColumnWidths(Array(totalCols).fill(150));
+            }
+            setColumnInitDone(true);
+        }
+    }, [dynamicColumns.length, columnInitDone]);
+
+
+    // useEffect(() => {
+    //     // total columns = 8 static + dynamic
+    //     // setColumnWidths(Array(8 + dynamicColumns.length).fill(150));
+    //     setColumnWidths([
+    //         40,  // Checkbox column
+    //         100, // Name
+    //         80, // Role
+    //         150, // Cloud Server
+    //         150, // Cerberus
+    //         150, // Proxy
+    //         150, // Storage Server
+    //         150, // Varys
+    //         ...Array(dynamicColumns.length).fill(150) // dynamic columns
+    //     ]);
+    // }, [dynamicColumns.length]);
 
 
     const useResizableColumns = (columnWidths, setColumnWidths) => {
@@ -97,6 +123,8 @@ export default function ServiceAccessSettings() {
                 }
 
                 setColumnWidths(newWidths);
+                localStorage.setItem('columnWidths_service_access', JSON.stringify(newWidths));
+
             };
 
             const handleMouseUp = () => {
@@ -114,7 +142,9 @@ export default function ServiceAccessSettings() {
 
     // const { columnWidths, startResizing, totalWidth } = useResizableColumns([40, 100, 80, 150, 150, 150, 150, 150]);
 
-    const { columnWidths, startResizing, totalWidth } = useResizableColumns(columnWidthsState, setColumnWidths);
+    // const { columnWidths, startResizing, totalWidth } = useResizableColumns(columnWidthsState, setColumnWidths);
+    const { startResizing, totalWidth } = useResizableColumns(columnWidths, setColumnWidths);
+
 
 
     useEffect(() => {
@@ -152,6 +182,64 @@ export default function ServiceAccessSettings() {
             }));
 
             setDynamicColumns(dynamicCols);
+            // setColumnInitDone(false); // force localStorage reload after new columns are detected
+            setTimeout(() => {
+                const totalCols = 8 + dynamicCols.length;
+                const saved = localStorage.getItem('columnWidths_service_access');
+                // if (saved) {
+                //     try {
+                //         const parsed = JSON.parse(saved);
+                //         if (parsed.length === totalCols) {
+                //             setColumnWidths(parsed);
+                //         } else {
+                //             // Stretch or truncate based on new length
+                //             const resized = parsed.concat(Array(totalCols - parsed.length).fill(150)).slice(0, totalCols);
+                //             setColumnWidths(resized);
+                //             localStorage.setItem('columnWidths_service_access', JSON.stringify(resized));
+                //         }
+                //     } catch {
+                //         setColumnWidths(Array(totalCols).fill(150));
+                //     }
+                // } else {
+                //     setColumnWidths(Array(totalCols).fill(150));
+                // }
+                // setColumnInitDone(true);
+
+                let newWidths;
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        if (parsed.length === totalCols) {
+                            newWidths = parsed;
+                        } else {
+                            newWidths = parsed.concat(Array(totalCols - parsed.length).fill(150)).slice(0, totalCols);
+                        }
+                    } catch {
+                        newWidths = null;
+                    }
+                }
+
+                if (!newWidths) {
+                    newWidths = [
+                        40,   // checkbox
+                        100,  // name
+                        80,   // role
+                        150,  // is_vps
+                        150,  // is_cerberus
+                        150,  // is_proxy
+                        150,  // is_storage
+                        150,  // is_varys
+                        ...Array(dynamicCols.length).fill(150) // dynamic columns
+                    ];
+                }
+
+                // Finalize
+                setColumnWidths(newWidths);
+                localStorage.setItem('columnWidths_service_access', JSON.stringify(newWidths));
+                setColumnInitDone(true);
+
+            }, 100); // ✅ delay ensures new dynamicCols are set
+
 
             const visibilityObj = {
                 select: true,
@@ -177,6 +265,18 @@ export default function ServiceAccessSettings() {
         const prefixed = `custom_${trimmed}`;
         try {
             await axios.post('/admin/add-column', { columnName: prefixed });
+            // localStorage.removeItem('columnWidths_service_access');
+            const existing = localStorage.getItem('columnWidths_service_access');
+            let parsed = [];
+            try {
+                parsed = existing ? JSON.parse(existing) : [];
+            } catch { parsed = []; }
+
+            const totalCols = 8 + (dynamicColumns.length + 1); // compute after adding/deleting column
+            const adjustedWidths = parsed.concat(Array(totalCols).fill(150)).slice(0, totalCols);
+
+            localStorage.setItem('columnWidths_service_access', JSON.stringify(adjustedWidths));
+
             showModal("Column added successfully.");
             fetchUsers();
             setShowAddColumnModal(false);
@@ -195,6 +295,18 @@ export default function ServiceAccessSettings() {
 
         try {
             await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
+            // localStorage.removeItem('columnWidths_service_access');
+            const existing = localStorage.getItem('columnWidths_service_access');
+            let parsed = [];
+            try {
+                parsed = existing ? JSON.parse(existing) : [];
+            } catch { parsed = []; }
+
+            const totalCols = 8 + (dynamicColumns.length - 1); // compute after adding/deleting column
+            const adjustedWidths = parsed.concat(Array(totalCols).fill(150)).slice(0, totalCols);
+
+            localStorage.setItem('columnWidths_service_access', JSON.stringify(adjustedWidths));
+
             showModal("Column deleted.");
             fetchUsers();
         } catch (err) {
@@ -434,7 +546,7 @@ export default function ServiceAccessSettings() {
                   </th>
 
                 ))} */}
-                        {dynamicColumns.map(({ dbKey, label }, i) => {
+                                {dynamicColumns.map(({ dbKey, label }, i) => {
                                     const index = 8 + i; // after 8 static columns
                                     const isEditing = editingHeader === dbKey;
                                     return columnVisibility[dbKey] && (
@@ -449,17 +561,17 @@ export default function ServiceAccessSettings() {
                                                 setNewHeaderLabel(label);
                                             }}
                                         >
-                                                {isEditing ? (
-                                                    <input
-                                                        className="text-sm px-1 py-0.5 border rounded w-28 text-center"
-                                                        value={newHeaderLabel}
-                                                        onChange={(e) => setNewHeaderLabel(e.target.value)}
-                                                        onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
-                                                        autoFocus
-                                                    />
-                                                ) : (
-                                                    label
-                                                )}
+                                            {isEditing ? (
+                                                <input
+                                                    className="text-sm px-1 py-0.5 border rounded w-28 text-center"
+                                                    value={newHeaderLabel}
+                                                    onChange={(e) => setNewHeaderLabel(e.target.value)}
+                                                    onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                label
+                                            )}
                                             <div
                                                 onMouseDown={(e) => startResizing(index, e)}
                                                 className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
