@@ -70,10 +70,12 @@ export const refreshUserState = async () => {
     email: data.email,
     phone: data.phone,
     joinDate: data.join_date,
-    // userId: data.user_id,
+    userId: data.user_id,
     avatarUrl: data.avatar ? `http://localhost:5000${data.avatar}` // ✅ Fix relative path here
     : null
   }));
+  localStorage.setItem('userId', data.userId); // ✅ Save in browser
+
 };
 
 // export const uploadAvatar = async (file) => {

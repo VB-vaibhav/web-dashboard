@@ -8,6 +8,7 @@ import Select from 'react-select';
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileServiceAccessUI from './MobileServiceAccessUI';
 import { useSelector } from 'react-redux';
+import { usePersistentWidths } from '../../hooks/usePersistentWidths';
 
 export default function ServiceAccessSettings() {
   const [users, setUsers] = useState([]);
@@ -62,23 +63,48 @@ export default function ServiceAccessSettings() {
     { label: 'Varys', key: 'is_varys' }
   ];
 
-  const [columnWidthsState, setColumnWidths] = useState([]);
+  // const [columnWidthsState, setColumnWidths] = useState([]);
+  const [columnWidths, setColumnWidths] = useState([]);
+  const [columnInitDone, setColumnInitDone] = useState(false);
 
   useEffect(() => {
-    // total columns = 8 static + dynamic
-    // setColumnWidths(Array(8 + dynamicColumns.length).fill(150));
-    setColumnWidths([
-      40,  // Checkbox column
-      100, // Name
-      80, // Role
-      150, // Cloud Server
-      150, // Cerberus
-      150, // Proxy
-      150, // Storage Server
-      150, // Varys
-      ...Array(dynamicColumns.length).fill(150) // dynamic columns
-    ]);
-  }, [dynamicColumns.length]);
+    if ((8 + dynamicColumns.length) > 0 && !columnInitDone) {
+      const totalCols = 8 + dynamicColumns.length;
+      const saved = localStorage.getItem('columnWidths_service_access');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.length === totalCols) {
+            setColumnWidths(parsed);
+          } else {
+            setColumnWidths(Array(totalCols).fill(150));
+          }
+        } catch {
+          setColumnWidths(Array(totalCols).fill(150));
+        }
+      } else {
+        setColumnWidths(Array(totalCols).fill(150));
+      }
+      setColumnInitDone(true);
+    }
+  }, [dynamicColumns.length, columnInitDone]);
+
+
+  // useEffect(() => {
+  //     // total columns = 8 static + dynamic
+  //     // setColumnWidths(Array(8 + dynamicColumns.length).fill(150));
+  //     setColumnWidths([
+  //         40,  // Checkbox column
+  //         100, // Name
+  //         80, // Role
+  //         150, // Cloud Server
+  //         150, // Cerberus
+  //         150, // Proxy
+  //         150, // Storage Server
+  //         150, // Varys
+  //         ...Array(dynamicColumns.length).fill(150) // dynamic columns
+  //     ]);
+  // }, [dynamicColumns.length]);
 
 
   const useResizableColumns = (columnWidths, setColumnWidths) => {
@@ -104,6 +130,8 @@ export default function ServiceAccessSettings() {
         }
 
         setColumnWidths(newWidths);
+        localStorage.setItem('columnWidths_service_access', JSON.stringify(newWidths));
+
       };
 
       const handleMouseUp = () => {
@@ -121,7 +149,9 @@ export default function ServiceAccessSettings() {
 
   // const { columnWidths, startResizing, totalWidth } = useResizableColumns([40, 100, 80, 150, 150, 150, 150, 150]);
 
-  const { columnWidths, startResizing, totalWidth } = useResizableColumns(columnWidthsState, setColumnWidths);
+  // const { columnWidths, startResizing, totalWidth } = useResizableColumns(columnWidthsState, setColumnWidths);
+  const { startResizing, totalWidth } = useResizableColumns(columnWidths, setColumnWidths);
+
 
 
   useEffect(() => {
@@ -159,6 +189,64 @@ export default function ServiceAccessSettings() {
       }));
 
       setDynamicColumns(dynamicCols);
+      // setColumnInitDone(false); // force localStorage reload after new columns are detected
+      setTimeout(() => {
+        const totalCols = 8 + dynamicCols.length;
+        const saved = localStorage.getItem('columnWidths_service_access');
+        // if (saved) {
+        //     try {
+        //         const parsed = JSON.parse(saved);
+        //         if (parsed.length === totalCols) {
+        //             setColumnWidths(parsed);
+        //         } else {
+        //             // Stretch or truncate based on new length
+        //             const resized = parsed.concat(Array(totalCols - parsed.length).fill(150)).slice(0, totalCols);
+        //             setColumnWidths(resized);
+        //             localStorage.setItem('columnWidths_service_access', JSON.stringify(resized));
+        //         }
+        //     } catch {
+        //         setColumnWidths(Array(totalCols).fill(150));
+        //     }
+        // } else {
+        //     setColumnWidths(Array(totalCols).fill(150));
+        // }
+        // setColumnInitDone(true);
+
+        let newWidths;
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.length === totalCols) {
+              newWidths = parsed;
+            } else {
+              newWidths = parsed.concat(Array(totalCols - parsed.length).fill(150)).slice(0, totalCols);
+            }
+          } catch {
+            newWidths = null;
+          }
+        }
+
+        if (!newWidths) {
+          newWidths = [
+            40,   // checkbox
+            100,  // name
+            80,   // role
+            150,  // is_vps
+            150,  // is_cerberus
+            150,  // is_proxy
+            150,  // is_storage
+            150,  // is_varys
+            ...Array(dynamicCols.length).fill(150) // dynamic columns
+          ];
+        }
+
+        // Finalize
+        setColumnWidths(newWidths);
+        localStorage.setItem('columnWidths_service_access', JSON.stringify(newWidths));
+        setColumnInitDone(true);
+
+      }, 100); // ✅ delay ensures new dynamicCols are set
+
 
       const visibilityObj = {
         select: true,
@@ -172,6 +260,101 @@ export default function ServiceAccessSettings() {
       console.error('Fetch users failed:', err);
     }
   };
+
+
+  const handleAddColumn = async () => {
+    const trimmed = newColumnName.trim();
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
+      showModal("Invalid column name.");
+      return;
+    }
+
+    const prefixed = `custom_${trimmed}`;
+    try {
+      await axios.post('/admin/add-column', { columnName: prefixed });
+      // localStorage.removeItem('columnWidths_service_access');
+      const existing = localStorage.getItem('columnWidths_service_access');
+      let parsed = [];
+      try {
+        parsed = existing ? JSON.parse(existing) : [];
+      } catch { parsed = []; }
+
+      const totalCols = 8 + (dynamicColumns.length + 1); // compute after adding/deleting column
+      const adjustedWidths = parsed.concat(Array(totalCols).fill(150)).slice(0, totalCols);
+
+      localStorage.setItem('columnWidths_service_access', JSON.stringify(adjustedWidths));
+
+      showModal("Column added successfully.");
+      fetchUsers();
+      setShowAddColumnModal(false);
+      setNewColumnName('');
+    } catch (err) {
+      showModal("Failed to add column.");
+    }
+  };
+
+  
+
+  // const { columnWidths, startResizing, totalWidth } = useResizableColumns([40, 100, 80, 150, 150, 150, 150, 150]);
+  const handleDeleteColumn = async (index) => {
+    const columnToDelete = dynamicColumns[index - 8]?.dbKey;
+    if (!columnToDelete) return;
+
+    const confirmed = window.confirm(`Delete column "${columnToDelete}"?`);
+    if (!confirmed) return;
+
+    try {
+      await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
+      // localStorage.removeItem('columnWidths_service_access');
+      const existing = localStorage.getItem('columnWidths_service_access');
+      let parsed = [];
+      try {
+        parsed = existing ? JSON.parse(existing) : [];
+      } catch { parsed = []; }
+
+      const totalCols = 8 + (dynamicColumns.length - 1); // compute after adding/deleting column
+      const adjustedWidths = parsed.concat(Array(totalCols).fill(150)).slice(0, totalCols);
+
+      localStorage.setItem('columnWidths_service_access', JSON.stringify(adjustedWidths));
+
+      showModal("Column deleted.");
+      fetchUsers();
+    } catch (err) {
+      showModal("Delete failed.");
+    }
+
+    setContextMenu({ ...contextMenu, visible: false });
+  };
+
+  const handleRenameColumn = async (oldDbKey, newLabel) => {
+    const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
+    try {
+      await axios.patch('/admin/rename-column', {
+        oldColumn: oldDbKey,
+        newColumn: newDbKey,
+      });
+      setEditingHeader(null);
+      fetchUsers();
+    } catch (err) {
+      showModal('Rename failed.');
+    }
+  };
+
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  
+
+  useEffect(() => {
+    const handleClickOutside = () => setContextMenu({ ...contextMenu, visible: false });
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [contextMenu]);
+
+
+  
 
   const sortedData = React.useMemo(() => {
     if (!sortConfig.key) return filteredData;
@@ -213,77 +396,6 @@ export default function ServiceAccessSettings() {
       }
     }
   }, []);
-
-
-
-  // const sortedData = React.useMemo(() => {
-  //   if (!sortConfig.key) return filteredData;
-
-  //   const key = sortConfig.key;
-  //   const direction = sortConfig.direction;
-
-  //   return [...filteredData].sort((a, b) => {
-  //     const aVal = key === 'select' ? (selected.includes(a.id) ? 1 : 0) : (a[key] || '').toString().toLowerCase();
-  //     const bVal = key === 'select' ? (selected.includes(b.id) ? 1 : 0) : (b[key] || '').toString().toLowerCase();
-
-  //     if (aVal < bVal) return direction === 'asc' ? -1 : 1;
-  //     if (aVal > bVal) return direction === 'asc' ? 1 : -1;
-  //     return 0;
-  //   });
-  // }, [filteredData, sortConfig, selected]);
-
-
-
-  const handleAddColumn = async () => {
-    const trimmed = newColumnName.trim();
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
-      showModal("Invalid column name.");
-      return;
-    }
-
-    const prefixed = `custom_${trimmed}`;
-    try {
-      await axios.post('/admin/add-column', { columnName: prefixed });
-      showModal("Column added successfully.");
-      fetchUsers();
-      setShowAddColumnModal(false);
-      setNewColumnName('');
-    } catch (err) {
-      showModal("Failed to add column.");
-    }
-  };
-
-  const handleDeleteColumn = async (index) => {
-    const columnToDelete = dynamicColumns[index - 8]?.dbKey;
-    if (!columnToDelete) return;
-
-    const confirmed = window.confirm(`Delete column "${columnToDelete}"?`);
-    if (!confirmed) return;
-
-    try {
-      await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
-      showModal("Column deleted.");
-      fetchUsers();
-    } catch (err) {
-      showModal("Delete failed.");
-    }
-
-    setContextMenu({ ...contextMenu, visible: false });
-  };
-
-  const handleRenameColumn = async (oldDbKey, newLabel) => {
-    const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
-    try {
-      await axios.patch('/admin/rename-column', {
-        oldColumn: oldDbKey,
-        newColumn: newDbKey,
-      });
-      setEditingHeader(null);
-      fetchUsers();
-    } catch (err) {
-      showModal('Rename failed.');
-    }
-  };
 
 
   const handleCheckboxChange = (id) => {

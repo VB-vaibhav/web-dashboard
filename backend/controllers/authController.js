@@ -274,7 +274,7 @@ exports.getMe = (req, res) => {
       email: user.email,
       phone: user.phone,
       join_date: user.created_at,
-      // user_id: user.id,
+      user_id: user.id,
       avatar: user.avatar_url,
       permissions: {
         is_cerberus: user.is_cerberus,
