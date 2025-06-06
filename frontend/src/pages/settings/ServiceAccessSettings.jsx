@@ -3,417 +3,417 @@ import axios from '../../api/axios';
 import AlertModal from '../../components/AlertModal';
 import { useOutletContext } from 'react-router-dom';
 import { useTableSearch } from '../../hooks/useTableSearch';
-import { Search, MoreVertical, PlusCircle, MinusCircle } from 'lucide-react';
+import { Search, MoreVertical, PlusCircle, MinusCircle, Plus, Trash2, ChevronRight, Layout, Columns, Check } from 'lucide-react';
 import Select from 'react-select';
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileServiceAccessUI from './MobileServiceAccessUI';
 
 export default function ServiceAccessSettings() {
-  const [users, setUsers] = useState([]);
-  const { query, setQuery, filteredData } = useTableSearch(users, ['name', 'role']);
-  const [selected, setSelected] = useState([]);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [showAlert, setShowAlert] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [serviceModalType, setServiceModalType] = useState(null);
-  const [showServiceModal, setShowServiceModal] = useState(false);
-  const [selectedServices, setSelectedServices] = useState([]);
-  const dropdownRef = useRef(null);
-  const isMobile = useIsMobile();
-  const { dark } = useOutletContext();
-  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, columnIndex: null });
-  const [showAddColumnModal, setShowAddColumnModal] = useState(false);
-  const [newColumnName, setNewColumnName] = useState('');
-  const [editingHeader, setEditingHeader] = useState(null);
-  const [newHeaderLabel, setNewHeaderLabel] = useState('');
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const [dynamicColumns, setDynamicColumns] = useState([]);
-  const [editingCell, setEditingCell] = useState({ id: null, key: null, value: '' });
+    const [users, setUsers] = useState([]);
+    const { query, setQuery, filteredData } = useTableSearch(users, ['name', 'role']);
+    const [selected, setSelected] = useState([]);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [showAlert, setShowAlert] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [serviceModalType, setServiceModalType] = useState(null);
+    const [showServiceModal, setShowServiceModal] = useState(false);
+    const [selectedServices, setSelectedServices] = useState([]);
+    const dropdownRef = useRef(null);
+    const isMobile = useIsMobile();
+    const { dark } = useOutletContext();
+    const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, columnIndex: null });
+    const [showAddColumnModal, setShowAddColumnModal] = useState(false);
+    const [newColumnName, setNewColumnName] = useState('');
+    const [editingHeader, setEditingHeader] = useState(null);
+    const [newHeaderLabel, setNewHeaderLabel] = useState('');
+    const [columnVisibility, setColumnVisibility] = useState({});
+    const [dynamicColumns, setDynamicColumns] = useState([]);
+    const [editingCell, setEditingCell] = useState({ id: null, key: null, value: '' });
 
 
 
-  const handleHeaderContextMenu = (e, index) => {
-    e.preventDefault();
+    const handleHeaderContextMenu = (e, index) => {
+        e.preventDefault();
 
-    const isCustom = index >= 8 && dynamicColumns[index - 8]?.dbKey?.startsWith('custom_');
+        const isCustom = index >= 8 && dynamicColumns[index - 8]?.dbKey?.startsWith('custom_');
 
-    setContextMenu({
-      visible: true,
-      x: e.pageX,
-      y: e.pageY,
-      columnIndex: index,
-      allowDelete: isCustom // 🔥 NEW FLAG
-    });
-  };
-
-
-  const allServiceKeys = [
-    { label: 'Cloud Server', key: 'is_vps' },
-    { label: 'Cerberus', key: 'is_cerberus' },
-    { label: 'Proxy', key: 'is_proxy' },
-    { label: 'Storage Server', key: 'is_storage' },
-    { label: 'Varys', key: 'is_varys' }
-  ];
-
-  const [columnWidthsState, setColumnWidths] = useState([]);
-
-  useEffect(() => {
-    // total columns = 8 static + dynamic
-    // setColumnWidths(Array(8 + dynamicColumns.length).fill(150));
-    setColumnWidths([
-      40,  // Checkbox column
-      100, // Name
-      80, // Role
-      150, // Cloud Server
-      150, // Cerberus
-      150, // Proxy
-      150, // Storage Server
-      150, // Varys
-      ...Array(dynamicColumns.length).fill(150) // dynamic columns
-    ]);
-  }, [dynamicColumns.length]);
+        setContextMenu({
+            visible: true,
+            x: e.pageX,
+            y: e.pageY,
+            columnIndex: index,
+            allowDelete: isCustom // 🔥 NEW FLAG
+        });
+    };
 
 
-  const useResizableColumns = (columnWidths, setColumnWidths) => {
-    // const [columnWidths, setColumnWidths] = useState(initialWidths);
+    const allServiceKeys = [
+        { label: 'Cloud Server', key: 'is_vps' },
+        { label: 'Cerberus', key: 'is_cerberus' },
+        { label: 'Proxy', key: 'is_proxy' },
+        { label: 'Storage Server', key: 'is_storage' },
+        { label: 'Varys', key: 'is_varys' }
+    ];
 
-    const startResizing = (index, e) => {
-      e.preventDefault();
-      const startX = e.clientX;
-      const startWidth = columnWidths[index];
+    const [columnWidthsState, setColumnWidths] = useState([]);
 
-      const handleMouseMove = (e) => {
-        const delta = e.clientX - startX;
-        const newWidths = [...columnWidths];
-        const next = index + 1;
+    useEffect(() => {
+        // total columns = 8 static + dynamic
+        // setColumnWidths(Array(8 + dynamicColumns.length).fill(150));
+        setColumnWidths([
+            40,  // Checkbox column
+            100, // Name
+            80, // Role
+            150, // Cloud Server
+            150, // Cerberus
+            150, // Proxy
+            150, // Storage Server
+            150, // Varys
+            ...Array(dynamicColumns.length).fill(150) // dynamic columns
+        ]);
+    }, [dynamicColumns.length]);
 
-        newWidths[index] = Math.max(startWidth + delta, 40);
 
-        // Reduce width of next column to preserve layout
-        if (next < newWidths.length) {
-          // newWidths[next] = Math.max(newWidths[next] - delta, 40);
-          newWidths[index] = Math.max(startWidth + delta, 40);
+    const useResizableColumns = (columnWidths, setColumnWidths) => {
+        // const [columnWidths, setColumnWidths] = useState(initialWidths);
 
+        const startResizing = (index, e) => {
+            e.preventDefault();
+            const startX = e.clientX;
+            const startWidth = columnWidths[index];
+
+            const handleMouseMove = (e) => {
+                const delta = e.clientX - startX;
+                const newWidths = [...columnWidths];
+                const next = index + 1;
+
+                newWidths[index] = Math.max(startWidth + delta, 40);
+
+                // Reduce width of next column to preserve layout
+                if (next < newWidths.length) {
+                    // newWidths[next] = Math.max(newWidths[next] - delta, 40);
+                    newWidths[index] = Math.max(startWidth + delta, 40);
+
+                }
+
+                setColumnWidths(newWidths);
+            };
+
+            const handleMouseUp = () => {
+                window.removeEventListener("mousemove", handleMouseMove);
+                window.removeEventListener("mouseup", handleMouseUp);
+            };
+
+            window.addEventListener("mousemove", handleMouseMove);
+            window.addEventListener("mouseup", handleMouseUp);
+        };
+
+        const totalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+        return { columnWidths, startResizing, totalWidth };
+    };
+
+    // const { columnWidths, startResizing, totalWidth } = useResizableColumns([40, 100, 80, 150, 150, 150, 150, 150]);
+
+    const { columnWidths, startResizing, totalWidth } = useResizableColumns(columnWidthsState, setColumnWidths);
+
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const toggleColumnVisibility = (key) => {
+        setColumnVisibility(prev => ({
+            ...prev,
+            [key]: !prev[key]
+        }));
+    };
+
+
+    useEffect(() => {
+        const handleClickOutside = () => setContextMenu({ ...contextMenu, visible: false });
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, [contextMenu]);
+
+
+    const fetchUsers = async () => {
+        try {
+            const res = await axios.get('/admin/service-access-users');
+            const fetchedUsers = res.data;
+
+            setUsers(fetchedUsers);
+
+            const sample = fetchedUsers[0];
+            const dynamicKeys = sample ? Object.keys(sample).filter(k => k.startsWith('custom_')) : [];
+
+            const dynamicCols = dynamicKeys.map(col => ({
+                dbKey: col,
+                label: col.replace('custom_', '')
+            }));
+
+            setDynamicColumns(dynamicCols);
+
+            const visibilityObj = {
+                select: true,
+                name: true, role: true,
+                is_vps: true, is_cerberus: true, is_proxy: true, is_storage: true, is_varys: true,
+            };
+
+            dynamicCols.forEach(col => visibilityObj[col.dbKey] = true);
+            setColumnVisibility(visibilityObj);
+        } catch (err) {
+            console.error('Fetch users failed:', err);
+        }
+    };
+
+
+    const handleAddColumn = async () => {
+        const trimmed = newColumnName.trim();
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
+            showModal("Invalid column name.");
+            return;
         }
 
-        setColumnWidths(newWidths);
-      };
-
-      const handleMouseUp = () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("mouseup", handleMouseUp);
-      };
-
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+        const prefixed = `custom_${trimmed}`;
+        try {
+            await axios.post('/admin/add-column', { columnName: prefixed });
+            showModal("Column added successfully.");
+            fetchUsers();
+            setShowAddColumnModal(false);
+            setNewColumnName('');
+        } catch (err) {
+            showModal("Failed to add column.");
+        }
     };
 
-    const totalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
-    return { columnWidths, startResizing, totalWidth };
-  };
+    const handleDeleteColumn = async (index) => {
+        const columnToDelete = dynamicColumns[index - 8]?.dbKey;
+        if (!columnToDelete) return;
 
-  // const { columnWidths, startResizing, totalWidth } = useResizableColumns([40, 100, 80, 150, 150, 150, 150, 150]);
+        const confirmed = window.confirm(`Delete column "${columnToDelete}"?`);
+        if (!confirmed) return;
 
-  const { columnWidths, startResizing, totalWidth } = useResizableColumns(columnWidthsState, setColumnWidths);
+        try {
+            await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
+            showModal("Column deleted.");
+            fetchUsers();
+        } catch (err) {
+            showModal("Delete failed.");
+        }
 
+        setContextMenu({ ...contextMenu, visible: false });
+    };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const toggleColumnVisibility = (key) => {
-    setColumnVisibility(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-
-
-  useEffect(() => {
-    const handleClickOutside = () => setContextMenu({ ...contextMenu, visible: false });
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, [contextMenu]);
-
-
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get('/admin/service-access-users');
-      const fetchedUsers = res.data;
-
-      setUsers(fetchedUsers);
-
-      const sample = fetchedUsers[0];
-      const dynamicKeys = sample ? Object.keys(sample).filter(k => k.startsWith('custom_')) : [];
-
-      const dynamicCols = dynamicKeys.map(col => ({
-        dbKey: col,
-        label: col.replace('custom_', '')
-      }));
-
-      setDynamicColumns(dynamicCols);
-
-      const visibilityObj = {
-        select: true,
-        name: true, role: true,
-        is_vps: true, is_cerberus: true, is_proxy: true, is_storage: true, is_varys: true,
-      };
-
-      dynamicCols.forEach(col => visibilityObj[col.dbKey] = true);
-      setColumnVisibility(visibilityObj);
-    } catch (err) {
-      console.error('Fetch users failed:', err);
-    }
-  };
+    const handleRenameColumn = async (oldDbKey, newLabel) => {
+        const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
+        try {
+            await axios.patch('/admin/rename-column', {
+                oldColumn: oldDbKey,
+                newColumn: newDbKey,
+            });
+            setEditingHeader(null);
+            fetchUsers();
+        } catch (err) {
+            showModal('Rename failed.');
+        }
+    };
 
 
-  const handleAddColumn = async () => {
-    const trimmed = newColumnName.trim();
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
-      showModal("Invalid column name.");
-      return;
-    }
+    const handleCheckboxChange = (id) => {
+        setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
 
-    const prefixed = `custom_${trimmed}`;
-    try {
-      await axios.post('/admin/add-column', { columnName: prefixed });
-      showModal("Column added successfully.");
-      fetchUsers();
-      setShowAddColumnModal(false);
-      setNewColumnName('');
-    } catch (err) {
-      showModal("Failed to add column.");
-    }
-  };
+    const handleToggle = async (id, key) => {
+        const updatedValue = users.find(u => u.id === id)?.[key] ? 0 : 1;
+        setUsers(prev => prev.map(user => user.id === id ? { ...user, [key]: updatedValue } : user));
+        try {
+            await axios.patch(`/admin/update-service-access/${id}`, { [key]: updatedValue });
+        } catch (err) {
+            console.error('Update failed:', err);
+            alert('Failed to save. Try again.');
+        }
+    };
 
-  const handleDeleteColumn = async (index) => {
-    const columnToDelete = dynamicColumns[index - 8]?.dbKey;
-    if (!columnToDelete) return;
+    const openServiceActionModal = (type) => {
+        if (selected.length === 0) {
+            showModal("No row is selected");
+            return;
+        }
+        setServiceModalType(type);
+        setShowServiceModal(true);
+        setSelectedServices([]);
+    };
 
-    const confirmed = window.confirm(`Delete column "${columnToDelete}"?`);
-    if (!confirmed) return;
+    const closeServiceModal = () => {
+        setShowServiceModal(false);
+        setSelectedServices([]);
+    };
 
-    try {
-      await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
-      showModal("Column deleted.");
-      fetchUsers();
-    } catch (err) {
-      showModal("Delete failed.");
-    }
-
-    setContextMenu({ ...contextMenu, visible: false });
-  };
-
-  const handleRenameColumn = async (oldDbKey, newLabel) => {
-    const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
-    try {
-      await axios.patch('/admin/rename-column', {
-        oldColumn: oldDbKey,
-        newColumn: newDbKey,
-      });
-      setEditingHeader(null);
-      fetchUsers();
-    } catch (err) {
-      showModal('Rename failed.');
-    }
-  };
-
-
-  const handleCheckboxChange = (id) => {
-    setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  };
-
-  const handleToggle = async (id, key) => {
-    const updatedValue = users.find(u => u.id === id)?.[key] ? 0 : 1;
-    setUsers(prev => prev.map(user => user.id === id ? { ...user, [key]: updatedValue } : user));
-    try {
-      await axios.patch(`/admin/update-service-access/${id}`, { [key]: updatedValue });
-    } catch (err) {
-      console.error('Update failed:', err);
-      alert('Failed to save. Try again.');
-    }
-  };
-
-  const openServiceActionModal = (type) => {
-    if (selected.length === 0) {
-      showModal("No row is selected");
-      return;
-    }
-    setServiceModalType(type);
-    setShowServiceModal(true);
-    setSelectedServices([]);
-  };
-
-  const closeServiceModal = () => {
-    setShowServiceModal(false);
-    setSelectedServices([]);
-  };
-
-  const handleApplyServiceAction = () => {
-    if (selectedServices.length === 0) {
-      showModal("Please select at least one service.");
-      return;
-    }
-    const updated = users.map(user => {
-      if (selected.includes(user.id)) {
-        const updatedUser = { ...user };
-        selectedServices.forEach(serviceKey => {
-          updatedUser[serviceKey] = serviceModalType === 'include' ? 1 : 0;
-          axios.patch(`/admin/update-service-access/${user.id}`, {
-            [serviceKey]: serviceModalType === 'include' ? 1 : 0
-          }).catch(console.error);
+    const handleApplyServiceAction = () => {
+        if (selectedServices.length === 0) {
+            showModal("Please select at least one service.");
+            return;
+        }
+        const updated = users.map(user => {
+            if (selected.includes(user.id)) {
+                const updatedUser = { ...user };
+                selectedServices.forEach(serviceKey => {
+                    updatedUser[serviceKey] = serviceModalType === 'include' ? 1 : 0;
+                    axios.patch(`/admin/update-service-access/${user.id}`, {
+                        [serviceKey]: serviceModalType === 'include' ? 1 : 0
+                    }).catch(console.error);
+                });
+                return updatedUser;
+            }
+            return user;
         });
-        return updatedUser;
-      }
-      return user;
-    });
-    setUsers(updated);
-    closeServiceModal();
-    setShowDropdown(false);
-  };
-
-  const showModal = (message) => {
-    setAlertMessage(message);
-    setShowAlert(true);
-  };
-
-  const closeModal = () => setShowAlert(false);
-
-  const renderCell = (user, key) => {
-    const isIncluded = user[key] === 1;
-    const handleClick = (type) => {
-      if ((isIncluded && type === 'included') || (!isIncluded && type === 'excluded')) {
-        showModal(isIncluded ? 'Already Included' : 'Already Excluded');
-        return;
-      }
-      handleToggle(user.id, key);
-    };
-    return (
-      <div className="flex gap-2 justify-center items-center">
-        <button onClick={() => handleClick('excluded')} className={`px-3 py-1.5 text-xs font-medium border rounded ${isIncluded
-          ? `${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`
-          : `{ ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} bg-transparent}`
-          }`}>{isIncluded ? 'Exclude' : 'Excluded'}</button>
-        <button onClick={() => handleClick('included')} className={`px-3 py-1.5 text-xs font-medium border rounded ${!isIncluded
-          ? `${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`
-          : `{ ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} bg-transparent}`
-          }`}>{isIncluded ? 'Included' : 'Include'}</button>
-      </div>
-    );
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setUsers(updated);
+        closeServiceModal();
         setShowDropdown(false);
-      }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
-  if (isMobile) {
-    return (
-      <MobileServiceAccessUI
-        dark={dark}
-        users={users}
-        selected={selected}
-        setSelected={setSelected}
-        handleToggle={handleToggle}
-        allServiceKeys={allServiceKeys}
-        openServiceActionModal={openServiceActionModal}
-        showModal={showModal}
-        serviceModalType={serviceModalType}
-        setShowServiceModal={setShowServiceModal}
-      />
-    );
-  }
+    const showModal = (message) => {
+        setAlertMessage(message);
+        setShowAlert(true);
+    };
 
-  return (
+    const closeModal = () => setShowAlert(false);
 
-    <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto min-h-[calc(100vh-190px)] ">
-      <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
-        <div className="relative w-[180px]">
-          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-            <Search size={16} />
-          </span>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search in Table"
-            className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
-          />
-        </div>
-        <div className="relative" ref={dropdownRef}>
-          <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
-            <MoreVertical size={18} />
-          </button>
-          {showDropdown && (
-            <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
-              <button onClick={() => openServiceActionModal('include')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                <PlusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Include</span>
-              </button>
-              <button onClick={() => openServiceActionModal('exclude')} className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                <MinusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Exclude</span>
-              </button>
+    const renderCell = (user, key) => {
+        const isIncluded = user[key] === 1;
+        const handleClick = (type) => {
+            if ((isIncluded && type === 'included') || (!isIncluded && type === 'excluded')) {
+                showModal(isIncluded ? 'Already Included' : 'Already Excluded');
+                return;
+            }
+            handleToggle(user.id, key);
+        };
+        return (
+            <div className="flex gap-2 justify-center items-center">
+                <button onClick={() => handleClick('excluded')} className={`px-3 py-1.5 text-xs font-medium border rounded ${isIncluded
+                    ? `${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`
+                    : `{ ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} bg-transparent}`
+                    }`}>{isIncluded ? 'Exclude' : 'Excluded'}</button>
+                <button onClick={() => handleClick('included')} className={`px-3 py-1.5 text-xs font-medium border rounded ${!isIncluded
+                    ? `${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`
+                    : `{ ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} bg-transparent}`
+                    }`}>{isIncluded ? 'Included' : 'Include'}</button>
             </div>
-          )}
-        </div>
-      </div>
+        );
+    };
 
-      <div className=" mt-3">
-        <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
-          {/* <div className="min-w-max" style={{ width: `${totalWidth}px`, maxWidth: '100%' }}> */}
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
-          <table className="table-auto text-sm w-full ">
-            <thead>
-              <tr>
-                {['select', 'name', 'role', 'is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'].map((key, index) => {
-                  if (!columnVisibility[key]) return null;
+    if (isMobile) {
+        return (
+            <MobileServiceAccessUI
+                dark={dark}
+                users={users}
+                selected={selected}
+                setSelected={setSelected}
+                handleToggle={handleToggle}
+                allServiceKeys={allServiceKeys}
+                openServiceActionModal={openServiceActionModal}
+                showModal={showModal}
+                serviceModalType={serviceModalType}
+                setShowServiceModal={setShowServiceModal}
+            />
+        );
+    }
 
-                  const labelMap = {
-                    select: '',
-                    name: 'Name',
-                    role: 'Role',
-                    is_vps: 'Cloud Server',
-                    is_cerberus: 'Cerberus',
-                    is_proxy: 'Proxy',
-                    is_storage: 'Storage Server',
-                    is_varys: 'Varys',
-                    '': ''
-                  };
+    return (
 
-                  return (
-                    <th
-                      key={index}
-                      onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                      style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                      className={`relative px-2 py-3 font-semibold border-r group  
+        <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto min-h-[calc(100vh-190px)] ">
+            <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
+                <div className="relative w-[180px]">
+                    <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                        <Search size={16} />
+                    </span>
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search in Table"
+                        className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
+                    />
+                </div>
+                <div className="relative" ref={dropdownRef}>
+                    <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
+                        <MoreVertical size={18} />
+                    </button>
+                    {showDropdown && (
+                        <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
+                            <button onClick={() => openServiceActionModal('include')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                                <PlusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                                <span>Include</span>
+                            </button>
+                            <button onClick={() => openServiceActionModal('exclude')} className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                                <MinusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                                <span>Exclude</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className=" mt-3">
+                <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
+                    {/* <div className="min-w-max" style={{ width: `${totalWidth}px`, maxWidth: '100%' }}> */}
+
+                    <table className="table-auto text-sm w-full ">
+                        <thead>
+                            <tr>
+                                {['select', 'name', 'role', 'is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'].map((key, index) => {
+                                    if (!columnVisibility[key]) return null;
+
+                                    const labelMap = {
+                                        select: '',
+                                        name: 'Name',
+                                        role: 'Role',
+                                        is_vps: 'Cloud Server',
+                                        is_cerberus: 'Cerberus',
+                                        is_proxy: 'Proxy',
+                                        is_storage: 'Storage Server',
+                                        is_varys: 'Varys',
+                                        '': ''
+                                    };
+
+                                    return (
+                                        <th
+                                            key={index}
+                                            onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                                            style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                                            className={`relative px-2 py-3 font-semibold border-r group  
         ${dark ? 'border-gray-700' : 'border-gray-300'}  
         ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
-                    >
-                      <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
-                        {key === 'select' ? (
-                          <input
-                            type="checkbox"
-                            checked={selected.length === users.length}
-                            onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
-                            className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                          />
-                        ) : (
-                          labelMap[key]
-                        )}
-                      </div>
-                      <div
-                        onMouseDown={(e) => startResizing(index, e)}
-                        className="absolute -right-[1px] top-0 h-full w-1 cursor-col-resize group-hover:bg-indigo-400 z-10"
-                      />
-                    </th>
-                  );
-                })
+                                        >
+                                            <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
+                                                {key === 'select' ? (
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selected.length === users.length}
+                                                        onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
+                                                        className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                                                    />
+                                                ) : (
+                                                    labelMap[key]
+                                                )}
+                                            </div>
+                                            <div
+                                                onMouseDown={(e) => startResizing(index, e)}
+                                                className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                                            />
+                                        </th>
+                                    );
+                                })
 
                 /* {['', 'Name', 'Role', 'Cloud Server', 'Cerberus', 'Proxy', 'Storage Server', 'Varys'].map((label, index) => (
                   <th
@@ -434,292 +434,370 @@ export default function ServiceAccessSettings() {
                   </th>
 
                 ))} */}
-                {dynamicColumns.map(({ dbKey, label }, i) => {
-                  const index = 8 + i; // after 8 static columns
-                  const isEditing = editingHeader === dbKey;
-                  return columnVisibility[dbKey] && (
-                    <th
-                      key={`dynamic-${i}`}
-                      onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                      style={{ width: columnWidths[index] || 100, minWidth: 80 }}
-                      className={`relative px-2 py-3 font-semibold border-r group  
+                        {dynamicColumns.map(({ dbKey, label }, i) => {
+                                    const index = 8 + i; // after 8 static columns
+                                    const isEditing = editingHeader === dbKey;
+                                    return columnVisibility[dbKey] && (
+                                        <th
+                                            key={`dynamic-${i}`}
+                                            onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                                            style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                                            className={`relative px-2 py-3 font-semibold border-r group  
         ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
-                      onDoubleClick={() => {
-                        setEditingHeader(dbKey);
-                        setNewHeaderLabel(label);
-                      }}
-                    >
-                      <div className="flex justify-center items-center">
-                        {isEditing ? (
-                          <input
-                            className="text-sm px-1 py-0.5 border rounded w-28 text-center"
-                            value={newHeaderLabel}
-                            onChange={(e) => setNewHeaderLabel(e.target.value)}
-                            onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
-                            autoFocus
-                          />
-                        ) : (
-                          label
-                        )}
-                      </div>
-                      <div
-                        onMouseDown={(e) => startResizing(index, e)}
-                        className="absolute -right-[1px] top-0 h-full w-1 cursor-col-resize group-hover:bg-indigo-400 z-10"
-                      />
-                    </th>
-                  );
-                })}
+                                            onDoubleClick={() => {
+                                                setEditingHeader(dbKey);
+                                                setNewHeaderLabel(label);
+                                            }}
+                                        >
+                                                {isEditing ? (
+                                                    <input
+                                                        className="text-sm px-1 py-0.5 border rounded w-28 text-center"
+                                                        value={newHeaderLabel}
+                                                        onChange={(e) => setNewHeaderLabel(e.target.value)}
+                                                        onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    label
+                                                )}
+                                            <div
+                                                onMouseDown={(e) => startResizing(index, e)}
+                                                className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                                            />
+                                        </th>
+                                    );
+                                })}
 
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.length === 0 ? (
-                <tr><td colSpan={8} className="py-6 text-sm text-gray-500 text-center">No search result found</td></tr>
-              ) : (
-                filteredData.map(user => (
-                  <tr key={user.id}>
-                    {columnVisibility['select'] && (
-                      <td className="px-2 py-2 text-left">
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(user.id)}
-                          onChange={() => handleCheckboxChange(user.id)}
-                          className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                        />
-                      </td>
-                    )}
-                    {columnVisibility['name'] && <td className="px-2 py-2 text-center">{user.name}</td>}
-                    {columnVisibility['role'] && <td className="px-2 py-2 text-center capitalize">{user.role}</td>}
-                    {columnVisibility['is_vps'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_vps')}</td>}
-                    {columnVisibility['is_cerberus'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_cerberus')}</td>}
-                    {columnVisibility['is_proxy'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_proxy')}</td>}
-                    {columnVisibility['is_storage'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_storage')}</td>}
-                    {columnVisibility['is_varys'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_varys')}</td>}
+                            </tr>
+                        </thead>
 
-                    {dynamicColumns.map(({ dbKey }, i) => {
-                      const index = 8 + i;
-                      return columnVisibility[dbKey] && (
-                        <td
-                          key={dbKey}
-                          style={{ width: columnWidths[index], minWidth: 40 }}
-                          className="px-2 py-2 text-center cursor-pointer"
-                          onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
-                        >
-                          {editingCell.id === user.id && editingCell.key === dbKey ? (
-                            <input
-                              value={editingCell.value}
-                              onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                              onBlur={async () => {
-                                const updatedValue = editingCell.value;
-                                setUsers(prev =>
-                                  prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
-                                );
-                                setEditingCell({ id: null, key: null, value: '' });
-                                await axios.patch(`/admin/update-service-access/${user.id}`, {
-                                  [dbKey]: updatedValue
-                                });
-                              }}
-                              autoFocus
-                              className="w-full text-sm px-1 py-0.5 border rounded"
-                            />
-                          ) : (
-                            user[dbKey] || ''
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
+                        {/* <tbody>
+                            {filteredData.length === 0 ? (
+                                <tr><td colSpan={8} className="py-6 text-sm text-gray-500 text-center">No search result found</td></tr>
+                            ) : (
+                                filteredData.map(user => (
+                                    <tr key={user.id}>
+                                        {columnVisibility['select'] && (
+                                            <td className="px-2 py-2 text-left">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selected.includes(user.id)}
+                                                    onChange={() => handleCheckboxChange(user.id)}
+                                                    className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                                                />
+                                            </td>
+                                        )}
+                                        {columnVisibility['name'] && <td className="px-2 py-2 text-center">{user.name}</td>}
+                                        {columnVisibility['role'] && <td className="px-2 py-2 text-center capitalize">{user.role}</td>}
+                                        {columnVisibility['is_vps'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_vps')}</td>}
+                                        {columnVisibility['is_cerberus'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_cerberus')}</td>}
+                                        {columnVisibility['is_proxy'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_proxy')}</td>}
+                                        {columnVisibility['is_storage'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_storage')}</td>}
+                                        {columnVisibility['is_varys'] && <td className="px-2 py-2 text-center">{renderCell(user, 'is_varys')}</td>}
 
-                  // <tr key={user.id}>
-                  //   {[<input type="checkbox" checked={selected.includes(user.id)} onChange={() => handleCheckboxChange(user.id)} className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`} />, user.name, user.role, renderCell(user, 'is_vps'), renderCell(user, 'is_cerberus'), renderCell(user, 'is_proxy'), renderCell(user, 'is_storage'), renderCell(user, 'is_varys')].map((cell, index) => (
-                  //     // <td key={index} style={{ width: columnWidths[index], minWidth: 20 }} className={`${index === 0 ? 'text-left' : 'text-center'} px-2 py-2`}><div
-                  //     //     className="whitespace-nowrap overflow-hidden"
-                  //     //     style={
-                  //     //         ![0, 3, 4, 5, 6, 7].includes(index) && columnWidths[index] <= 100
-                  //     //             ? { textOverflow: 'ellipsis', display: 'block', maxWidth: '100%' }
-                  //     //             : { display: 'block', maxWidth: '100%' }
-                  //     //     }
-                  //     // >
-                  //     //     {cell}
-                  //     // </div></td>
-                  //     <td
-                  //       key={index}
-                  //       style={{ width: columnWidths[index], minWidth: 40 }}
-                  //       className={`${index === 0 ? 'text-left' : 'text-center'} px-2 py-2`}
-                  //     >
-                  //       <div
-                  //         style={{
-                  //           display: 'block',
-                  //           marginLeft: 'auto',
-                  //           marginRight: 'auto',
-                  //           whiteSpace: 'nowrap',
-                  //           overflow: 'hidden',
-                  //           textOverflow:
-                  //             ![0, 3, 4, 5, 6, 7].includes(index) && columnWidths[index] <= 100
-                  //               ? 'ellipsis'
-                  //               : 'clip',
-                  //           maxWidth: columnWidths[index],
-                  //         }}
-                  //       >
-                  //         {cell}
-                  //       </div>
-                  //     </td>
+                                        {dynamicColumns.map(({ dbKey }, i) => {
+                                            const index = 8 + i;
+                                            return columnVisibility[dbKey] && (
+                                                <td
+                                                    key={dbKey}
+                                                    style={{ width: columnWidths[index], minWidth: 40 }}
+                                                    className="px-2 py-2 text-center cursor-pointer"
+                                                    onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
+                                                >
+                                                    {editingCell.id === user.id && editingCell.key === dbKey ? (
+                                                        <input
+                                                            value={editingCell.value}
+                                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                                            onBlur={async () => {
+                                                                const updatedValue = editingCell.value;
+                                                                setUsers(prev =>
+                                                                    prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
+                                                                );
+                                                                setEditingCell({ id: null, key: null, value: '' });
+                                                                await axios.patch(`/admin/update-service-access/${user.id}`, {
+                                                                    [dbKey]: updatedValue
+                                                                });
+                                                            }}
+                                                            autoFocus
+                                                            className="w-full text-sm px-1 py-0.5 border rounded"
+                                                        />
+                                                    ) : (
+                                                        user[dbKey] || ''
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
 
-                  //   ))}
-                  //   {dynamicColumns.map(({ dbKey }, i) => {
-                  //     const index = 8 + i;
-                  //     return columnVisibility[dbKey] && (
-                  //       <td
-                  //         key={dbKey}
-                  //         style={{ width: columnWidths[index], minWidth: 40 }}
-                  //         className="px-2 py-2 text-center cursor-pointer"
-                  //         onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
-                  //       >
-                  //         {editingCell.id === user.id && editingCell.key === dbKey ? (
-                  //           <input
-                  //             value={editingCell.value}
-                  //             onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                  //             onBlur={async () => {
-                  //               const updatedValue = editingCell.value;
-                  //               setUsers(prev =>
-                  //                 prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
-                  //               );
-                  //               setEditingCell({ id: null, key: null, value: '' });
-                  //               await axios.patch(`/admin/update-service-access/${user.id}`, {
-                  //                 [dbKey]: updatedValue
-                  //               });
-                  //             }}
-                  //             autoFocus
-                  //             className="w-full text-sm px-1 py-0.5 border rounded"
-                  //           />
-                  //         ) : (
-                  //           user[dbKey] || ''
-                  //         )}
-                  //       </td>
-                  //     );
-                  //   })}
+                                    // <tr key={user.id}>
+                                    //   {[<input type="checkbox" checked={selected.includes(user.id)} onChange={() => handleCheckboxChange(user.id)} className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`} />, user.name, user.role, renderCell(user, 'is_vps'), renderCell(user, 'is_cerberus'), renderCell(user, 'is_proxy'), renderCell(user, 'is_storage'), renderCell(user, 'is_varys')].map((cell, index) => (
+                                    //     // <td key={index} style={{ width: columnWidths[index], minWidth: 20 }} className={`${index === 0 ? 'text-left' : 'text-center'} px-2 py-2`}><div
+                                    //     //     className="whitespace-nowrap overflow-hidden"
+                                    //     //     style={
+                                    //     //         ![0, 3, 4, 5, 6, 7].includes(index) && columnWidths[index] <= 100
+                                    //     //             ? { textOverflow: 'ellipsis', display: 'block', maxWidth: '100%' }
+                                    //     //             : { display: 'block', maxWidth: '100%' }
+                                    //     //     }
+                                    //     // >
+                                    //     //     {cell}
+                                    //     // </div></td>
+                                    //     <td
+                                    //       key={index}
+                                    //       style={{ width: columnWidths[index], minWidth: 40 }}
+                                    //       className={`${index === 0 ? 'text-left' : 'text-center'} px-2 py-2`}
+                                    //     >
+                                    //       <div
+                                    //         style={{
+                                    //           display: 'block',
+                                    //           marginLeft: 'auto',
+                                    //           marginRight: 'auto',
+                                    //           whiteSpace: 'nowrap',
+                                    //           overflow: 'hidden',
+                                    //           textOverflow:
+                                    //             ![0, 3, 4, 5, 6, 7].includes(index) && columnWidths[index] <= 100
+                                    //               ? 'ellipsis'
+                                    //               : 'clip',
+                                    //           maxWidth: columnWidths[index],
+                                    //         }}
+                                    //       >
+                                    //         {cell}
+                                    //       </div>
+                                    //     </td>
 
-                  // </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {contextMenu.visible && (
-        <div
-          className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
-          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, minWidth: '140px' }}
-        >
-          <button
-            onClick={() => {
-              setContextMenu({ ...contextMenu, visible: false });
-              setShowAddColumnModal(true);
-            }}
-            className="w-full text-left px-4 py-2 hover:bg-indigo-100 dark:hover:bg-gray-700"
-          >
-            Add Column
-          </button>
+                                    //   ))}
+                                    //   {dynamicColumns.map(({ dbKey }, i) => {
+                                    //     const index = 8 + i;
+                                    //     return columnVisibility[dbKey] && (
+                                    //       <td
+                                    //         key={dbKey}
+                                    //         style={{ width: columnWidths[index], minWidth: 40 }}
+                                    //         className="px-2 py-2 text-center cursor-pointer"
+                                    //         onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
+                                    //       >
+                                    //         {editingCell.id === user.id && editingCell.key === dbKey ? (
+                                    //           <input
+                                    //             value={editingCell.value}
+                                    //             onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                    //             onBlur={async () => {
+                                    //               const updatedValue = editingCell.value;
+                                    //               setUsers(prev =>
+                                    //                 prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
+                                    //               );
+                                    //               setEditingCell({ id: null, key: null, value: '' });
+                                    //               await axios.patch(`/admin/update-service-access/${user.id}`, {
+                                    //                 [dbKey]: updatedValue
+                                    //               });
+                                    //             }}
+                                    //             autoFocus
+                                    //             className="w-full text-sm px-1 py-0.5 border rounded"
+                                    //           />
+                                    //         ) : (
+                                    //           user[dbKey] || ''
+                                    //         )}
+                                    //       </td>
+                                    //     );
+                                    //   })}
 
-          {contextMenu.allowDelete && (
-            <button
-              onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
-              className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100 dark:hover:bg-gray-700"
-            >
-              Delete Column
-            </button>
-          )}
+                                    // </tr>
+                                ))
+                            )}
+                        </tbody> */}
+                        <tbody>
+                            {filteredData.length === 0 ? (
+                                <tr><td colSpan={8} className="py-6 text-sm text-gray-500 text-center">No search result found</td></tr>
+                            ) : (
+                                filteredData.map(user => (
+                                    <tr key={user.id}>
+                                        {columnVisibility['select'] && (
+                                            <td className="px-2 py-2 text-left">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selected.includes(user.id)}
+                                                    onChange={() => handleCheckboxChange(user.id)}
+                                                    className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                                                />
+                                            </td>
+                                        )}
+                                        {['name', 'role'].map((key, i) =>
+                                            columnVisibility[key] && (
+                                                <td key={key} style={{ width: columnWidths[i + 1] }} className="px-2 py-2 text-center">
+                                                    <div className="whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: columnWidths[i + 1] }}>
+                                                        {user[key]}
+                                                    </div>
+                                                </td>
+                                            )
+                                        )}
 
-          <div className="relative group">
-            <button className="w-full text-left px-4 py-2 hover:bg-indigo-100 dark:hover:bg-gray-700">
-              Column Show/Hide ▸
-            </button>
-            <div className="absolute left-full top-0 mt-[-8px] z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 border-gray-200 rounded shadow-lg min-w-[180px] max-h-[300px] overflow-y-auto">
-              {[
-                { key: 'name', label: 'Name' },
-                { key: 'role', label: 'Role' },
-                { key: 'is_vps', label: 'Cloud Server' },
-                { key: 'is_cerberus', label: 'Cerberus' },
-                { key: 'is_proxy', label: 'Proxy' },
-                { key: 'is_storage', label: 'Storage Server' },
-                { key: 'is_varys', label: 'Varys' },
-                ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
-              ].map(col => (
-                <button
-                  key={col.key}
-                  onClick={() => toggleColumnVisibility(col.key)}
-                  className="flex items-center justify-between w-full px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-700"
+                                        {['is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'].map((key, i) =>
+                                            columnVisibility[key] && (
+                                                <td key={key} className="px-2 py-2 text-center">
+                                                    {renderCell(user, key)}
+                                                </td>
+                                            )
+                                        )}
+
+                                        {dynamicColumns.map(({ dbKey }, i) => {
+                                            const index = 8 + i;
+                                            return columnVisibility[dbKey] && (
+                                                <td
+                                                    key={dbKey}
+                                                    style={{ width: columnWidths[index], minWidth: 40 }}
+                                                    className="px-2 py-2 text-center cursor-pointer"
+                                                    onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
+                                                >
+                                                    {editingCell.id === user.id && editingCell.key === dbKey ? (
+                                                        <input
+                                                            value={editingCell.value}
+                                                            onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                                            onBlur={async () => {
+                                                                const updatedValue = editingCell.value;
+                                                                setUsers(prev =>
+                                                                    prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
+                                                                );
+                                                                setEditingCell({ id: null, key: null, value: '' });
+                                                                await axios.patch(`/admin/update-service-access/${user.id}`, {
+                                                                    [dbKey]: updatedValue
+                                                                });
+                                                            }}
+                                                            autoFocus
+                                                            className="w-full text-sm px-1 py-0.5 border rounded"
+                                                        />
+                                                    ) : (
+                                                        <div className="whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: columnWidths[index] }}>
+                                                            {user[dbKey] || ''}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+            {contextMenu.visible && (
+                <div
+                    className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
+                    style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, minWidth: '140px' }}
                 >
-                  <span>{col.label}</span>
-                  {columnVisibility[col.key] && <span className="text-green-500">✔</span>}
-                </button>
-              ))}
-            </div>
-          </div>
+                    <button
+                        onClick={() => {
+                            setContextMenu({ ...contextMenu, visible: false });
+                            setShowAddColumnModal(true);
+                        }}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                    >
+                        <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                        <span>Add Column</span>
+
+                    </button>
+
+                    {contextMenu.allowDelete && (
+                        <button
+                            onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                            className={`w-full flex items-center gap-2 px-3 py-2text-sm rounded-md text-red-600 ${dark ? 'hover:bg-gray-700' : 'hover:bg-red-100'}`}
+                        >
+                            <Trash2 size={16} className={`${dark ? 'text-red-600' : 'text-red-600'}`} />
+                            <span>Delete Column</span>
+                        </button>
+                    )}
+
+                    <div className="relative group">
+                        <button className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                            <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                            <span>Column Show/Hide</span>
+                            <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+
+                        </button>
+                        <div className={`absolute border left-full top-0 mt-[-8px] z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg min-w-[180px] max-h-[300px] overflow-y-auto`}>
+                            {[
+                                { key: 'name', label: 'Name' },
+                                { key: 'role', label: 'Role' },
+                                { key: 'is_vps', label: 'Cloud Server' },
+                                { key: 'is_cerberus', label: 'Cerberus' },
+                                { key: 'is_proxy', label: 'Proxy' },
+                                { key: 'is_storage', label: 'Storage Server' },
+                                { key: 'is_varys', label: 'Varys' },
+                                ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
+                            ].map(col => (
+                                <button
+                                    key={col.key}
+                                    onClick={() => toggleColumnVisibility(col.key)}
+                                    className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                                >
+                                    <span>{col.label}</span>
+                                    {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
+
+            {showAddColumnModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold">Add New Column</h2>
+                            <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
+                        </div>
+
+                        <label className="block text-sm font-medium mb-1">Column Name</label>
+                        <input
+                            type="text"
+                            className={`w-full px-3 py-2 border rounded-md text-sm mb-4 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
+                            value={newColumnName}
+                            onChange={(e) => setNewColumnName(e.target.value)}
+                            placeholder="e.g. whatsapp_number"
+                        />
+
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
+                            <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showServiceModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className={`rounded-lg p-6 max-w-sm w-80 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold">Access to Service Panels</h2>
+                            <button onClick={closeServiceModal} className="text-xl font-bold">×</button>
+                        </div>
+                        <label className="text-sm font-medium mb-1 block">Services</label>
+                        <Select
+                            isMulti
+                            options={allServiceKeys.map(service => ({ label: service.label, value: service.key }))}
+                            value={allServiceKeys.filter(service => selectedServices.includes(service.key)).map(service => ({ label: service.label, value: service.key }))}
+                            onChange={(selectedOptions) => setSelectedServices(selectedOptions.map(opt => opt.value))}
+                            className="mb-4 text-sm"
+                            classNamePrefix="react-select"
+                            placeholder="Select services"
+                            styles={{
+                                control: (base) => ({ ...base, borderRadius: '6px', padding: '2px 4px', borderColor: dark ? '#4B5563' : '#CBD5E0', backgroundColor: dark ? '#374151' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
+                                multiValue: (base) => ({ ...base, backgroundColor: dark ? '#4B5563' : '#E0E7FF' }),
+                                menu: (base) => ({ ...base, zIndex: 99, backgroundColor: dark ? '#1F2937' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
+                                option: (base, state) => ({ ...base, backgroundColor: state.isFocused ? (dark ? '#374151' : '#E0E7FF') : (dark ? '#1F2937' : '#fff'), color: dark ? '#E5E7EB' : '#111827', cursor: 'pointer' }),
+                                singleValue: (base) => ({ ...base, color: dark ? '#E5E7EB' : '#1F2937' }),
+                                placeholder: (base) => ({ ...base, color: dark ? '#9CA3AF' : '#6B7280' }),
+                                input: (base) => ({ ...base, color: dark ? '#F9FAFB' : '#1F2937' })
+                            }}
+                        />
+                        <button onClick={handleApplyServiceAction} className={`w-full py-2 rounded-md ${dark ? 'bg-gray-600 text-slate-300 border-gray-600 hover:bg-gray-700' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} text-sm`}>
+                            {serviceModalType === 'include' ? 'Include' : 'Exclude'}
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-
-
-      <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
-
-      {showAddColumnModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Add New Column</h2>
-              <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
-            </div>
-
-            <label className="block text-sm font-medium mb-1">Column Name</label>
-            <input
-              type="text"
-              className={`w-full px-3 py-2 border rounded-md text-sm mb-4 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
-              value={newColumnName}
-              onChange={(e) => setNewColumnName(e.target.value)}
-              placeholder="e.g. whatsapp_number"
-            />
-
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setShowAddColumnModal(false)} className="px-4 py-2 text-sm bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-              <button onClick={handleAddColumn} className="px-4 py-2 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">Add</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showServiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className={`rounded-lg p-6 max-w-sm w-80 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Access to Service Panels</h2>
-              <button onClick={closeServiceModal} className="text-xl font-bold">×</button>
-            </div>
-            <label className="text-sm font-medium mb-1 block">Services</label>
-            <Select
-              isMulti
-              options={allServiceKeys.map(service => ({ label: service.label, value: service.key }))}
-              value={allServiceKeys.filter(service => selectedServices.includes(service.key)).map(service => ({ label: service.label, value: service.key }))}
-              onChange={(selectedOptions) => setSelectedServices(selectedOptions.map(opt => opt.value))}
-              className="mb-4 text-sm"
-              classNamePrefix="react-select"
-              placeholder="Select services"
-              styles={{
-                control: (base) => ({ ...base, borderRadius: '6px', padding: '2px 4px', borderColor: dark ? '#4B5563' : '#CBD5E0', backgroundColor: dark ? '#374151' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
-                multiValue: (base) => ({ ...base, backgroundColor: dark ? '#4B5563' : '#E0E7FF' }),
-                menu: (base) => ({ ...base, zIndex: 99, backgroundColor: dark ? '#1F2937' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
-                option: (base, state) => ({ ...base, backgroundColor: state.isFocused ? (dark ? '#374151' : '#E0E7FF') : (dark ? '#1F2937' : '#fff'), color: dark ? '#E5E7EB' : '#111827', cursor: 'pointer' }),
-                singleValue: (base) => ({ ...base, color: dark ? '#E5E7EB' : '#1F2937' }),
-                placeholder: (base) => ({ ...base, color: dark ? '#9CA3AF' : '#6B7280' }),
-                input: (base) => ({ ...base, color: dark ? '#F9FAFB' : '#1F2937' })
-              }}
-            />
-            <button onClick={handleApplyServiceAction} className={`w-full py-2 rounded-md ${dark ? 'bg-gray-600 text-slate-300 border-gray-600 hover:bg-gray-700' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} text-sm`}>
-              {serviceModalType === 'include' ? 'Include' : 'Exclude'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    );
 }
 
 
