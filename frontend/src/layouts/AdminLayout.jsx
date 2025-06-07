@@ -6,6 +6,7 @@ import { Outlet } from 'react-router-dom';
 import { useRefresh } from '../context/RefreshContext';
 import useIsMobile from '../hooks/useIsMobile';
 import HelpPopover from '../components/HelpPopover';
+// import { Search } from 'lucide-react';
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -17,6 +18,7 @@ const AdminLayout = () => {
   const [showHelp, setShowHelp] = useState(false);
   const isMobile = useIsMobile();
   const helpRef = useRef();
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -37,9 +39,9 @@ const AdminLayout = () => {
         setShowHelp={setShowHelp}
       />
       {/* <div className="flex-1 flex flex-col transition-colors duration-300 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white"> */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${collapsed ? 'pl-[85px] pr-[22px]' : 'pl-[280px] pr-[25px]'} ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}
-    >
-      
+      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isMobile ? 'pl-5 pr-5' : (collapsed ? 'pl-[85px] pr-[22px]' : 'pl-[280px] pr-[25px]')} ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}
+      >
+
         <Header
           dark={dark}
           collapsed={collapsed}
@@ -47,15 +49,34 @@ const AdminLayout = () => {
           onToggleTheme={toggleTheme}
           showHelp={showHelp}
           setShowHelp={setShowHelp}
+          showMobileSearch={showMobileSearch}
+          setShowMobileSearch={setShowMobileSearch}
         />
-        {/* <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"> */}
-        {/* <main className={`flex-1 overflow-y-auto pt-[60px] duration-300 ease-in-out ${dark ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'} ${collapsed ? 'ml-16' : 'ml-[255px]'}`}>
-          <div className="max-w-[95%] mx-auto mt-10 mb-10 rounded-xl shadow-[0_8px_20px_-8px_rgba(0,0,0,0.1)] ${dark ? 'bg-gray-800' : 'bg-white'}">
-            <Outlet context={{ dark }} />
+
+        {/* {showMobileSearch && isMobile && (
+          <div className={`w-full flex justify-center xl:hidden px-4 py-2 transition-all duration-300
+    ${dark
+              ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400'
+              : 'bg-purple-100 border-gray-300 text-gray-800 placeholder-gray-500'}`}
+          >
+            <div className="w-full max-w-md relative mx-auto">
+              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+                <Search size={16} />
+              </span>
+              <input
+                type="text"
+                placeholder="Search..."
+                className={`w-full pl-10 pr-4 py-2 rounded-md border text-sm focus:outline-none focus:ring 
+          ${dark
+                    ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400'
+                    : 'bg-gray-100 border-gray-300 text-gray-800 placeholder-gray-500'}`}
+              />
+            </div>
           </div>
-        </main> */}
+        )} */}
+
         <main
-          className={`flex-1 w-full mx-auto pt-[40px] min-h-screen duration-300 ease-in-out 
+          className={`flex-1 w-full mx-auto ${showMobileSearch && isMobile ? 'pt-[40px]' : 'pt-[40px]'} min-h-screen duration-300 ease-in-out 
   ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}
   `}
         >
@@ -158,8 +179,8 @@ export default AdminLayout;
 //         >
 //           <div className="mx-auto my-10 w-full px-4">
 //             <div
-//               className={`rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] 
-//         transition-all duration-300 ease-in-out 
+//               className={`rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]
+//         transition-all duration-300 ease-in-out
 //         ${dark ? 'bg-gray-800' : 'bg-white'}`}
 //               style={{ width: '100%', maxWidth: '100%' }}
 //             >

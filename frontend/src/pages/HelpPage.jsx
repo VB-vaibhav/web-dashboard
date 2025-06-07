@@ -7,7 +7,7 @@ const HelpPage = () => {
     const { dark } = useOutletContext();
 
     return (
-        <div className={`flex flex-col min-h-[calc(100vh-140px)] p-4 max-w-xl mx-auto mt-6 px-4 py-6 rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+        <div className={`flex flex-col min-h-[calc(100vh-140px)] max-w-xl mx-auto mt-2 px-2 py-4 rounded duration-300 ease-in-out ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
 
             <div className={`p-4 mb-4 rounded ${dark ? 'bg-gray-700' : 'bg-indigo-50'}`}>
                 <p className={`font-medium ${dark ? 'text-gray-400' : 'text-blue-900'}`}>Admin Dashboard - The Earth Ace</p>
