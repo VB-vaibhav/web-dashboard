@@ -485,6 +485,37 @@ export default function ServiceAccessSettings() {
     setShowAlert(true);
   };
 
+  const autoResizeColumn = (index) => {
+    // Get key for the column
+    const key = getColumnKeyFromIndex(index);
+    if (!key) return;
+
+    let maxWidth = 40; // start with min width
+
+    // Measure width of each cell in this column
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.font = '14px sans-serif';
+    document.body.appendChild(tempSpan);
+
+    users.forEach(user => {
+      const text = (user[key] || '').toString();
+      tempSpan.innerText = text;
+      const width = tempSpan.offsetWidth + 24; // add padding/margin buffer
+      if (width > maxWidth) maxWidth = width;
+    });
+
+    document.body.removeChild(tempSpan);
+
+    // Apply the new width
+    const newWidths = [...columnWidths];
+    newWidths[index] = Math.max(maxWidth, 60); // Enforce min width
+    setColumnWidths(newWidths);
+    localStorage.setItem('columnWidths_service_access', JSON.stringify(newWidths));
+  };
+
+
   const closeModal = () => setShowAlert(false);
 
   const renderCell = (user, key) => {
@@ -617,6 +648,11 @@ export default function ServiceAccessSettings() {
                       </div>
                       <div
                         onMouseDown={(e) => startResizing(index, e)}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation(); // avoid bubbling to th
+                          autoResizeColumn(index);
+                        }}
+                        // onDoubleClick={() => autoResizeColumn(index)}
                         className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
                       />
                     </th>
@@ -670,6 +706,11 @@ export default function ServiceAccessSettings() {
                       )}
                       <div
                         onMouseDown={(e) => startResizing(index, e)}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation(); // avoid bubbling to th
+                          autoResizeColumn(index);
+                        }}
+                        // onDoubleClick={() => autoResizeColumn(index)}
                         className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
                       />
                     </th>
@@ -977,8 +1018,8 @@ export default function ServiceAccessSettings() {
             onMouseLeave={() => setShowSubmenu(false)}
           >
             <button
-            ref={submenuTriggerRef} 
-            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+              ref={submenuTriggerRef}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
               <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
               <span>Column Show/Hide</span>
               <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
@@ -988,7 +1029,13 @@ export default function ServiceAccessSettings() {
             {showSubmenu && (
               <div
                 ref={submenuRef}
-                className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border left-full top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}>
+                className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border left-full top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
+                style={{
+                  left: submenuFlipLeft ? 'auto' : '100%',
+                  right: submenuFlipLeft ? '100%' : 'auto',
+                  paddingLeft: submenuFlipLeft ? '0' : '8px',
+                  paddingRight: submenuFlipLeft ? '8px' : '0'
+                }}>
                 {[
                   { key: 'name', label: 'Name' },
                   { key: 'role', label: 'Role' },
