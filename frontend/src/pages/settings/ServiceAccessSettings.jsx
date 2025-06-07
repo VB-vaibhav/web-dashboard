@@ -3,7 +3,7 @@ import axios from '../../api/axios';
 import AlertModal from '../../components/AlertModal';
 import { useOutletContext } from 'react-router-dom';
 import { useTableSearch } from '../../hooks/useTableSearch';
-import { Search, MoreVertical, PlusCircle, MinusCircle, Plus, Trash2, ChevronRight, Layout, Columns, Check } from 'lucide-react';
+import { Search, MoreVertical, PlusCircle, MinusCircle, Plus, Trash2, ChevronRight, Layout, Columns, Check, ArrowUpAZ, ArrowDownAZ, ListFilter, XCircle } from 'lucide-react';
 import Select from 'react-select';
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileServiceAccessUI from './MobileServiceAccessUI';
@@ -36,23 +36,45 @@ export default function ServiceAccessSettings() {
   const SORT_STORAGE_KEY = `sortConfig_service_access_${username}`;
 
 
-  // const SORT_STORAGE_KEY = 'sortConfig_service_access';
-
-
-
   const handleHeaderContextMenu = (e, index) => {
     e.preventDefault();
+
+    const menuWidth = 190; // You can also measure this dynamically via ref if needed
+    const screenWidth = window.innerWidth;
+    const buffer = 10; // Optional gap from edge
+
+    const clickX = e.clientX;
+    const clickY = e.clientY;
+
+    const openLeft = (clickX + menuWidth + buffer) > screenWidth;
+
+    const finalX = openLeft ? (clickX - menuWidth) : clickX;
 
     const isCustom = index >= 8 && dynamicColumns[index - 8]?.dbKey?.startsWith('custom_');
 
     setContextMenu({
       visible: true,
-      x: e.pageX,
-      y: e.pageY,
+      x: finalX,
+      y: clickY,
       columnIndex: index,
-      allowDelete: isCustom // 🔥 NEW FLAG
+      allowDelete: isCustom,
+      openLeft
     });
   };
+
+  const submenuRef = useRef(null);
+  const [showSubmenu, setShowSubmenu] = useState(false);
+  const [submenuFlipLeft, setSubmenuFlipLeft] = useState(false);
+  const submenuTriggerRef = useRef(null);
+
+  useEffect(() => {
+    if (submenuRef.current) {
+      const rect = submenuRef.current.getBoundingClientRect();
+      const spaceRight = window.innerWidth - rect.left;
+      const submenuWidth = 200; // approximate width
+      setSubmenuFlipLeft(spaceRight < submenuWidth + 16); // buffer
+    }
+  }, [contextMenu]);
 
 
   const allServiceKeys = [
@@ -293,7 +315,7 @@ export default function ServiceAccessSettings() {
     }
   };
 
-  
+
 
   // const { columnWidths, startResizing, totalWidth } = useResizableColumns([40, 100, 80, 150, 150, 150, 150, 150]);
   const handleDeleteColumn = async (index) => {
@@ -345,7 +367,7 @@ export default function ServiceAccessSettings() {
     fetchUsers();
   }, []);
 
-  
+
 
   useEffect(() => {
     const handleClickOutside = () => setContextMenu({ ...contextMenu, visible: false });
@@ -354,7 +376,7 @@ export default function ServiceAccessSettings() {
   }, [contextMenu]);
 
 
-  
+
 
   const sortedData = React.useMemo(() => {
     if (!sortConfig.key) return filteredData;
@@ -867,7 +889,15 @@ export default function ServiceAccessSettings() {
       {contextMenu.visible && (
         <div
           className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
-          style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, minWidth: '140px' }}
+          style={{
+            position: 'fixed',
+            top: `${contextMenu.y}px`,
+            left: `${contextMenu.x}px`,
+            minWidth: '190px',
+            zIndex: 1000,
+          }}
+
+
         >
           <button
             onClick={() => {
@@ -879,9 +909,10 @@ export default function ServiceAccessSettings() {
               // setSortConfig({ key: col, direction: 'asc' });
               // setContextMenu({ ...contextMenu, visible: false });
             }}
-            className={`w-full px-3 py-2 text-left text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
           >
-            Sort Ascending
+            <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+            <span>Sort Ascending</span>
           </button>
           <button
             onClick={() => {
@@ -893,9 +924,10 @@ export default function ServiceAccessSettings() {
               // setSortConfig({ key: col, direction: 'desc' });
               // setContextMenu({ ...contextMenu, visible: false });
             }}
-            className={`w-full px-3 py-2 text-left text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
           >
-            Sort Descending
+            <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+            <span>Sort Descending</span>
           </button>
           <button
             onClick={() => {
@@ -903,9 +935,10 @@ export default function ServiceAccessSettings() {
               localStorage.removeItem(SORT_STORAGE_KEY);
               setContextMenu({ ...contextMenu, visible: false });
             }}
-            className={`w-full px-3 py-2 text-left text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
           >
-            Cancel Sort
+            <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+            <span>Cancel Sort</span>
           </button>
 
           <button
@@ -923,41 +956,60 @@ export default function ServiceAccessSettings() {
           {contextMenu.allowDelete && (
             <button
               onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
-              className={`w-full flex items-center gap-2 px-3 py-2text-sm rounded-md text-red-600 ${dark ? 'hover:bg-gray-700' : 'hover:bg-red-100'}`}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
             >
-              <Trash2 size={16} className={`${dark ? 'text-red-600' : 'text-red-600'}`} />
+              <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
               <span>Delete Column</span>
             </button>
           )}
 
-          <div className="relative group">
-            <button className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+          <div
+            className="relative"
+            onMouseEnter={() => {
+              if (submenuTriggerRef.current) {
+                const rect = submenuTriggerRef.current.getBoundingClientRect();
+                const spaceRight = window.innerWidth - rect.right;
+                const submenuWidth = 220;
+                setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
+              }
+              setShowSubmenu(true);
+            }}
+            onMouseLeave={() => setShowSubmenu(false)}
+          >
+            <button
+            ref={submenuTriggerRef} 
+            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
               <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
               <span>Column Show/Hide</span>
               <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
 
             </button>
-            <div className={`absolute border left-full top-0 mt-[-8px] z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg min-w-[180px] max-h-[300px] overflow-y-auto`}>
-              {[
-                { key: 'name', label: 'Name' },
-                { key: 'role', label: 'Role' },
-                { key: 'is_vps', label: 'Cloud Server' },
-                { key: 'is_cerberus', label: 'Cerberus' },
-                { key: 'is_proxy', label: 'Proxy' },
-                { key: 'is_storage', label: 'Storage Server' },
-                { key: 'is_varys', label: 'Varys' },
-                ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
-              ].map(col => (
-                <button
-                  key={col.key}
-                  onClick={() => toggleColumnVisibility(col.key)}
-                  className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-                >
-                  <span>{col.label}</span>
-                  {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
-                </button>
-              ))}
-            </div>
+
+            {showSubmenu && (
+              <div
+                ref={submenuRef}
+                className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border left-full top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}>
+                {[
+                  { key: 'name', label: 'Name' },
+                  { key: 'role', label: 'Role' },
+                  { key: 'is_vps', label: 'Cloud Server' },
+                  { key: 'is_cerberus', label: 'Cerberus' },
+                  { key: 'is_proxy', label: 'Proxy' },
+                  { key: 'is_storage', label: 'Storage Server' },
+                  { key: 'is_varys', label: 'Varys' },
+                  ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
+                ].map(col => (
+                  <button
+                    key={col.key}
+                    onClick={() => toggleColumnVisibility(col.key)}
+                    className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                  >
+                    <span>{col.label}</span>
+                    {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
