@@ -35,11 +35,11 @@ const routeTitles = {
   '/help': 'Help',
 };
 
-const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon }) => {
+const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon, showMobileSearch, setShowMobileSearch }) => {
   const location = useLocation();
   const pathname = location.pathname;
   const pageTitle = routeTitles[location.pathname] || 'Dashboard';
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  // const [showMobileSearch, setShowMobileSearch] = useState(false);
   const isMobile = useIsMobile();
   const { toggleProfile } = useProfile();
 
@@ -77,7 +77,7 @@ const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon }) 
       {/* HEADER */}
       <header className={`fixed top-0 z-40 h-[60px] flex items-center justify-between px-4 shadow-[0_8px_20px_-8px_rgba(0,0,0,0.15)]
     ${dark ? 'bg-slate-800 text-white' : 'bg-white text-gray-800'}
-    ${collapsed ? 'left-16 w-[calc(100%-64px)]' : 'left-[240px] w-[calc(100%-240px)]'}
+    ${isMobile ? 'left-0 w-full' : (collapsed ? 'left-16 w-[calc(100%-64px)]' : 'left-[240px] w-[calc(100%-240px)]')}
   `}>
 
         {/* LEFT: Hamburger + Title */}
@@ -175,13 +175,13 @@ const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon }) 
 
 
       {/* MOBILE/TABLET Search Bar — full width below header */}
-      {showMobileSearch && (
-        <div className={`w-full flex justify-center xl:hidden px-4 py-2 ${dark
-          ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400'
-          : 'bg-purple-100 border-gray-300 text-gray-800 placeholder-gray-500'}`}
-          style={{ borderTop: 'none', borderBottom: 'none', boxShadow: 'none' }}
+      {isMobile && showMobileSearch && (
+        <div className={`w-full fixed top-[60px] left-0 right-0 xl:hidden px-4 py-2 z-40 ${dark
+          ? 'text-white border-gray-600 placeholder-gray-400'
+          : 'border-gray-300 text-gray-800 placeholder-gray-500'}`}
+          // style={{ borderTop: 'none', borderBottom: 'none', boxShadow: 'none' }}
         >
-          <div className="w-full max-w-md relative">
+          <div className="w-full max-w-md relative mx-auto">
             <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
               <Search size={16} />
             </span>

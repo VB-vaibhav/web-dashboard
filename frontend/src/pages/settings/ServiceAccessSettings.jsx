@@ -977,8 +977,8 @@ export default function ServiceAccessSettings() {
             onMouseLeave={() => setShowSubmenu(false)}
           >
             <button
-            ref={submenuTriggerRef} 
-            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+              ref={submenuTriggerRef}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
               <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
               <span>Column Show/Hide</span>
               <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
@@ -988,7 +988,13 @@ export default function ServiceAccessSettings() {
             {showSubmenu && (
               <div
                 ref={submenuRef}
-                className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border left-full top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}>
+                className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border left-full top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
+                style={{
+                  left: submenuFlipLeft ? 'auto' : '100%',
+                  right: submenuFlipLeft ? '100%' : 'auto',
+                  paddingLeft: submenuFlipLeft ? '0' : '8px',
+                  paddingRight: submenuFlipLeft ? '8px' : '0'
+                }}>
                 {[
                   { key: 'name', label: 'Name' },
                   { key: 'role', label: 'Role' },
