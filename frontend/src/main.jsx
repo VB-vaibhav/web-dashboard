@@ -36,6 +36,7 @@ import ProfilePage from './pages/ProfilePage';
 import EditProfilePageMobile from './pages/EditProfilePageMobile';
 import HelpPage from './pages/HelpPage';
 import ServiceAccessSettings from './pages/settings/ServiceAccessSettings';
+import ManageRoleSettings from './pages/settings/RoleManagementSettings';
 
 import './index.css';
 
@@ -89,7 +90,7 @@ const ProtectedRoutes = () => {
           <Route path="service-access" element={<ServiceAccessSettings />} />
           <Route path="panel-access" element={<div>Panel Access Settings</div>} />
           <Route path="exclude-clients" element={<div>Exclude Clients Settings</div>} />
-          <Route path="role-management" element={<div>Role Management Settings</div>} />
+          <Route path="role-management" element={<ManageRoleSettings />} />
           <Route path="users" element={<div>User Management Settings</div>} />
         </Route>
 

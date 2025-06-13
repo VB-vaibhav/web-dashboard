@@ -3,7 +3,10 @@ import { setCredentials, clearCredentials } from '../slices/authSlice';
 import store from '../store';
 import axios from '../api/axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+// const API_URL = 'http://localhost:5000/api/auth';
+// const API_URL = 'https://api.theearthace.in/api/auth';
+const API_URL = `${import.meta.env.VITE_API_URL}/auth`;
+// if (!API_URL) throw new Error("VITE_API_URL is not defined");
 
 export const login = async (emailOrUsername, password) => {
   const res = await fetch(`${API_URL}/login`, {
@@ -54,7 +57,8 @@ export const refreshAccessToken = async () => {
 };
 
 export const refreshUserState = async () => {
-  const res = await fetch('http://localhost:5000/api/auth/me', {
+  // const res = await fetch('http://localhost:5000/api/auth/me', {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('accessToken')}`
     }
@@ -71,8 +75,10 @@ export const refreshUserState = async () => {
     phone: data.phone,
     joinDate: data.join_date,
     userId: data.user_id,
-    avatarUrl: data.avatar ? `http://localhost:5000${data.avatar}` // ✅ Fix relative path here
-    : null
+    // avatarUrl: data.avatar ? `http://localhost:5000${data.avatar}` // ✅ Fix relative path here 
+    //  : null
+    avatarUrl: data.avatar ? `${import.meta.env.VITE_API_URL}${data.avatar}` : null
+
   }));
   localStorage.setItem('userId', data.userId); // ✅ Save in browser
 

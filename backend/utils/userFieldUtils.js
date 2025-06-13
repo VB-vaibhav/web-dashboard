@@ -6,6 +6,9 @@ const STATIC_COLUMNS_MAP = {
   serviceAccess: [
     'id', 'name', 'role', 'is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'
   ],
+  manageRole: [
+    'id', 'name', 'username', 'email', 'role'
+  ],
   clients: [
     'id', 'name', 'email', 'phone', 'middleman_id', 'service', 'plan', 'start_date', 'expiry_date'
   ],

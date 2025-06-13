@@ -74,8 +74,8 @@ exports.login = async (req, res) => {
       // Send refresh token via secure HTTP-only cookie
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'Strict',
+        secure: false,
+        sameSite: 'Lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -104,6 +104,10 @@ exports.login = async (req, res) => {
       });
     }
   );
+  console.log('Login payload received:', req.body);
+  console.log('Query results:', results);
+  console.log('Password match:', isMatch);
+
 };
 
 // =================== REFRESH ACCESS TOKEN ===================

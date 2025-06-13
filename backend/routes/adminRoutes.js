@@ -171,5 +171,37 @@ router.delete('/delete-column', verifyToken, requireRole('superadmin'), async (r
   }
 });
 
+// GET /admin/manage-role-users
+router.get('/manage-role-users', verifyToken, requireRole('superadmin'), async (req, res) => {
+  try {
+    const allColumns = await getUserFieldsForPage('manageRole');
+    const query = `SELECT ${allColumns.map(col => `\`${col}\``).join(', ')} FROM users WHERE role != 'superadmin'`;
+
+    const [rows] = await db.promise().query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error in manage-role-users:", err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /admin/update-user-role/:id
+router.patch('/update-user-role/:id', verifyToken, requireRole('superadmin'), async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  if (!id || !role || role === 'superadmin') {
+    return res.status(400).json({ error: 'Invalid role change' });
+  }
+
+  try {
+    await db.promise().query("UPDATE users SET role = ? WHERE id = ?", [role, id]);
+    res.json({ message: 'Role updated successfully' });
+  } catch (err) {
+    console.error("Error updating role:", err);
+    res.status(500).json({ error: 'Failed to update role' });
+  }
+});
+
 
 module.exports = router;
