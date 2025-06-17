@@ -53,7 +53,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
     { label: 'Notification scheduler', to: '/notification-scheduler', icon: Bell, roles: ['superadmin', 'admin', 'middleman'], key: 'is_notification' },
     { label: 'Mail scheduler', to: '/mail-scheduler', icon: Mail, roles: ['superadmin', 'admin', 'middleman'], key: 'is_mail' },
     { label: 'Reports', to: '/reports', icon: BarChart2, roles: ['superadmin', 'admin', 'middleman'], key: 'is_reports' },
-    { label: 'Settings', to: '/settings', icon: Settings, roles: ['superadmin'] },
+    { label: 'Settings', to: '/settings', icon: Settings, roles: ['superadmin', 'admin', 'middleman'], key: 'is_settings' },
   ];
   const mobileOnlyLinks = [
     { label: 'Help', icon: HelpCircle, to: '/help' },

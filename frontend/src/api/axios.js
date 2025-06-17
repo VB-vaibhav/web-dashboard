@@ -3,8 +3,8 @@ import axios from 'axios';
 import { refreshAccessToken } from '../auth/authService';
 
 const instance = axios.create({
-  // baseURL: 'http://localhost:5000/api',
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: 'http://localhost:5000/api',
+  // baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true // Needed for sending refresh cookie
 });
 

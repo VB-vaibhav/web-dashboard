@@ -44,8 +44,8 @@ const EditProfilePanel = ({ dark }) => {
         try {
             if (avatarFile) await uploadAvatar(avatarFile);
 
-            // await fetch(`http://localhost:5000/api/auth/update-profile`, {
-            await fetch(`${import.meta.env.VITE_API_URL}/auth/update-profile`, {
+            await fetch(`http://localhost:5000/api/auth/update-profile`, {
+            // await fetch(`${import.meta.env.VITE_API_URL}/auth/update-profile`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

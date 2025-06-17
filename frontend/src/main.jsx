@@ -37,6 +37,8 @@ import EditProfilePageMobile from './pages/EditProfilePageMobile';
 import HelpPage from './pages/HelpPage';
 import ServiceAccessSettings from './pages/settings/ServiceAccessSettings';
 import ManageRoleSettings from './pages/settings/RoleManagementSettings';
+import PanelAccessSettings from './pages/settings/PanelAccessSettings';
+
 
 import './index.css';
 
@@ -85,10 +87,11 @@ const ProtectedRoutes = () => {
           hasAccess(role, permissions, 'is_reports') ? <ReportsPage /> : <Navigate to="/unauthorized" />
         } />
         {/* <Route path="settings" element={<SettingsPage />} /> */}
-        <Route path="settings" element={role === 'superadmin' ? <SettingsPage /> : <Navigate to="/unauthorized" />}>
+        {/* <Route path="settings" element={role === 'superadmin' ? <SettingsPage /> : <Navigate to="/unauthorized" />}> */}
+        <Route path="settings" element={hasAccess(role, permissions, 'is_settings') ? <SettingsPage /> : <Navigate to="/unauthorized" />} >
           <Route index element={<Navigate to="service-access" />} />
           <Route path="service-access" element={<ServiceAccessSettings />} />
-          <Route path="panel-access" element={<div>Panel Access Settings</div>} />
+          <Route path="panel-access" element={<PanelAccessSettings />} />
           <Route path="exclude-clients" element={<div>Exclude Clients Settings</div>} />
           <Route path="role-management" element={<ManageRoleSettings />} />
           <Route path="users" element={<div>User Management Settings</div>} />

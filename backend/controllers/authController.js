@@ -52,17 +52,21 @@ exports.login = async (req, res) => {
     "SELECT * FROM users WHERE email = ? OR username = ?",
     [emailOrUsername, emailOrUsername],
     async (err, results) => {
+      // console.log('Login payload received:', req.body);
+      // console.log('Query results:', results);
+      
       if (err) {
         console.error("DB error:", err);
         return res.status(401).send("Server Error");
       }
-
+      
       if (results.length === 0) {
         console.log("No matching user found");
         return res.status(401).send("Invalid credentials");
       }
       const user = results[0];
       const isMatch = await bcrypt.compare(password, user.password);
+      // console.log('Password match:', isMatch);
       if (!isMatch) {
         console.log("Password mismatch");
         return res.status(401).send("Invalid credentials");
@@ -91,7 +95,8 @@ exports.login = async (req, res) => {
           is_varys: user.is_varys,
           is_notification: user.is_notification,
           is_mail: user.is_mail,
-          is_reports: user.is_reports
+          is_reports: user.is_reports,
+          is_settings: user.is_settings
         }
       });
 
@@ -104,9 +109,6 @@ exports.login = async (req, res) => {
       });
     }
   );
-  console.log('Login payload received:', req.body);
-  console.log('Query results:', results);
-  console.log('Password match:', isMatch);
 
 };
 
@@ -288,7 +290,9 @@ exports.getMe = (req, res) => {
         is_varys: user.is_varys,
         is_notification: user.is_notification,
         is_mail: user.is_mail,
-        is_reports: user.is_reports
+        is_reports: user.is_reports,
+        is_settings: user.is_settings
+
       }
     });
   });

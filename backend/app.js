@@ -17,7 +17,7 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(cors({ origin: 'https://portal.theearthace.com', credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 

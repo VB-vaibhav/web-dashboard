@@ -54,7 +54,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { verifyToken, requireRole } = require('../middleware/authMiddleware');
+const { verifyToken, requireRole, requireSettingsAccess } = require('../middleware/authMiddleware');
 const db = require('../config/db');
 const { getUserFieldsForPage } = require('../utils/userFieldUtils');
 
@@ -82,7 +82,7 @@ router.get('/admin/data', verifyToken, requireRole('admin', 'superadmin'), (req,
 //   });
 // });
 
-router.get('/service-access-users', verifyToken, requireRole('superadmin'), async (req, res) => {
+router.get('/service-access-users', verifyToken, requireSettingsAccess, async (req, res) => {
   try {
     const allColumns = await getUserFieldsForPage('serviceAccess');
     const query = `SELECT ${allColumns.map(col => `\`${col}\``).join(', ')} FROM users WHERE role = 'admin'`;
@@ -96,7 +96,7 @@ router.get('/service-access-users', verifyToken, requireRole('superadmin'), asyn
 });
 
 // PATCH /admin/update-service-access/:id
-router.patch('/update-service-access/:id', verifyToken, requireRole('superadmin'), (req, res) => {
+router.patch('/update-service-access/:id', verifyToken, requireSettingsAccess, (req, res) => {
   const { id } = req.params;
   const updates = req.body; // e.g., { is_proxy: 1 }
 
@@ -120,59 +120,151 @@ router.patch('/update-service-access/:id', verifyToken, requireRole('superadmin'
 
 // add_column
 
-router.post('/add-column', verifyToken, requireRole('superadmin'), (req, res) => {
-  const { columnName } = req.body;
+router.post('/add-column', verifyToken, requireSettingsAccess, (req, res) => {
+  const { columnName, pageKey, label } = req.body;
 
-  // ✅ Basic validation (strict pattern for SQL safety)
-  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(columnName)) {
-    return res.status(400).json({ error: 'Invalid column name' });
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(columnName) || !pageKey) {
+    return res.status(400).json({ error: 'Invalid column name or page' });
   }
 
-  const sql = `ALTER TABLE users ADD COLUMN \`${columnName}\` VARCHAR(255) DEFAULT ''`;
+  if (columnName.startsWith('custom_')) {
+    return res.status(400).json({ error: 'Do not include "custom_" prefix' });
+  }
 
-  db.query(sql, (err) => {
-    if (err) {
-      console.error('Column add error:', err);
-      return res.status(500).json({ error: 'Column creation failed' });
-    }
-    res.json({ message: `Column '${columnName}' added successfully.` });
+
+  const fullColumn = `custom_${pageKey}_${columnName}`;
+  const alterSQL = `ALTER TABLE users ADD COLUMN \`${fullColumn}\` VARCHAR(255) DEFAULT ''`;
+
+  db.query(alterSQL, (err) => {
+    if (err) return res.status(500).json({ error: 'Column creation failed' });
+
+    const insertMeta = `INSERT INTO custom_user_fields (column_name, page_key, label) VALUES (?, ?, ?)`;
+    db.query(insertMeta, [fullColumn, pageKey, label || columnName], (metaErr) => {
+      if (metaErr) return res.status(500).json({ error: 'Metadata insert failed' });
+      res.json({ message: `Column '${fullColumn}' added and tracked.` });
+    });
   });
+
+  // const { columnName } = req.body;
+
+  // // ✅ Basic validation (strict pattern for SQL safety)
+  // if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(columnName)) {
+  //   return res.status(400).json({ error: 'Invalid column name' });
+  // }
+
+  // const sql = `ALTER TABLE users ADD COLUMN \`${columnName}\` VARCHAR(255) DEFAULT ''`;
+
+  // db.query(sql, (err) => {
+  //   if (err) {
+  //     console.error('Column add error:', err);
+  //     return res.status(500).json({ error: 'Column creation failed' });
+  //   }
+  //   res.json({ message: `Column '${columnName}' added successfully.` });
+  // });
 });
 
-router.patch('/rename-column', verifyToken, requireRole('superadmin'), async (req, res) => {
-  const { oldColumn, newColumn } = req.body;
-  if (!oldColumn || !newColumn) {
-    return res.status(400).json({ error: 'Missing column name(s).' });
+// router.patch('/rename-column', verifyToken, requireSettingsAccess, async (req, res) => {
+//   const { oldColumn, newColumn } = req.body;
+//   if (!oldColumn || !newColumn) {
+//     return res.status(400).json({ error: 'Missing column name(s).' });
+//   }
+
+//   try {
+//     const alterQuery = `ALTER TABLE users CHANGE \`${oldColumn}\` \`${newColumn}\` VARCHAR(255)`;
+//     await db.promise().query(alterQuery);
+
+//     // 2. Update metadata table
+//     const updateMeta = `UPDATE custom_user_fields SET column_name = ? WHERE column_name = ?`;
+//     await db.promise().query(updateMeta, [newColumn, oldColumn]);
+
+//     res.json({ message: 'Column renamed successfully' });
+//   } catch (err) {
+//     console.error('DB rename error:', err);
+//     res.status(500).json({ error: 'Failed to rename column' });
+//   }
+// });
+
+router.patch('/rename-column', verifyToken, requireSettingsAccess, async (req, res) => {
+  const { oldColumn, newColumn, newLabel } = req.body;
+  if (!oldColumn || !newColumn || !newLabel) {
+    return res.status(400).json({ error: 'Missing parameters.' });
   }
 
   try {
+    // 1. Rename the column in users table
     const alterQuery = `ALTER TABLE users CHANGE \`${oldColumn}\` \`${newColumn}\` VARCHAR(255)`;
     await db.promise().query(alterQuery);
-    res.json({ message: 'Column renamed successfully' });
+
+    // 2. Update metadata (column name + label)
+    const updateMeta = `
+      UPDATE custom_user_fields 
+      SET column_name = ?, label = ?
+      WHERE column_name = ?
+    `;
+    await db.promise().query(updateMeta, [newColumn, newLabel, oldColumn]);
+
+    res.json({ message: 'Column renamed and label updated successfully' });
   } catch (err) {
-    console.error('DB rename error:', err);
+    console.error('Rename error:', err);
     res.status(500).json({ error: 'Failed to rename column' });
   }
 });
 
-router.delete('/delete-column', verifyToken, requireRole('superadmin'), async (req, res) => {
-  const { columnName } = req.body;
-  if (!columnName || !columnName.startsWith('custom_')) {
-    return res.status(400).json({ error: 'Invalid or non-deletable column' });
+
+// router.delete('/delete-column', verifyToken, requireSettingsAccess, async (req, res) => {
+//   const { columnName } = req.body;
+//   if (!columnName || !columnName.startsWith('custom_')) {
+//     return res.status(400).json({ error: 'Invalid or non-deletable column' });
+//   }
+
+//   try {
+//     const sql = `ALTER TABLE users DROP COLUMN \`${columnName}\``;
+//     await db.promise().query(sql);
+//     res.json({ message: 'Column deleted successfully' });
+//   } catch (err) {
+//     console.error("Delete column error:", err);
+//     res.status(500).json({ error: 'Failed to delete column' });
+//   }
+// });
+
+router.delete('/delete-column', verifyToken, requireSettingsAccess, async (req, res) => {
+  const { columnName, pageKey } = req.body;
+  if (!columnName || !pageKey) {
+    return res.status(400).json({ error: 'Missing column name or page key' });
   }
+  const sanitized = columnName.startsWith('custom_') ? columnName : `custom_${pageKey}_${columnName}`;
 
   try {
-    const sql = `ALTER TABLE users DROP COLUMN \`${columnName}\``;
-    await db.promise().query(sql);
-    res.json({ message: 'Column deleted successfully' });
+    // 🔥 1. Drop column from users table
+    await db.promise().query(`ALTER TABLE users DROP COLUMN \`${sanitized}\``);
+
+    // 🔥 2. Delete entry from custom_user_fields
+    await db.promise().query(`DELETE FROM custom_user_fields WHERE column_name = ?  AND page_key = ?`, [sanitized, pageKey]);
+
+    res.json({ success: true });
   } catch (err) {
-    console.error("Delete column error:", err);
+    console.error('Delete column error:', err);
     res.status(500).json({ error: 'Failed to delete column' });
   }
 });
 
+
+router.get('/panel-access-users', verifyToken, requireSettingsAccess, async (req, res) => {
+  try {
+    const allColumns = await getUserFieldsForPage('panelAccess');
+    const query = `SELECT ${allColumns.map(col => `\`${col}\``).join(', ')} FROM users WHERE role IN ('admin', 'middleman')`;
+
+    const [rows] = await db.promise().query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error in panel-access-users:", err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 // GET /admin/manage-role-users
-router.get('/manage-role-users', verifyToken, requireRole('superadmin'), async (req, res) => {
+router.get('/manage-role-users', verifyToken, requireSettingsAccess, async (req, res) => {
   try {
     const allColumns = await getUserFieldsForPage('manageRole');
     const query = `SELECT ${allColumns.map(col => `\`${col}\``).join(', ')} FROM users WHERE role != 'superadmin'`;
@@ -186,7 +278,7 @@ router.get('/manage-role-users', verifyToken, requireRole('superadmin'), async (
 });
 
 // PATCH /admin/update-user-role/:id
-router.patch('/update-user-role/:id', verifyToken, requireRole('superadmin'), async (req, res) => {
+router.patch('/update-user-role/:id', verifyToken, requireSettingsAccess, async (req, res) => {
   const { id } = req.params;
   const { role } = req.body;
 
@@ -203,5 +295,18 @@ router.patch('/update-user-role/:id', verifyToken, requireRole('superadmin'), as
   }
 });
 
+router.get('/custom-columns', verifyToken, requireSettingsAccess, async (req, res) => {
+  const { pageKey } = req.query;
+  try {
+    const [rows] = await db.promise().query(
+      `SELECT column_name, label FROM custom_user_fields WHERE page_key = ?`,
+      [pageKey]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching column metadata:', err);
+    res.status(500).json({ error: 'Failed to fetch metadata' });
+  }
+});
 
 module.exports = router;
