@@ -60,7 +60,7 @@ const { getUserFieldsForPage } = require('../utils/userFieldUtils');
 
 
 // Protected route
-router.get('/admin/data', verifyToken, requireRole('admin', 'superadmin'), (req, res) => {
+router.get('/admin/data', verifyToken, requireSettingsAccess, (req, res) => {
   res.send("Only admin or superadmin can access this.");
 });
 
@@ -121,25 +121,29 @@ router.patch('/update-service-access/:id', verifyToken, requireSettingsAccess, (
 // add_column
 
 router.post('/add-column', verifyToken, requireSettingsAccess, (req, res) => {
-  const { columnName, pageKey, label } = req.body;
+  
 
-  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(columnName) || !pageKey) {
-    return res.status(400).json({ error: 'Invalid column name or page' });
+  const { pageKey, label } = req.body;
+
+  if (!label || !pageKey) {
+    return res.status(400).json({ error: 'Missing label or pageKey' });
   }
 
-  if (columnName.startsWith('custom_')) {
-    return res.status(400).json({ error: 'Do not include "custom_" prefix' });
+  const safeLabel = label.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(safeLabel)) {
+    return res.status(400).json({ error: 'Invalid label for column name' });
   }
 
+  // const columnName = `custom_${pageKey}_${safeLabel}`;
 
-  const fullColumn = `custom_${pageKey}_${columnName}`;
+  const fullColumn = `custom_${pageKey}_${safeLabel}`;
   const alterSQL = `ALTER TABLE users ADD COLUMN \`${fullColumn}\` VARCHAR(255) DEFAULT ''`;
 
   db.query(alterSQL, (err) => {
     if (err) return res.status(500).json({ error: 'Column creation failed' });
 
     const insertMeta = `INSERT INTO custom_user_fields (column_name, page_key, label) VALUES (?, ?, ?)`;
-    db.query(insertMeta, [fullColumn, pageKey, label || columnName], (metaErr) => {
+    db.query(insertMeta, [fullColumn, pageKey, label || fullColumn], (metaErr) => {
       if (metaErr) return res.status(500).json({ error: 'Metadata insert failed' });
       res.json({ message: `Column '${fullColumn}' added and tracked.` });
     });
@@ -308,5 +312,31 @@ router.get('/custom-columns', verifyToken, requireSettingsAccess, async (req, re
     res.status(500).json({ error: 'Failed to fetch metadata' });
   }
 });
+// PATCH /admin/update-multiple-roles
+router.patch('/update-multiple-roles', verifyToken, requireRole('superadmin'), async (req, res) => {
+  const { userIds, newRole } = req.body;
+
+  if (!Array.isArray(userIds) || !newRole || newRole === 'superadmin') {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+
+  const placeholders = userIds.map(() => '?').join(', ');
+  const query = `UPDATE users SET role = ? WHERE id IN (${placeholders})`;
+
+  try {
+    await db.promise().query(query, [newRole, ...userIds]);
+    res.json({ message: 'Roles updated successfully' });
+  } catch (err) {
+    console.error("Error in bulk role update:", err);
+    res.status(500).json({ error: 'Failed to update roles' });
+  }
+});
+
+const exclusionController = require('../controllers/exclusionController');
+
+router.get('/exclusion-settings', verifyToken, requireSettingsAccess, exclusionController.getExclusionSettings);
+router.get('/admin-users', verifyToken, requireSettingsAccess, exclusionController.getAdminUsers);
+router.patch('/exclusion-settings/:clientId', verifyToken, requireSettingsAccess, exclusionController.updateExclusion);
+
 
 module.exports = router;

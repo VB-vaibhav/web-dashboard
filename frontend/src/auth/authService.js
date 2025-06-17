@@ -110,7 +110,8 @@ export const uploadAvatar = async (file) => {
     headers: {
       Authorization: `Bearer ${token}`,              // ✅ required by verifyToken
       'Content-Type': 'multipart/form-data',
-    }
+    },
+    withCredentials: true  // ✅ Add this line
   });
 };
 

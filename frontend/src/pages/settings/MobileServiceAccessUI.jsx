@@ -62,7 +62,7 @@ export default function MobileServiceAccessUI({
     };
 
     return (
-        <div className={`rounded-md ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
+        <div className={`overflow-y-scroll no-scrollbar h-[calc(100vh-100px)] rounded-md ${dark ? 'bg-gray-800 text-slate-400' : 'bg-white text-blue-900'}`}>
             {/* Header Row */}
             <div className="absolute right-4 top-5 flex items-center gap-2 z-10">
                 {/* <div className="text-lg font-semibold">Access to Service Panels</div> */}
@@ -77,14 +77,14 @@ export default function MobileServiceAccessUI({
                     <div className="relative">
                         <button
                             onClick={() => setShowDropdown(prev => !prev)}
-                            className={`p-1.5 border rounded ${dark ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'}`}
+                            className={`p-1.5`}
                         >
                             <MoreVertical size={18} />
                         </button>
 
                         {showDropdown && (
                             <div className={`absolute right-0 mt-2 w-44 z-50 rounded-md p-2 text-sm shadow-lg
-      ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-800 border border-gray-200'}`}>
+      ${dark ? 'bg-gray-800 text-slate-400 border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
 
                                 {/* <button onClick={handleIncludeAll} className="w-full text-left px-3 py-1.5 rounded-md hover:bg-indigo-100 dark:hover:bg-gray-700">
                                     Include All

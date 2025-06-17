@@ -26,7 +26,7 @@ export default function SettingsPage() {
   // shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]
   return (
     <div className='relative'>
-      <div className={`flex flex-col min-h-[calc(100vh-120px)] duration-300 ease-in-out  ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+      <div className={`flex flex-col min-h-[calc(100vh-120px)] duration-300 ease-in-out  ${dark ? 'bg-gray-800 text-blue-300' : 'bg-white text-gray-800'}`}>
         {/* <div className="flex justify-between items-center flex-wrap gap-2 mb-4"> */}
         <div className={`flex ${isMobile ? 'flex-col items-start gap-2' : 'flex-row justify-between items-center'} mb-2`}>
           {/* {!isMobile && <h1 className="text-xl font-semibold ml-6">Settings</h1>} */}
@@ -47,7 +47,7 @@ export default function SettingsPage() {
                 border: 'none',
                 boxShadow: 'none',
                 backgroundColor: dark ? '#1F2937' : '#ffffff',
-                color: dark ? '#E5E7EB' : '#1F2937',
+                color: dark ? '#99C2FF' : '#1F2937',
                 '&:hover': {
                   border: 'none',
                 },
@@ -67,7 +67,7 @@ export default function SettingsPage() {
                 backgroundColor: state.isFocused
                   ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
                   : 'transparent',
-                color: dark ? '#F9FAFB' : '#1F2937',
+                color: dark ? '#99C2FF' : '#1F2937',
                 borderRadius: '6px',
                 margin: '4px 0',
                 padding: '8px 10px',
@@ -97,7 +97,7 @@ export default function SettingsPage() {
 
         <div className={` p-4 rounded  transition-all overflow-x-auto
         ${dark
-            ? 'bg-gray-800 text-white'
+            ? 'bg-gray-800 text-slate-300'
             : 'bg-white text-gray-800'}`}>
           
             <Outlet context={{ dark }} />

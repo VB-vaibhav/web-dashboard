@@ -318,15 +318,25 @@ export default function ServiceAccessSettings() {
     //   showModal("Invalid column name. Only letters, numbers, and underscores allowed.");
     //   return;
     // }
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
-      showModal("Invalid column name.");
+    // if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
+    //   showModal("Invalid column name.");
+    //   return;
+    // }
+    if (!trimmed || trimmed.length < 2) {
+      showModal("Column name must be at least 2 characters.");
       return;
     }
 
     // const prefixed = `custom_${trimmed}`;
     try {
-      await axios.post('/admin/add-column', { columnName: trimmed, pageKey: 'panelAccess', label: trimmed });
+      // await axios.post('/admin/add-column', { columnName: trimmed, pageKey: 'panelAccess', label: trimmed });
       // localStorage.removeItem('columnWidths_panel_access');
+      await axios.post('/admin/add-column', {
+        pageKey: 'panelAccess',
+        label: newColumnName.trim()
+      });
+
+
       const existing = localStorage.getItem('columnWidths_panel_access');
       let parsed = [];
       try {
@@ -381,7 +391,7 @@ export default function ServiceAccessSettings() {
   };
 
   const handleRenameColumn = async (oldDbKey, newLabel) => {
-    const newDbKey = `custom_serviceAccess_${newLabel.trim().replace(/\s+/g, '_')}`;
+    const newDbKey = `custom_panelAccess_${newLabel.trim().replace(/\s+/g, '_')}`;
     // const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
     try {
       await axios.patch('/admin/rename-column', {
