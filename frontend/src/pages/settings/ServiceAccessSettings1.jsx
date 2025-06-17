@@ -904,3 +904,185 @@ export default function ExcludeClientSettings() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState, useRef } from 'react';
+import axios from '../../api/axios';
+import AlertModal from '../../components/AlertModal';
+import { useOutletContext } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import useIsMobile from '../../hooks/useIsMobile';
+import { useTableSearch } from '../../hooks/useTableSearch';
+import { usePersistentWidths } from '../../hooks/usePersistentWidths';
+import { Search } from 'lucide-react';
+
+export default function ExcludeClientsSettings() {
+  const [clients, setClients] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [selectedAdmin, setSelectedAdmin] = useState({});
+  const [dynamicColumns, setDynamicColumns] = useState([]);
+  const [editingCell, setEditingCell] = useState({ id: null, key: null, value: '' });
+  const [columnVisibility, setColumnVisibility] = useState({});
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const { dark } = useOutletContext();
+  const username = useSelector(state => state.auth.username) || 'default';
+  const SORT_STORAGE_KEY = `sortConfig_exclude_clients_${username}`;
+  const pageKey = 'excludeClients';
+  const isMobile = useIsMobile();
+
+  const defaultColumns = ['client_name', 'service', 'expiry_date', 'excluded_admins', 'admin_dropdown', 'actions'];
+  const [columnWidths, setColumnWidths] = usePersistentWidths(pageKey, defaultColumns.length, 150);
+  const searchableKeys = ['client_name', 'service', 'expiry_date'];
+  const { query, setQuery, filteredData } = useTableSearch(clients, searchableKeys);
+
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const [clientsRes, adminsRes] = await Promise.all([
+      axios.get('/admin/exclusion-settings'),
+      axios.get('/admin/admin-users')
+    ]);
+    const sample = clientsRes.data[0];
+    const customKeys = sample ? Object.keys(sample).filter(k => k.startsWith('custom_')) : [];
+    const customCols = customKeys.map(k => ({ dbKey: k, label: k.replace('custom_', '') }));
+    const visibility = {
+      client_name: true,
+      service: true,
+      expiry_date: true,
+      excluded_admins: true,
+      admin_dropdown: true,
+      actions: true
+    };
+    customCols.forEach(c => visibility[c.dbKey] = true);
+    setClients(clientsRes.data);
+    setAdmins(adminsRes.data);
+    setDynamicColumns(customCols);
+    setColumnVisibility(visibility);
+  };
+
+  const showModal = (msg) => {
+    setAlertMessage(msg);
+    setShowAlert(true);
+  };
+
+  const handleAdminSelect = (clientId, value) => {
+    setSelectedAdmin(prev => ({ ...prev, [clientId]: value }));
+  };
+
+  const handleExclusionAction = async (clientId, action) => {
+    const adminId = selectedAdmin[clientId];
+    if (!adminId) return showModal('Select admin first');
+    await axios.patch(`/admin/exclusion-settings/${clientId}`, { action, adminId });
+    fetchData();
+  };
+
+  const getColumnKeyFromIndex = (index) => {
+    const staticKeys = defaultColumns;
+    if (index < staticKeys.length) return staticKeys[index];
+    return dynamicColumns[index - staticKeys.length]?.dbKey;
+  };
+
+  const sortedData = React.useMemo(() => {
+    if (!sortConfig.key) return filteredData;
+    const { key, direction } = sortConfig;
+    return [...filteredData].sort((a, b) => {
+      const aVal = a[key] || '';
+      const bVal = b[key] || '';
+      return direction === 'asc'
+        ? aVal.toString().localeCompare(bVal.toString())
+        : bVal.toString().localeCompare(aVal.toString());
+    });
+  }, [filteredData, sortConfig]);
+
+
+  return (
+    <div className="w-full overflow-x-auto min-h-[calc(100vh-190px)]">
+      <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
+        <div className="relative w-[180px]">
+          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+            <Search size={16} />
+          </span>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search in Table"
+            className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
+          />
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <table className="table-auto text-sm w-full">
+          <thead>
+            <tr>
+              {Object.entries(columnVisibility).map(([key, visible]) =>
+                visible && <th key={key} className="px-2 py-2 text-center font-semibold">{key.replace('custom_', '').replace('_', ' ').toUpperCase()}</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {sortedData.map((client) => (
+              <tr key={client.client_id}>
+                {columnVisibility.client_name && <td className="px-2 py-2 text-center">{client.client_name}</td>}
+                {columnVisibility.service && <td className="px-2 py-2 text-center">{client.service}</td>}
+                {columnVisibility.expiry_date && <td className="px-2 py-2 text-center">{client.expiry_date}</td>}
+                {columnVisibility.excluded_admins && <td className="px-2 py-2 text-center">{client.excluded_admins}</td>}
+                {columnVisibility.admin_dropdown && (
+                  <td className="px-2 py-2 text-center">
+                    <select value={selectedAdmin[client.client_id] || ''} onChange={(e) => handleAdminSelect(client.client_id, e.target.value)}>
+                      <option value="">Select Admin</option>
+                      {admins.map(admin => <option key={admin.id} value={admin.id}>{admin.name}</option>)}
+                    </select>
+                  </td>
+                )}
+                {columnVisibility.actions && (
+                  <td className="px-2 py-2 text-center">
+                    <button onClick={() => handleExclusionAction(client.client_id, 'exclude')} className="mr-2">Exclude</button>
+                    <button onClick={() => handleExclusionAction(client.client_id, 'include')}>Include</button>
+                  </td>
+                )}
+                {dynamicColumns.map(({ dbKey }) => columnVisibility[dbKey] && (
+                  <td key={dbKey} className="px-2 py-2 text-center" onDoubleClick={() =>
+                    setEditingCell({ id: client.client_id, key: dbKey, value: client[dbKey] || '' })
+                  }>
+                    {editingCell.id === client.client_id && editingCell.key === dbKey ? (
+                      <input
+                        value={editingCell.value}
+                        onChange={e => setEditingCell({ ...editingCell, value: e.target.value })}
+                        onBlur={async () => {
+                          await axios.patch(`/admin/update-client-field/${client.client_id}`, {
+                            key: dbKey,
+                            value: editingCell.value
+                          });
+                          setEditingCell({ id: null, key: null, value: '' });
+                          fetchData();
+                        }}
+                        autoFocus
+                      />
+                    ) : client[dbKey] || ''}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showAlert && <AlertModal message={alertMessage} onClose={() => setShowAlert(false)} />}
+    </div>
+  );
+}
