@@ -39,19 +39,26 @@ const storage = multer.diskStorage({
     cb(null, uniqueName);
   }
 });
-const upload = multer({ storage });
+const upload = multer({ storage,
+  limits: { fileSize: 20 * 1024 * 1024 } 
+ });
 
 // Avatar upload endpoint
 router.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) => {
-//   console.log("File received:", req.file); 
-//   if (!req.file) {
-//   return res.status(400).send("No file uploaded");
-// }
+  if (!req.file) {
+    console.log("⚠️ No file uploaded.");
+    return res.status(400).send("No file uploaded");
+  }
+
+  console.log("✅ File received:", req.file.filename);
 
   const fileUrl = `/uploads/avatars/${req.file.filename}`;
   const sql = "UPDATE users SET avatar_url = ? WHERE id = ?";
   db.query(sql, [fileUrl, req.user.id], (err) => {
-    if (err) return res.status(500).send("Failed to update avatar");
+    if (err) {
+      console.error("❌ DB error while saving avatar URL:", err);
+      return res.status(500).send("Failed to update avatar");
+    }
     res.json({ avatarUrl: fileUrl });
   });
 });
@@ -59,21 +66,54 @@ router.post('/upload-avatar', verifyToken, upload.single('avatar'), (req, res) =
 
 
 // update-profile
+// router.post('/update-profile', verifyToken, (req, res) => {
+//   const { name, email, phone } = req.body;
+//   if (!name || !email || !phone) {
+//     return res.status(400).send("Missing required fields");
+//   }
+
+//   db.query(
+//     'UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?',
+//     [name, email, phone, req.user.id],
+//     (err) => {
+//       if (err) return res.status(500).send("Failed to update profile");
+//       res.send("Profile updated");
+//     }
+//   );
+// });
+
 router.post('/update-profile', verifyToken, (req, res) => {
   const { name, email, phone } = req.body;
-  if (!name || !email || !phone) {
-    return res.status(400).send("Missing required fields");
+
+  const updates = [];
+  const values = [];
+
+  if (name) {
+    updates.push('name = ?');
+    values.push(name);
+  }
+  if (email) {
+    updates.push('email = ?');
+    values.push(email);
+  }
+  if (phone) {
+    updates.push('phone = ?');
+    values.push(phone);
   }
 
-  db.query(
-    'UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?',
-    [name, email, phone, req.user.id],
-    (err) => {
-      if (err) return res.status(500).send("Failed to update profile");
-      res.send("Profile updated");
-    }
-  );
+  if (updates.length === 0) {
+    return res.status(400).send("No fields to update");
+  }
+
+  values.push(req.user.id);
+
+  const sql = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+  db.query(sql, values, (err) => {
+    if (err) return res.status(500).send("Failed to update profile");
+    res.send("Profile updated");
+  });
 });
+
 
 
 module.exports = router;

@@ -203,5 +203,31 @@ router.patch('/update-user-role/:id', verifyToken, requireRole('superadmin'), as
   }
 });
 
+// PATCH /admin/update-multiple-roles
+router.patch('/update-multiple-roles', verifyToken, requireRole('superadmin'), async (req, res) => {
+  const { userIds, newRole } = req.body;
+
+  if (!Array.isArray(userIds) || !newRole || newRole === 'superadmin') {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+
+  const placeholders = userIds.map(() => '?').join(', ');
+  const query = `UPDATE users SET role = ? WHERE id IN (${placeholders})`;
+
+  try {
+    await db.promise().query(query, [newRole, ...userIds]);
+    res.json({ message: 'Roles updated successfully' });
+  } catch (err) {
+    console.error("Error in bulk role update:", err);
+    res.status(500).json({ error: 'Failed to update roles' });
+  }
+});
+
+const exclusionController = require('../controllers/exclusionController');
+
+router.get('/exclusion-settings', verifyToken, requireSettingsAccess, exclusionController.getExclusionSettings);
+router.get('/admin-users', verifyToken, requireSettingsAccess, exclusionController.getAdminUsers);
+router.patch('/exclusion-settings/:clientId', verifyToken, requireSettingsAccess, exclusionController.updateExclusion);
+
 
 module.exports = router;

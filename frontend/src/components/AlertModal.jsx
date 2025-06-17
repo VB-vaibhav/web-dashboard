@@ -5,7 +5,7 @@ const AlertModal = ({ isOpen, message, onClose, dark }) => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center ">
-            <div className={`${dark ? 'bg-gray-700' : 'bg-white'} p-6 rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] max-w-sm w-full`}>
+            <div className={`${dark ? 'bg-gray-700' : 'bg-white'} p-6 rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] max-w-sm w-fit`}>
                 <div className={`text-md font-medium ${dark ? 'text-white' : 'text-gray-800'} mb-4`}>
                     {message}
                 </div>

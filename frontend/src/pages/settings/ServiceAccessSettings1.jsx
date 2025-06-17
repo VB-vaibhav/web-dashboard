@@ -812,3 +812,95 @@ export default function ServiceAccessSettings() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import axios from '../../api/axios';
+import { useOutletContext } from 'react-router-dom';
+
+export default function ExcludeClientSettings() {
+  const [clients, setClients] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [selectedAdmin, setSelectedAdmin] = useState({});
+  const { dark } = useOutletContext();
+
+  const fetchData = async () => {
+    const [clientRes, adminRes] = await Promise.all([
+      axios.get('/admin/exclusion-settings'),
+      axios.get('/admin/admin-users')
+    ]);
+    setClients(clientRes.data);
+    setAdmins(adminRes.data);
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const handleSelect = (clientId, value) => {
+    setSelectedAdmin(prev => ({ ...prev, [clientId]: value }));
+  };
+
+  const handleAction = async (clientId, action) => {
+    const adminId = selectedAdmin[clientId];
+    if (!adminId) return alert('Select admin first.');
+    await axios.patch(`/admin/exclusion-settings/${clientId}`, { action, adminId });
+    fetchData();
+  };
+
+  return (
+    <div className={`overflow-x-auto ${dark ? 'text-white' : 'text-gray-800'}`}>
+      <h2 className="text-lg font-semibold mb-4">Exclude Clients From Admins</h2>
+      <table className="min-w-full border text-sm">
+        <thead>
+          <tr className={`${dark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <th className="p-2 border">Client</th>
+            <th className="p-2 border">Service</th>
+            <th className="p-2 border">Expiry</th>
+            <th className="p-2 border">Currently Excluded</th>
+            <th className="p-2 border">Admin</th>
+            <th className="p-2 border">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {clients.map(client => (
+            <tr key={client.client_id} className="text-center">
+              <td className="p-2 border">{client.client_name}</td>
+              <td className="p-2 border">{client.service}</td>
+              <td className="p-2 border">{client.expiry_date}</td>
+              <td className="p-2 border">{client.excluded_admins}</td>
+              <td className="p-2 border">
+                <select
+                  className={`p-1 border rounded ${dark ? 'bg-gray-800 text-white' : 'bg-white'}`}
+                  value={selectedAdmin[client.client_id] || ''}
+                  onChange={e => handleSelect(client.client_id, e.target.value)}
+                >
+                  <option value="">Select Admin</option>
+                  {admins.map(admin => (
+                    <option key={admin.id} value={admin.id}>{admin.name}</option>
+                  ))}
+                </select>
+              </td>
+              <td className="p-2 border space-x-2">
+                <button
+                  className={`px-2 py-1 border rounded ${dark ? 'border-slate-400' : 'border-indigo-600 text-indigo-600'}`}
+                  onClick={() => handleAction(client.client_id, 'exclude')}
+                >Exclude</button>
+                <button
+                  className={`px-2 py-1 border rounded ${dark ? 'border-slate-400' : 'border-indigo-600 text-indigo-600'}`}
+                  onClick={() => handleAction(client.client_id, 'include')}
+                >Include</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -77,7 +77,7 @@ export const refreshUserState = async () => {
     userId: data.user_id,
     // avatarUrl: data.avatar ? `http://localhost:5000${data.avatar}` // ✅ Fix relative path here 
     //  : null
-    avatarUrl: data.avatar ? `${import.meta.env.VITE_API_URL}${data.avatar}` : null
+    avatarUrl: data.avatar ? `${import.meta.env.VITE_ASSET_BASE}${data.avatar}` : null
 
   }));
   localStorage.setItem('userId', data.userId); // ✅ Save in browser
@@ -110,7 +110,8 @@ export const uploadAvatar = async (file) => {
     headers: {
       Authorization: `Bearer ${token}`,              // ✅ required by verifyToken
       'Content-Type': 'multipart/form-data',
-    }
+    },
+    withCredentials: true  // ✅ Add this line
   });
 };
 
