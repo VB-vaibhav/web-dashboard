@@ -1,6 +1,6 @@
 import React from 'react';
 
-const AlertModal = ({ isOpen, message, onClose, dark }) => {
+const AlertModal = ({ isOpen, message, onClose, onConfirm, dark }) => {
     if (!isOpen) return null;
 
     return (
@@ -10,12 +10,29 @@ const AlertModal = ({ isOpen, message, onClose, dark }) => {
                     {message}
                 </div>
                 <div className="flex justify-end">
+                    {onConfirm ? (
+                        <>
+                            <button
+                                onClick={onClose}
+                                className={`px-4 py-2 rounded text-sm ${dark ? 'bg-gray-600 text-slate-100 hover:bg-gray-500' : 'bg-gray-300 text-gray-800 hover:bg-gray-400'}`}
+                            >
+                                No
+                            </button>
+                            <button
+                                onClick={onConfirm}
+                                className={`px-4 py-2 rounded text-sm ${dark ? 'bg-red-600 text-white hover:bg-red-500' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                            >
+                                Yes
+                            </button>
+                        </>
+                    ) : (
                     <button
                         onClick={onClose}
                         className={`px-4 py-2  rounded  text-sm ${dark ? 'bg-gray-600 text-slate-100 hover:bg-gray-500' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                     >
                         OK
                     </button>
+                     )}
                 </div>
             </div>
         </div>
@@ -23,3 +40,7 @@ const AlertModal = ({ isOpen, message, onClose, dark }) => {
 };
 
 export default AlertModal;
+
+
+
+

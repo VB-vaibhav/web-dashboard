@@ -60,3 +60,36 @@ exports.checkServiceAccess = (serviceKey) => {
     });
   };
 };
+
+
+
+
+
+exports.verifyToken = async (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Token missing' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
+    // Get user's latest token version and restriction status
+    const [rows] = await db.promise().query("SELECT token_version, is_restricted FROM users WHERE id = ?", [decoded.id]);
+
+    if (!rows.length) return res.status(403).json({ message: 'User not found' });
+    const user = rows[0];
+
+    if (user.is_restricted === 1) {
+      return res.status(403).json({ message: 'You are restricted' });
+    }
+
+    if (user.token_version !== decoded.token_version) {
+      return res.status(403).json({ message: 'Session expired. Please log in again.' });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
+};
