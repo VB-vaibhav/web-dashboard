@@ -56,80 +56,188 @@
 //   }
 // };
 
+// // PATCH /admin/update-client-field/:clientId
+// exports.updateClientField = async (req, res) => {
+//   const { clientId } = req.params;
+//   const { key, value } = req.body;
+
+//   if (!key.startsWith('custom_')) {
+//     return res.status(400).json({ error: 'Only custom fields can be updated' });
+//   }
+
+//   const sql = `UPDATE clients SET \`${key}\` = ? WHERE id = ?`;
+//   db.query(sql, [value, clientId], (err) => {
+//     if (err) return res.status(500).json({ error: 'Update failed' });
+//     res.json({ message: 'Field updated' });
+//   });
+// };
+
+
+// // const db = require('../config/db');
+// // const { getUserFieldsForPage } = require('../utils/userFieldUtils');
+
+// // // GET /admin/exclusion-settings
+// // exports.getExclusionSettings = async (req, res) => {
+// //   try {
+// //     const fields = await getUserFieldsForPage('excludeClients');
+// //     const baseFields = fields.map(col => `c.${col}`).join(', ');
+
+// //     const query = `
+// //       SELECT 
+// //         c.id AS client_id,
+// //         ${baseFields},
+// //         GROUP_CONCAT(u.name SEPARATOR ', ') AS excluded_admins
+// //       FROM clients c
+// //       LEFT JOIN client_admin_exclusions e ON c.id = e.client_id
+// //       LEFT JOIN users u ON e.admin_id = u.id
+// //       GROUP BY c.id
+// //     `;
+
+// //     db.query(query, (err, results) => {
+// //       if (err) return res.status(500).json({ error: 'DB error', details: err });
+// //       const enriched = results.map(row => ({
+// //         ...row,
+// //         excluded_admins: row.excluded_admins || 'None'
+// //       }));
+// //       res.json(enriched);
+// //     });
+// //   } catch (error) {
+// //     console.error('Exclusion fetch error:', error);
+// //     res.status(500).json({ error: 'Internal server error' });
+// //   }
+// // };
+
+// // // GET /admin/admin-users
+// // exports.getAdminUsers = async (req, res) => {
+// //   db.query("SELECT id, name FROM users WHERE role = 'admin'", (err, results) => {
+// //     if (err) return res.status(500).json({ error: 'Failed to fetch admins' });
+// //     res.json(results);
+// //   });
+// // };
+
+// // // PATCH /admin/exclusion-settings/:clientId
+// // exports.updateExclusion = async (req, res) => {
+// //   const { clientId } = req.params;
+// //   const { action, adminId } = req.body;
+
+// //   if (!['exclude', 'include'].includes(action) || !clientId || !adminId) {
+// //     return res.status(400).json({ error: 'Invalid input' });
+// //   }
+
+// //   const query = action === 'exclude'
+// //     ? 'INSERT IGNORE INTO client_admin_exclusions (client_id, admin_id) VALUES (?, ?)'
+// //     : 'DELETE FROM client_admin_exclusions WHERE client_id = ? AND admin_id = ?';
+
+// //   db.query(query, [clientId, adminId], (err) => {
+// //     if (err) return res.status(500).json({ error: 'Action failed' });
+// //     res.json({ message: `Admin ${action}d for client` });
+// //   });
+// // };
+
+// // // PATCH /admin/update-client-field/:clientId
+// // exports.updateClientField = async (req, res) => {
+// //   const { clientId } = req.params;
+// //   const { key, value } = req.body;
+
+// //   if (!key.startsWith('custom_')) {
+// //     return res.status(400).json({ error: 'Only custom fields can be updated' });
+// //   }
+
+// //   const sql = `UPDATE clients SET \`${key}\` = ? WHERE id = ?`;
+// //   db.query(sql, [value, clientId], (err) => {
+// //     if (err) return res.status(500).json({ error: 'Update failed' });
+// //     res.json({ message: 'Field updated' });
+// //   });
+// // };
+
 
 const db = require('../config/db');
 const { getUserFieldsForPage } = require('../utils/userFieldUtils');
 
-// GET /admin/exclusion-settings
 exports.getExclusionSettings = async (req, res) => {
-  try {
-    const fields = await getUserFieldsForPage('excludeClients');
-    const baseFields = fields.map(col => `c.${col}`).join(', ');
+    try {
+        const fields = await getUserFieldsForPage('excludeClients');
 
-    const query = `
-      SELECT 
-        c.id AS client_id,
-        ${baseFields},
-        GROUP_CONCAT(u.name SEPARATOR ', ') AS excluded_admins
-      FROM clients c
-      LEFT JOIN client_admin_exclusions e ON c.id = e.client_id
-      LEFT JOIN users u ON e.admin_id = u.id
-      GROUP BY c.id
-    `;
+        const [dbCols] = await db.promise().query(`SHOW COLUMNS FROM clients`);
+        const dbColumnNames = dbCols.map(col => col.Field);
+        const validFields = fields.filter(f => dbColumnNames.includes(f));
+        //   const baseFields = validFields.map(col => `c.${col}`).join(', ');
+        const baseFields = validFields.map(col =>
+            col === 'expiry_date' ? "DATE_FORMAT(c.expiry_date, '%d-%m-%Y') AS expiry_date" : `c.${col}`
+        ).join(', ');
 
-    db.query(query, (err, results) => {
-      if (err) return res.status(500).json({ error: 'DB error', details: err });
-      const enriched = results.map(row => ({
-        ...row,
-        excluded_admins: row.excluded_admins || 'None'
-      }));
-      res.json(enriched);
-    });
-  } catch (error) {
-    console.error('Exclusion fetch error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+
+        const query = `
+        SELECT 
+          c.id AS client_id
+          ${baseFields ? ', ' + baseFields : ''}
+          , GROUP_CONCAT(u.name SEPARATOR ', ') AS excluded_admins
+        FROM clients c
+        LEFT JOIN client_admin_exclusions e ON c.id = e.client_id
+        LEFT JOIN users u ON e.admin_id = u.id
+        GROUP BY c.id
+      `;
+
+        console.log('🟡 Final Query Executing:\n', query); // Log actual SQL
+
+        db.query(query, (err, results) => {
+            if (err) {
+                console.error('❌ DB error:', err); // Log DB error
+                return res.status(500).json({ error: 'DB error', details: err });
+            }
+
+            const enriched = results.map(row => ({
+                ...row,
+                excluded_admins: row.excluded_admins || 'None'
+            }));
+            res.json(enriched);
+        });
+    } catch (error) {
+        console.error('❌ Exclusion fetch failed:', error); // Log JS error
+        res.status(500).json({ error: 'Internal server error' });
+    }
 };
+
 
 // GET /admin/admin-users
 exports.getAdminUsers = async (req, res) => {
-  db.query("SELECT id, name FROM users WHERE role = 'admin'", (err, results) => {
-    if (err) return res.status(500).json({ error: 'Failed to fetch admins' });
-    res.json(results);
-  });
+    db.query("SELECT id, name FROM users WHERE role = 'admin'", (err, results) => {
+        if (err) return res.status(500).json({ error: 'Failed to fetch admins' });
+        res.json(results);
+    });
 };
 
 // PATCH /admin/exclusion-settings/:clientId
 exports.updateExclusion = async (req, res) => {
-  const { clientId } = req.params;
-  const { action, adminId } = req.body;
+    const { clientId } = req.params;
+    const { action, adminId } = req.body;
 
-  if (!['exclude', 'include'].includes(action) || !clientId || !adminId) {
-    return res.status(400).json({ error: 'Invalid input' });
-  }
+    if (!['exclude', 'include'].includes(action) || !clientId || !adminId) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
 
-  const query = action === 'exclude'
-    ? 'INSERT IGNORE INTO client_admin_exclusions (client_id, admin_id) VALUES (?, ?)'
-    : 'DELETE FROM client_admin_exclusions WHERE client_id = ? AND admin_id = ?';
+    const query = action === 'exclude'
+        ? 'INSERT IGNORE INTO client_admin_exclusions (client_id, admin_id) VALUES (?, ?)'
+        : 'DELETE FROM client_admin_exclusions WHERE client_id = ? AND admin_id = ?';
 
-  db.query(query, [clientId, adminId], (err) => {
-    if (err) return res.status(500).json({ error: 'Action failed' });
-    res.json({ message: `Admin ${action}d for client` });
-  });
+    db.query(query, [clientId, adminId], (err) => {
+        if (err) return res.status(500).json({ error: 'Action failed' });
+        res.json({ message: `Admin ${action}d for client` });
+    });
 };
 
 // PATCH /admin/update-client-field/:clientId
 exports.updateClientField = async (req, res) => {
-  const { clientId } = req.params;
-  const { key, value } = req.body;
+    const { clientId } = req.params;
+    const { key, value } = req.body;
 
-  if (!key.startsWith('custom_')) {
-    return res.status(400).json({ error: 'Only custom fields can be updated' });
-  }
+    if (!key.startsWith('custom_')) {
+        return res.status(400).json({ error: 'Only custom fields can be updated' });
+    }
 
-  const sql = `UPDATE clients SET \`${key}\` = ? WHERE id = ?`;
-  db.query(sql, [value, clientId], (err) => {
-    if (err) return res.status(500).json({ error: 'Update failed' });
-    res.json({ message: 'Field updated' });
-  });
+    const sql = `UPDATE clients SET \`${key}\` = ? WHERE id = ?`;
+    db.query(sql, [value, clientId], (err) => {
+        if (err) return res.status(500).json({ error: 'Update failed' });
+        res.json({ message: 'Field updated' });
+    });
 };

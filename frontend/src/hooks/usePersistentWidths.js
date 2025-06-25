@@ -60,6 +60,8 @@
 import { useState, useEffect } from 'react';
 
 export const usePersistentWidths = (key, totalCols, defaultWidth = 150) => {
+  const username = localStorage.getItem("username") || "default";
+  const storageKey = `columnWidths_${key}_${username}`;
   const [columnWidths, setColumnWidths] = useState(() => {
     try {
       const saved = localStorage.getItem(`columnWidths_${key}`);
@@ -74,8 +76,8 @@ export const usePersistentWidths = (key, totalCols, defaultWidth = 150) => {
   });
 
   useEffect(() => {
-    localStorage.setItem(`columnWidths_${key}`, JSON.stringify(columnWidths));
-  }, [key, columnWidths]);
-
+    localStorage.setItem(storageKey, JSON.stringify(columnWidths));
+  }, [storageKey, columnWidths]);
+  
   return [columnWidths, setColumnWidths];
 };

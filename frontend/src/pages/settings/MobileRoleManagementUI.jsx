@@ -37,12 +37,12 @@ export default function MobileRoleManagementUI({ users = [], selected, setSelect
                 />
                 <button
                     onClick={() => setShowBulkRoleDropdown(prev => !prev)}
-                    className={`p-1.5 `}
+                    className={`p-0 `}
                 >
                     <MoreVertical size={18} className="cursor-pointer text-gray-400" />
                 </button>
                 {showBulkRoleDropdown && (
-                    <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
+                    <div className={`absolute right-0 mt-20 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
                         <button
                             onClick={() => {
                                 setShowBulkRoleDropdown(false);

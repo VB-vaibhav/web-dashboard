@@ -176,10 +176,16 @@ export default function ManageRoleSettings() {
       const sample = fetchedUsers[0];
       const dynamicKeys = sample ? Object.keys(sample).filter(k => k.startsWith('custom_')) : [];
 
-      const dynamicCols = dynamicKeys.map(col => ({
-        dbKey: col,
-        label: col.replace('custom_', '')
-      }));
+      // const dynamicCols = dynamicKeys.map(col => ({
+      //   dbKey: col,
+      //   label: col.replace('custom_', '')
+      // }));
+      const metaRes = await axios.get('/admin/custom-columns?pageKey=manageRole');
+            const dynamicCols = metaRes.data.map(col => ({
+              dbKey: col.column_name,
+              label: col.label
+            }));
+      
       setDynamicColumns(dynamicCols);
 
       const staticSearchableKeys = ['name', 'username', 'email'];
@@ -248,14 +254,24 @@ export default function ManageRoleSettings() {
 
   const handleAddColumn = async () => {
     const trimmed = newColumnName.trim();
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
-      showModal("Invalid column name.");
+    // if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
+    //   showModal("Invalid column name.");
+    //   return;
+    // }
+    if (!trimmed || trimmed.length < 2) {
+      showModal("Column name must be at least 2 characters.");
       return;
     }
 
+
     const prefixed = `custom_${trimmed}`;
     try {
-      await axios.post('/admin/add-column', { columnName: prefixed });
+      // await axios.post('/admin/add-column', { columnName: prefixed });
+      await axios.post('/admin/add-column', {
+        pageKey: 'manageRole',
+        label: newColumnName.trim()  // e.g. "Facebook Lite"
+      });
+
       // localStorage.removeItem('columnWidths_service_access');
       const existing = localStorage.getItem('columnWidths_manage_role');
       let parsed = [];
@@ -285,9 +301,10 @@ export default function ManageRoleSettings() {
     if (!confirmed) return;
 
     try {
-      await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
+      // await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
+      await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete, pageKey: 'manageRole' } });
       // localStorage.removeItem('columnWidths_service_access');
-      const existing = localStorage.getItem('columnWidths_service_access');
+      const existing = localStorage.getItem('columnWidths_manage_role');
       let parsed = [];
       try {
         parsed = existing ? JSON.parse(existing) : [];
@@ -296,7 +313,7 @@ export default function ManageRoleSettings() {
       const totalCols = 7 + (dynamicColumns.length - 1); // compute after adding/deleting column
       const adjustedWidths = parsed.concat(Array(totalCols).fill(150)).slice(0, totalCols);
 
-      localStorage.setItem('columnWidths_service_access', JSON.stringify(adjustedWidths));
+      localStorage.setItem('columnWidths_manage_role', JSON.stringify(adjustedWidths));
 
       showModal("Column deleted.");
       fetchUsers();
@@ -307,19 +324,35 @@ export default function ManageRoleSettings() {
     setContextMenu({ ...contextMenu, visible: false });
   };
 
+  // const handleRenameColumn = async (oldDbKey, newLabel) => {
+  //   const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
+  //   try {
+  //     await axios.patch('/admin/rename-column', {
+  //       oldColumn: oldDbKey,
+  //       newColumn: newDbKey,
+  //     });
+  //     setEditingHeader(null);
+  //     fetchUsers();
+  //   } catch (err) {
+  //     showModal('Rename failed.');
+  //   }
+  // };
   const handleRenameColumn = async (oldDbKey, newLabel) => {
-    const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
-    try {
-      await axios.patch('/admin/rename-column', {
-        oldColumn: oldDbKey,
-        newColumn: newDbKey,
-      });
-      setEditingHeader(null);
-      fetchUsers();
-    } catch (err) {
-      showModal('Rename failed.');
-    }
-  };
+      const newDbKey = `custom_manageRole_${newLabel.trim().replace(/\s+/g, '_')}`;
+      // const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
+      try {
+        await axios.patch('/admin/rename-column', {
+          oldColumn: oldDbKey,
+          newColumn: newDbKey,
+          newLabel: newLabel.trim()
+        });
+        setEditingHeader(null);
+        fetchUsers();
+      } catch (err) {
+        showModal('Rename failed.');
+      }
+    };
+  
 
 
   useEffect(() => {

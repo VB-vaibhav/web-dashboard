@@ -29,6 +29,22 @@ exports.requireRole = (...allowedRoles) => {
 
 const db = require('../config/db');
 
+
+exports.requireSettingsAccess = (req, res, next) => {
+  if (req.user.role === 'superadmin') return next();
+
+  const sql = `SELECT is_settings FROM users WHERE id = ?`;
+  db.query(sql, [req.user.id], (err, rows) => {
+    if (err || rows.length === 0) return res.status(403).send("Access check failed");
+
+    if (rows[0].is_settings !== 1) {
+      return res.status(403).send("Not authorized to access settings");
+    }
+
+    next();
+  });
+};
+
 exports.checkServiceAccess = (serviceKey) => {
   return (req, res, next) => {
     if (req.user.role === 'superadmin') return next();

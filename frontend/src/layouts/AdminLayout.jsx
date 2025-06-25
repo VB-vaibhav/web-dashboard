@@ -33,7 +33,9 @@ const AdminLayout = () => {
         dark={dark}
         collapsed={collapsed}
         toggleCollapsed={() => setCollapsed(!collapsed)}
-        isMobile={isMobileOpen}
+        // isMobile={isMobileOpen}
+        isMobile={isMobile}
+        isMobileOpen={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen}
         onToggleTheme={toggleTheme}
         setShowHelp={setShowHelp}
@@ -80,8 +82,9 @@ const AdminLayout = () => {
   ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}
   `}
         >
+          {/* ${collapsed ? '128px' : '510px'} */}
           <div
-            className={`mx-auto my-10 p-2 w-full max-w-[calc(100% - ${collapsed ? '128px' : '510px'})] rounded-xl
+            className={`mx-auto my-10 p-2 w-full max-w-[calc(100% - ${collapsed ? '8em' : '31.875em'})] rounded-xl
     shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] overflow-hidden transition-all duration-300 ease-in-out
     ${dark ? 'bg-gray-800' : 'bg-white'}`}
           >

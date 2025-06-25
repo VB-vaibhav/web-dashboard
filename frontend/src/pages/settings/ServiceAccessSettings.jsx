@@ -8,7 +8,6 @@ import Select from 'react-select';
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileServiceAccessUI from './MobileServiceAccessUI';
 import { useSelector } from 'react-redux';
-import { usePersistentWidths } from '../../hooks/usePersistentWidths';
 
 export default function ServiceAccessSettings() {
   const [users, setUsers] = useState([]);
@@ -90,7 +89,7 @@ export default function ServiceAccessSettings() {
 
   useEffect(() => {
     if ((8 + dynamicColumns.length) > 0 && !columnInitDone) {
-      const totalCols = 8 + dynamicColumns.length;
+      const totalCols = 7 + dynamicColumns.length;
       const saved = localStorage.getItem('columnWidths_service_access');
       if (saved) {
         try {
@@ -205,11 +204,16 @@ export default function ServiceAccessSettings() {
 
       const sample = fetchedUsers[0];
       const dynamicKeys = sample ? Object.keys(sample).filter(k => k.startsWith('custom_')) : [];
-
-      const dynamicCols = dynamicKeys.map(col => ({
-        dbKey: col,
-        label: col.replace('custom_', '')
+      const metaRes = await axios.get('/admin/custom-columns?pageKey=serviceAccess');
+      const dynamicCols = metaRes.data.map(col => ({
+        dbKey: col.column_name,
+        label: col.label
       }));
+
+      // const dynamicCols = dynamicKeys.map(col => ({
+      //   dbKey: col,
+      //   label: col.replace('custom_', '')
+      // }));
 
       setDynamicColumns(dynamicCols);
 
@@ -218,7 +222,7 @@ export default function ServiceAccessSettings() {
       const dynamicSearchableKeys = dynamicCols.map(col => col.dbKey); // optional: filter some out
       const SEARCHABLE_COLUMNS = [...staticSearchableKeys, ...dynamicSearchableKeys];
       setSearchableColumns(SEARCHABLE_COLUMNS);
-      
+
       // setColumnInitDone(false); // force localStorage reload after new columns are detected
       setTimeout(() => {
         const totalCols = 8 + dynamicCols.length;
@@ -294,15 +298,24 @@ export default function ServiceAccessSettings() {
 
   const handleAddColumn = async () => {
     const trimmed = newColumnName.trim();
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
-      showModal("Invalid column name.");
+    // if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
+    //   showModal("Invalid column name.");
+    //   return;
+    // }
+    if (!trimmed || trimmed.length < 2) {
+      showModal("Column name must be at least 2 characters.");
       return;
     }
 
     const prefixed = `custom_${trimmed}`;
     try {
-      await axios.post('/admin/add-column', { columnName: prefixed });
+      // await axios.post('/admin/add-column', { columnName: trimmed, pageKey: 'serviceAccess', label: trimmed });
       // localStorage.removeItem('columnWidths_service_access');
+      await axios.post('/admin/add-column', {
+        pageKey: 'serviceAccess',
+        label: newColumnName.trim()  // e.g. "Facebook Lite"
+      });
+
       const existing = localStorage.getItem('columnWidths_service_access');
       let parsed = [];
       try {
@@ -331,7 +344,7 @@ export default function ServiceAccessSettings() {
     if (!confirmed) return;
 
     try {
-      await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete } });
+      await axios.delete('/admin/delete-column', { data: { columnName: columnToDelete, pageKey: 'serviceAccess' } });
       // localStorage.removeItem('columnWidths_service_access');
       const existing = localStorage.getItem('columnWidths_service_access');
       let parsed = [];
@@ -339,7 +352,7 @@ export default function ServiceAccessSettings() {
         parsed = existing ? JSON.parse(existing) : [];
       } catch { parsed = []; }
 
-      const totalCols = 8 + (dynamicColumns.length - 1); // compute after adding/deleting column
+      const totalCols = 7 + (dynamicColumns.length - 1); // compute after adding/deleting column
       const adjustedWidths = parsed.concat(Array(totalCols).fill(150)).slice(0, totalCols);
 
       localStorage.setItem('columnWidths_service_access', JSON.stringify(adjustedWidths));
@@ -354,11 +367,13 @@ export default function ServiceAccessSettings() {
   };
 
   const handleRenameColumn = async (oldDbKey, newLabel) => {
-    const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
+    const newDbKey = `custom_serviceAccess_${newLabel.trim().replace(/\s+/g, '_')}`;
+    // const newDbKey = `custom_${newLabel.trim().replace(/\s+/g, '_')}`;
     try {
       await axios.patch('/admin/rename-column', {
         oldColumn: oldDbKey,
         newColumn: newDbKey,
+        newLabel: newLabel.trim()
       });
       setEditingHeader(null);
       fetchUsers();
@@ -575,7 +590,7 @@ export default function ServiceAccessSettings() {
 
   return (
 
-    <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto min-h-[calc(100vh-190px)] ">
+    <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto  min-h-[calc(100vh-190px)] ">
       <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
         <div className="relative w-[180px]">
           <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">

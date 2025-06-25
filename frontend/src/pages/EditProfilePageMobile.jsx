@@ -44,7 +44,7 @@ const EditProfilePageMobile = () => {
     };
 
     return (
-        <div className={`flex flex-col min-h-[calc(100vh-100px)] p-4 w-full max-w-lg mx-auto rounded duration-300 ease-in-out shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+        <div className={`flex flex-col min-h-[calc(100vh-140px)] max-w-xl mx-auto mt-2 px-2 py-4 rounded duration-300 ease-in-out ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
             {/* <div className="flex justify-between items-center mb-4 border-b pb-2">
                 <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-blue-900'}`}>Edit Profile</h2>
                 <button onClick={() => navigate('/profile')} className="text-2xl text-gray-600">✖</button>

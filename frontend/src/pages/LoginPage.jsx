@@ -105,7 +105,7 @@ export default function LoginPage() {
         <img
           src={logo} // assumes it's placed in public folder
           alt="Logo"
-          className="w-28 h-28 mx-auto mb-6 rounded-full object-cover"
+          className="w-28 h-28 mx-auto mb-3 object-cover"
         />
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Login</h2>
         <form onSubmit={handleLogin} className="space-y-5">
