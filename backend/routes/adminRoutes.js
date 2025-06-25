@@ -768,6 +768,18 @@ router.get('/panel-access-users', verifyToken, requireSettingsAccess, async (req
     res.json(rows);
   } catch (err) {
     console.error("Error in panel-access-users:", err);
+  }
+});
+router.get('/manage-users', verifyToken, requireSettingsAccess, async (req, res) => {
+  try {
+    const [rows] = await db.promise().query(`
+      SELECT id, name, username, role 
+      FROM users 
+      WHERE role IN ('admin', 'middleman')
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching users:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -787,6 +799,68 @@ router.get('/custom-columns', verifyToken, requireSettingsAccess, async (req, re
 });
 
 
+router.delete('/delete-user/:id', verifyToken, requireSettingsAccess, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.promise().query(`DELETE FROM users WHERE id = ?`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
+router.post('/delete-multiple-users', verifyToken, requireSettingsAccess, async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'No IDs provided' });
+  }
+
+  try {
+    const placeholders = ids.map(() => '?').join(',');
+    await db.promise().query(`DELETE FROM users WHERE id IN (${placeholders})`, ids);
+    res.json({ message: 'Users deleted successfully' });
+  } catch (err) {
+    console.error("Bulk delete error:", err);
+    res.status(500).json({ error: 'Failed to delete users' });
+  }
+});
+
+router.patch('/restrict-user/:id', verifyToken, requireRole('superadmin'), async (req, res) => {
+  const userId = req.params.id;
+  try {
+    await db.promise().query(
+      "UPDATE users SET is_restricted = 1, token_version = token_version + 1 WHERE id = ?",
+      [userId]
+    );
+    res.json({ message: 'User restricted and logged out from all sessions' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to restrict user' });
+  }
+});
+
+router.post('/restrict-users', verifyToken, requireRole('superadmin'), async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+
+  const placeholders = ids.map(() => '?').join(',');
+  const sql = `
+    UPDATE users 
+    SET is_restricted = 1, token_version = token_version + 1 
+    WHERE id IN (${placeholders})
+  `;
+
+  try {
+    await db.promise().query(sql, ids);
+    res.json({ message: 'Users restricted successfully.' });
+  } catch (err) {
+    console.error('Restrict user failed:', err);
+    res.status(500).json({ error: 'Failed to restrict users' });
+  }
+});
 
 router.get('/exclusion-settings', verifyToken, requireSettingsAccess, exclusionController.getExclusionSettings);
 router.get('/admin-users', verifyToken, requireSettingsAccess, exclusionController.getAdminUsers);

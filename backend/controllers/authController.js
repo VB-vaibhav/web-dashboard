@@ -6,7 +6,7 @@ const db = require('../config/db');
 // Generate Access Token
 const generateAccessToken = (user) => {
   return jwt.sign(
-    { id: user.id, role: user.role },
+    { id: user.id, role: user.role, token_version: user.token_version, is_restricted: user.is_restricted },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRES || '15m' }
   );
@@ -54,12 +54,12 @@ exports.login = async (req, res) => {
     async (err, results) => {
       // console.log('Login payload received:', req.body);
       // console.log('Query results:', results);
-      
+
       if (err) {
         console.error("DB error:", err);
         return res.status(401).send("Server Error");
       }
-      
+
       if (results.length === 0) {
         console.log("No matching user found");
         return res.status(401).send("Invalid credentials");
@@ -71,6 +71,10 @@ exports.login = async (req, res) => {
         console.log("Password mismatch");
         return res.status(401).send("Invalid credentials");
       }
+      if (user.is_restricted === 1) {
+        return res.status(406).json({ error: "You are restricted" });
+      }
+
       const accessToken = generateAccessToken(user);
       const refreshToken = generateRefreshToken(user);
 
@@ -79,7 +83,7 @@ exports.login = async (req, res) => {
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'Lax',
+        sameSite: 'None',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 

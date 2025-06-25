@@ -13,6 +13,9 @@ const STATIC_COLUMNS_MAP = {
   manageRole: [
     'id', 'name', 'username', 'email', 'role'
   ],
+
+  userManagement: ['id', 'name', 'username', 'role'], 
+  
   clients: [
     'id', 'name', 'email', 'phone', 'middleman_id', 'service', 'plan', 'start_date', 'expiry_date'
   ],

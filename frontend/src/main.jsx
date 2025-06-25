@@ -38,6 +38,7 @@ import HelpPage from './pages/HelpPage';
 import ServiceAccessSettings from './pages/settings/ServiceAccessSettings';
 import ManageRoleSettings from './pages/settings/RoleManagementSettings';
 import PanelAccessSettings from './pages/settings/PanelAccessSettings';
+import UserManagementSettings from './pages/settings/UserManagementSettings';
 
 import ExcludeClientSettings from './pages/settings/ExcludeClientsSettings';
 
@@ -95,7 +96,7 @@ const ProtectedRoutes = () => {
           <Route path="panel-access" element={<PanelAccessSettings />} />
           <Route path="exclude-clients" element={<ExcludeClientSettings/>} />
           <Route path="role-management" element={<ManageRoleSettings />} />
-          <Route path="users" element={<div>User Management Settings</div>} />
+          <Route path="users" element={<UserManagementSettings/>} />
         </Route>
 
         <Route path="/profile" element={<ProfilePage />} />
