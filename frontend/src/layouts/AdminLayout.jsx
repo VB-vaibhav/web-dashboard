@@ -2,13 +2,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useRefresh } from '../context/RefreshContext';
 import useIsMobile from '../hooks/useIsMobile';
 import HelpPopover from '../components/HelpPopover';
+import { useSelector, useDispatch } from 'react-redux';
+import { Navigate } from 'react-router-dom';
+import { setCredentials } from '../slices/authSlice';
+
 // import { Search } from 'lucide-react';
 
 const AdminLayout = () => {
+  const isRestricted = useSelector(state => state.auth.isRestricted);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkRestriction = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+
+        const data = await res.json();
+        if (data?.is_restricted === 1) {
+          dispatch(setCredentials({ is_restricted: 1 }));
+          navigate('/403', { replace: true });
+        }
+      } catch (err) {
+        console.error("Restriction check failed", err);
+      }
+    };
+
+    checkRestriction();
+  }, [dispatch, navigate]);
+
+  if (isRestricted) {
+    window.location.href = '/403';  // 💣 Force reload into clean 403 route
+    return null;
+  }
+
+
+
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [dark, setDark] = useState(() => {
@@ -19,6 +56,8 @@ const AdminLayout = () => {
   const isMobile = useIsMobile();
   const helpRef = useRef();
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  // const isRestricted = useSelector(state => state.auth.is_restricted) === 1;
+  // const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -27,8 +66,26 @@ const AdminLayout = () => {
 
   const toggleTheme = () => setDark(prev => !prev);
 
+
+  // useEffect(() => {
+  //   if (isRestricted) {
+  //     navigate('/403'); // 🚀 Redirect user immediately
+  //   }
+  // }, [isRestricted, navigate]);
+
+
   return (
-    <div className={`flex min-h-screen font-sans ${dark ? 'dark' : ''} ${blink ? 'animate-blink' : ''}`}>
+    <div className={`relative min-h-screen font-sans ${dark ? 'dark' : ''} ${blink ? 'animate-blink' : ''}`}>
+      {/* {isRestricted && (
+        <div className={`fixed inset-0 z-[9999]  bg-opacity-70 ${dark ? "bg-gray-900 bg-opacity-70" : "bg-white"} flex items-center justify-center`}>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 dark:text-red-400">Access Restricted</h2>
+            <p className="text-sm mt-2 text-gray-700 dark:text-gray-300">
+              Your account is currently restricted. Please contact the administrator.
+            </p>
+          </div>
+        </div>
+      )} */}
       <Sidebar
         dark={dark}
         collapsed={collapsed}
@@ -82,14 +139,40 @@ const AdminLayout = () => {
   ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}
   `}
         >
+          {/* <main
+          className={`flex-1 w-full mx-auto flex flex-col items-center justify-start 
+    ${showMobileSearch && isMobile ? 'pt-[40px]' : 'pt-[40px]'} 
+    min-h-screen duration-300 ease-in-out 
+    ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}
+        > */}
           {/* ${collapsed ? '128px' : '510px'} */}
+          {/* <div className="relative"> Make it position relative */}
+
+          {/* 🛑 Overlay that blocks everything */}
+          {/* {isRestricted && (
+              <div className="absolute inset-0 z-50 bg-white bg-opacity-60 dark:bg-gray-900 dark:bg-opacity-60 flex items-center justify-center">
+                <div className="text-center px-4">
+                  <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">You are restricted</h2>
+                  <p className="text-sm mt-1 text-gray-700 dark:text-gray-300">All actions are temporarily disabled.</p>
+                </div>
+              </div> */}
+          {/* )} */}
           <div
-            className={`mx-auto my-10 p-2 w-full max-w-[calc(100% - ${collapsed ? '8em' : '31.875em'})] rounded-xl
+            className={`mx-auto my-10 p-2 w-full max-w-[calc(100% - ${collapsed ? '8em' : '31.875em'})] ${isMobile ? 'min-h-[calc(100vh-8rem)]' : ''} rounded-xl
     shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] overflow-hidden transition-all duration-300 ease-in-out
     ${dark ? 'bg-gray-800' : 'bg-white'}`}
           >
+            {/* <div
+            className={`flex flex-col w-full max-w-[calc(100%-2rem)] sm:max-w-[600px] flex-grow 
+      p-4 rounded-xl mb-4
+      shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] 
+      transition-all duration-300 ease-in-out 
+      ${dark ? 'bg-gray-800' : 'bg-white'}`}
+            style={{ minHeight: 'calc(100vh - 100px)' }} // 🧠 Ensure true fill height inside layout
+          > */}
             <Outlet context={{ dark }} />
           </div>
+          {/* </div> */}
         </main>
 
         {/* Global Help popup/modal */}

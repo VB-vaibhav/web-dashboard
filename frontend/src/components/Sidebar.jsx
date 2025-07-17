@@ -73,25 +73,31 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
     // }
   ];
   return (
-    <aside className={`fixed top-0 left-0 h-screen z-50 transition-all duration-300 
+    <aside className={`fixed top-0 left-0 h-screen z-50 transition-[width,transform] duration-300 ease-in-out
   ${dark ? 'bg-gray-900' : 'bg-white'} shadow-md`}>
       <div className="fixed md:relative z-40 h-screen">
         {/* Mobile Slide Container */}
-        {/* <div
+        <div
           className={`
-      h-full shadow transition-transform duration-300 ease-in-out
-      ${collapsed ? '' : ''}
-      ${isMobile ? (isMobileOpen ? 'translate-x-0' : '-translate-x-full') : ''}
-      md:translate-x-0 md:transition-none
+      h-screen shadow transform transition-transform duration-300 ease-in-out
+      ${isMobile ? (isMobileOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
       ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
       ${collapsed ? 'w-16' : 'w-64'}
       overflow-hidden
       flex flex-col
-      absolute md:relative
+      absolute md:relative md:translate-x-0
     `}
-          style={{ width: collapsed ? '4rem' : '16rem' }}
-        > */}
-        <div
+          style={
+            isMobile
+              ? { transitionProperty: 'transform' } // Only animate slide
+              : {
+                width: collapsed ? '4rem' : '16rem',
+                transitionProperty: 'width'
+              }
+          }
+
+        >
+          {/* <div
           className={`transition-transform duration-300 ease-in-out
       h-screen overflow-hidden flex flex-col
       ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
@@ -100,7 +106,18 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
       absolute md:relative md:translate-x-0
     `}
           style={{ transitionProperty: 'width, transform' }} // ensures both animate
-        >
+        > */}
+          {/* <div
+          className={`h-screen overflow-hidden flex flex-col
+    transform transition-transform duration-300 ease-in-out
+    ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
+    ${isMobile ? (isMobileOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
+    ${collapsed ? 'w-16' : 'w-64'}
+    absolute md:relative md:translate-x-0
+  `}
+          style={{ transitionProperty: 'width, transform' }}
+        > */}
+
 
           {/* Top Heading and Collapse Button */}
           <div className="px-4 pt-4">
@@ -126,7 +143,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
                 </div>
               </div>
             )}
-            <button onClick={() => isMobile ? setIsMobileOpen(false) : toggleCollapsed()} className={`w-5 h-5 flex items-center justify-center rounded-full border ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-800 border-gray-200'} absolute right-[-8px] top-6`}>
+            <button onClick={() => isMobile ? setIsMobileOpen(false) : toggleCollapsed(true)} className={`w-5 h-5 flex items-center justify-center rounded-full border ${dark ? 'hover:bg-gray-600 hover:text-white text-gray-500' : 'hover:bg-indigo-100 hover:text-indigo-600 text-gray-800 border-gray-200'} absolute right-[-8px] top-6`}>
               {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
             {/* <div className="absolute top-8 -translate-y-1/2 right-[-10px] z-10">
@@ -158,7 +175,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
                       <Link
                         to={to}
                         key={label}
-                        onClick={() => { if (isMobile) setIsMobileOpen(false); }}
+                        onClick={() => isMobile ? setIsMobileOpen(false) : toggleCollapsed(true)}
                         className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium
                 
                 ${isActive(to)
@@ -189,7 +206,7 @@ const Sidebar = ({ dark, collapsed, toggleCollapsed, isMobile, setIsMobileOpen, 
                     <Link
                       to={to}
                       key={label}
-                      onClick={() => { if (isMobile) setIsMobileOpen(false); }}
+                      onClick={() => isMobile ? setIsMobileOpen(false) : toggleCollapsed(true)}
                       className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2 rounded-md text-sm font-medium
                 ${isActive(to)
                           ? (dark ? 'bg-gray-600 text-white' : 'bg-indigo-100 text-indigo-600')

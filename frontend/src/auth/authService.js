@@ -16,7 +16,12 @@ export const login = async (emailOrUsername, password) => {
     body: JSON.stringify({ emailOrUsername, password })
   });
 
-  if (!res.ok) throw new Error("Login failed");
+  // if (!res.ok) throw new Error("Login failed");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const errorMessage = errorData?.error || "Login failed";
+    throw new Error(errorMessage);
+  }
 
   const data = await res.json();
 
@@ -31,6 +36,7 @@ export const login = async (emailOrUsername, password) => {
     accessToken: data.accessToken,
     role: data.role,
     permissions: data.permissions,
+    is_restricted: data.is_restricted,
   }));
 
   localStorage.setItem('accessToken', data.accessToken); // Optional

@@ -72,7 +72,7 @@ exports.login = async (req, res) => {
         return res.status(401).send("Invalid credentials");
       }
       if (user.is_restricted === 1) {
-        return res.status(406).json({ error: "You are restricted" });
+        return res.status(403).send('restricted');
       }
 
       const accessToken = generateAccessToken(user);
@@ -286,6 +286,7 @@ exports.getMe = (req, res) => {
       join_date: user.created_at,
       user_id: user.id,
       avatar: user.avatar_url,
+      is_restricted: user.is_restricted,
       permissions: {
         is_cerberus: user.is_cerberus,
         is_vps: user.is_vps,

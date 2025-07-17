@@ -1,6 +1,15 @@
 npm install lucide-react
 npm install redux-persist
 npm install react-select
+npm install @radix-ui/react-select
+npm install react-date-range
+npm install dayjs
+npm install react-datepicker
+npm install file-saver
+npm install papaparse
+
 
 
 backend: npm install multer
+backend: npm install dayjs
+backend:npm install moment

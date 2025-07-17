@@ -35,4 +35,11 @@ router.get('/:service',
   clientController.getClients
 );
 
+
+// clientRoutes.js
+router.get('/names', verifyToken, clientController.getClientNames);
+router.get('/plans/:serviceId', verifyToken, clientController.getServicePlans);
+router.post('/', verifyToken, requireRole('admin', 'superadmin'), clientController.addClient);
+
+
 module.exports = router;

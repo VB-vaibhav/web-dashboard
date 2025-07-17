@@ -62,28 +62,28 @@ export default function MobileServiceAccessUI({
     };
 
     return (
-        <div className={`overflow-y-scroll no-scrollbar h-[calc(100vh-100px)] rounded-md ${dark ? 'bg-gray-800 text-slate-400' : 'bg-white text-blue-900'}`}>
+        <div className={`overflow-y-scroll no-scrollbar px-0.25 h-[calc(100vh-100px)] rounded-md ${dark ? ' text-slate-400' : 'text-blue-900'}`}>
             {/* Header Row */}
-            <div className="absolute right-4 top-5 flex items-center gap-2 z-10">
+            <div className="absolute right-3 top-6 flex items-center gap-2 z-10">
                 {/* <div className="text-lg font-semibold">Access to Service Panels</div> */}
 
-                <div className="flex gap-2 items-center">
+                {/* <div className="flex gap-2 items-center"> */}
                     <input
                         type="checkbox"
                         checked={isAllSelected}
                         onChange={handleMasterCheckbox}
                         className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
                     />
-                    <div className="relative">
+                    
                         <button
                             onClick={() => setShowDropdown(prev => !prev)}
-                            className={`p-1.5`}
+                            className={`p-0`}
                         >
-                            <MoreVertical size={18} />
+                            <MoreVertical size={18} className="text-gray-400" />
                         </button>
 
                         {showDropdown && (
-                            <div className={`absolute right-0 mt-2 w-44 z-50 rounded-md p-2 text-sm shadow-lg
+                            <div className={`absolute right-0 mt-30 w-28 z-50 rounded-md p-2 text-sm shadow-lg
       ${dark ? 'bg-gray-800 text-slate-400 border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
 
                                 {/* <button onClick={handleIncludeAll} className="w-full text-left px-3 py-1.5 rounded-md hover:bg-indigo-100 dark:hover:bg-gray-700">
@@ -109,9 +109,9 @@ export default function MobileServiceAccessUI({
                                 </button>
                             </div>
                         )}
-                    </div>
+                    
 
-                </div>
+                {/* </div> */}
             </div>
 
             {/* Users Loop */}

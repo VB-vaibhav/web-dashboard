@@ -11,6 +11,7 @@ const initialState = {
   joinDate: null,
   userId: null,
   avatarUrl: null,
+  isRestricted: false,
 };
 
 const authSlice = createSlice({
@@ -19,7 +20,7 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action) => {
       const { accessToken, role, permissions,
-        username, name, email, phone, joinDate, userId, avatarUrl } = action.payload;
+        username, name, email, phone, joinDate, userId, avatarUrl, is_restricted } = action.payload;
       state.accessToken = accessToken;
       state.role = role;
       state.permissions = permissions;
@@ -30,6 +31,7 @@ const authSlice = createSlice({
       state.joinDate = joinDate;
       state.userId = userId;
       state.avatarUrl = avatarUrl;
+      state.isRestricted = is_restricted === 1;// ✅ convert 1 → true
     },
     clearCredentials: (state) => {
       state.accessToken = null;
@@ -42,6 +44,7 @@ const authSlice = createSlice({
       state.joinDate = null;
       state.userId = null;
       state.avatarUrl = null;
+      state.isRestricted = false; // ✅ reset restriction on logout
     },
   },
 });

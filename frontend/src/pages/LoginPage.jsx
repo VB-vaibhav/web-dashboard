@@ -66,6 +66,9 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  // const query = new URLSearchParams(window.location.search);
+  // const message = query.get("message");
+
 
   // ✅ Load saved username/email if present
   useEffect(() => {
@@ -95,7 +98,13 @@ export default function LoginPage() {
       console.log(`Welcome, ${data.username}`)
       navigate('/');
     } catch (err) {
-      setError("Login failed. Check your credentials.");
+      console.log('❌ Login error:', err.message);
+
+      if (err.message === "You are restricted") {
+        setError("You are restricted. Please contact administrator.");
+      } else {
+        setError("Login failed. Check your credentials.");
+      }
     }
   };
 
@@ -160,9 +169,9 @@ export default function LoginPage() {
               />
               Remember Me
             </label>
-            <Link to="/forgot-password" 
-            state={{ emailOrUsername }}
-            className="text-indigo-500 hover:underline">
+            <Link to="/forgot-password"
+              state={{ emailOrUsername }}
+              className="text-indigo-500 hover:underline">
               Forgot Password?
             </Link>
           </div>

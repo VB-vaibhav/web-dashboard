@@ -26,7 +26,7 @@ export default function SettingsPage() {
   // shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]
   return (
     <div className='relative'>
-      <div className={`flex flex-col min-h-[calc(100vh-120px)] duration-300 ease-in-out  ${dark ? 'bg-gray-800 text-blue-300' : 'bg-white text-gray-800'}`}>
+      <div className={`flex flex-col duration-300 ease-in-out  ${dark ? 'bg-gray-800 text-blue-300' : 'bg-white text-gray-800'}`}>
         {/* <div className="flex justify-between items-center flex-wrap gap-2 mb-4"> */}
         <div className={`flex ${isMobile ? 'flex-col items-start gap-2' : 'flex-row justify-between items-center'} mb-2`}>
           {/* {!isMobile && <h1 className="text-xl font-semibold ml-6">Settings</h1>} */}
@@ -40,16 +40,16 @@ export default function SettingsPage() {
             value={SETTINGS_SECTIONS.find(opt => opt.value === current)}
             onChange={(selected) => navigate(`/settings/${selected.value}`)}
             options={SETTINGS_SECTIONS}
-            className="w-[224px] text-md ml-2 top-3"
+            className="w-[250px] text-md ml-2 top-3 rounded"
             styles={{
               control: (base) => ({
                 ...base,
-                border: 'none',
                 boxShadow: 'none',
                 backgroundColor: dark ? '#1F2937' : '#ffffff',
                 color: dark ? '#99C2FF' : '#1F2937',
+                borderColor: '#E5E7EB',
                 '&:hover': {
-                  border: 'none',
+                  borderColor: '#CBD5E1',
                 },
                 minHeight: 36,
                 paddingRight: 2,
@@ -95,13 +95,13 @@ export default function SettingsPage() {
 
         </div>
 
-        <div className={` p-4 rounded  transition-all overflow-x-auto
+        <div className={` p-4 rounded  transition-all 
         ${dark
             ? 'bg-gray-800 text-slate-300'
             : 'bg-white text-gray-800'}`}>
-          
-            <Outlet context={{ dark }} />
-         
+
+          <Outlet context={{ dark }} />
+
         </div>
       </div>
     </div>

@@ -228,16 +228,29 @@ exports.updateExclusion = async (req, res) => {
 
 // PATCH /admin/update-client-field/:clientId
 exports.updateClientField = async (req, res) => {
-    const { clientId } = req.params;
-    const { key, value } = req.body;
+  const { clientId } = req.params;
+  const update = req.body;
 
-    if (!key.startsWith('custom_')) {
-        return res.status(400).json({ error: 'Only custom fields can be updated' });
-    }
+  if (!clientId || !update || typeof update !== 'object') {
+    return res.status(400).json({ error: 'Invalid request payload' });
+  }
 
-    const sql = `UPDATE clients SET \`${key}\` = ? WHERE id = ?`;
-    db.query(sql, [value, clientId], (err) => {
-        if (err) return res.status(500).json({ error: 'Update failed' });
-        res.json({ message: 'Field updated' });
-    });
+  const fields = Object.keys(update);
+  const values = Object.values(update);
+
+  if (fields.length !== 1) {
+    return res.status(400).json({ error: 'Only one field can be updated at a time' });
+  }
+
+  const [field] = fields;
+
+  try {
+    const sql = `UPDATE clients SET \`${field}\` = ? WHERE id = ?`;
+    await db.promise().query(sql, [update[field], clientId]);
+
+    res.json({ message: 'Client field updated successfully' });
+  } catch (err) {
+    console.error('Update client field error:', err);
+    res.status(500).json({ error: 'Failed to update client field' });
+  }
 };

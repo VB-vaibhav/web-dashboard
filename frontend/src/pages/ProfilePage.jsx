@@ -39,7 +39,9 @@ export default function ProfilePage() {
 
 
     return (
-        <div className={`flex flex-col min-h-[calc(100vh-140px)] max-w-xl mx-auto mt-2 px-2 py-4 rounded duration-300 ease-in-out ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+        // <div className={`flex flex-col min-h-[calc(100vh-8rem)] max-w-xl mx-auto mt-2 px-2 py-4 rounded duration-300 ease-in-out ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+        <div className="flex flex-col justify-between h-full w-full flex-grow">
+
             {/* <div className={`flex justify-between items-center mb-6 pb-2 border-b ${dark ? 'border-gray-700' : 'border-gray-200'}`}>
                 <h2 className={`text-xl font-bold ${dark ? 'text-white' : 'text-blue-900'}`}>Profile</h2>
                 <button onClick={() => navigate(-1)} className="text-xl font-md text-blue-900">✖</button>
@@ -87,7 +89,7 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            <div className="px-6 pb-6 mt-auto">
+            <div className="w-full px-6 pt-6 mt-auto">
                 <button
                     onClick={() => {
                         localStorage.clear();
@@ -99,5 +101,6 @@ export default function ProfilePage() {
                 </button>
             </div>
         </div>
+        
     );
 }
