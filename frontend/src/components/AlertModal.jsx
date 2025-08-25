@@ -1,11 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AlertModal = ({ isOpen, message, onClose, onConfirm, dark }) => {
-    if (!isOpen) return null;
+    // if (!isOpen) return null;
+    const [isClosing, setIsClosing] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) setIsClosing(false); // Reset on open
+    }, [isOpen]);
+
+    if (!isOpen && !isClosing) return null;
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsClosing(false);
+            onClose();
+        }, 200); // Match duration
+    }
+
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center ">
-            <div className={`${dark ? 'bg-gray-700' : 'bg-white'} p-6 rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] w-fit max-w-[90%] sm:max-w-sm `}>
+            <div className={`${dark ? 'bg-gray-700' : 'bg-white'} p-6 rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)] w-fit max-w-[90%] sm:max-w-sm transition-all 
+        ${isClosing ? 'animate-slide-out' : 'animate-slide-in'}`}>
                 <div className={`text-md font-medium ${dark ? 'text-white' : 'text-gray-800'} mb-4`}>
                     {message}
                 </div>
@@ -19,20 +36,20 @@ const AlertModal = ({ isOpen, message, onClose, onConfirm, dark }) => {
                                 Yes
                             </button>
                             <button
-                                onClick={onClose}
+                                onClick={handleClose}
                                 className={`px-4 py-2 rounded text-sm border ${dark ? 'boder-gray-600 text-slate-100 ' : 'border-indigo-600 text-indigo-600 '}`}
                             >
                                 No
                             </button>
                         </>
                     ) : (
-                    <button
-                        onClick={onClose}
-                        className={`px-4 py-2  rounded  text-sm ${dark ? 'bg-gray-600 text-slate-100 hover:bg-gray-500' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
-                    >
-                        OK
-                    </button>
-                     )}
+                        <button
+                            onClick={handleClose}
+                            className={`px-4 py-2  rounded  text-sm ${dark ? 'bg-gray-600 text-slate-100 hover:bg-gray-500' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                        >
+                            OK
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

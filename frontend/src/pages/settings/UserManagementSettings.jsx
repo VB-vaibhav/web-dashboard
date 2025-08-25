@@ -12,6 +12,7 @@ import { components } from 'react-select';
 import { usePersistentWidths } from '../../hooks/usePersistentWidths';
 import { Search, MoreVertical, PlusCircle, Users, Plus, Trash2, ArrowUpAZ, ArrowDownAZ, XCircle, Columns, ChevronRight, Check, Pencil, Phone } from 'lucide-react';
 import { NoSymbolIcon, CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import PageWrapper from '../../components/PageWrapper';
 
 export default function UserManagementSettings() {
   const [users, setUsers] = useState([]);
@@ -1046,190 +1047,192 @@ export default function UserManagementSettings() {
 
 
   return (
-    <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto min-h-[calc(100vh-12em)] ">
-      <div className="h-full max-h-[calc(100vh-14em)]">
-        <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
-          <div className="relative w-[180px]">
-            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-              <Search size={16} />
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search in Table"
-              className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
-            />
+    <PageWrapper>
+      <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto min-h-[calc(100vh-12em)] ">
+        <div className="h-full max-h-[calc(100vh-14em)]">
+          <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
+            <div className="relative w-[180px]">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <Search size={16} />
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search in Table"
+                className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
+              />
+            </div>
+            <div className="relative"
+              ref={dropdownRef}>
+              <button
+                onClick={() => setShowBulkActionMenu(prev => !prev)}
+                className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}
+              >
+                <MoreVertical size={18} />
+              </button>
+
+              {showBulkActionMenu && (
+                <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
+
+                  <button onClick={() => handleMenuOption('add')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Add New User</span>
+                  </button>
+                  <button onClick={() => handleMenuOption('edit')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <Pencil size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Edit User</span>
+                  </button>
+                  <button onClick={() => handleMenuOption('delete')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Delete User</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!selectedUser?.is_restricted) handleMenuOption('restrict');
+                    }}
+                    className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}
+                  >
+                    <NoSymbolIcon size={16} className={`w-4 h-4 ${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>
+                      Restrict User
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleMenuOption('unrestrict')}
+                    className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}
+                  >
+                    <CheckCircleIcon size={16} className={`w-4 h-4 ${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Unrestrict User</span>
+                  </button>
+
+
+
+                  {/* <li onClick={() => handleMenuOption('restrict')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>Restrict User</li> */}
+
+                </div>
+              )}
+            </div>
+
           </div>
-          <div className="relative"
-            ref={dropdownRef}>
-            <button
-              onClick={() => setShowBulkActionMenu(prev => !prev)}
-              className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}
-            >
-              <MoreVertical size={18} />
-            </button>
 
-            {showBulkActionMenu && (
-              <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
-
-                <button onClick={() => handleMenuOption('add')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Add New User</span>
-                </button>
-                <button onClick={() => handleMenuOption('edit')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <Pencil size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Edit User</span>
-                </button>
-                <button onClick={() => handleMenuOption('delete')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Delete User</span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (!selectedUser?.is_restricted) handleMenuOption('restrict');
-                  }}
-                  className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}
-                >
-                  <NoSymbolIcon size={16} className={`w-4 h-4 ${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>
-                    Restrict User
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleMenuOption('unrestrict')}
-                  className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}
-                >
-                  <CheckCircleIcon size={16} className={`w-4 h-4 ${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Unrestrict User</span>
-                </button>
-
-
-
-                {/* <li onClick={() => handleMenuOption('restrict')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>Restrict User</li> */}
-
-              </div>
-            )}
-          </div>
-
-        </div>
-
-        <div className="mt-3">
-          <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
-            <table className="table-auto text-sm w-full">
-              <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
-                <tr>
-                  {columnKeys.map((key, index) => {
-                    if (!columnVisibility[key]) return null;
-                    return (
-                      <th
-                        key={key}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group ${dark ? 'border-gray-700' : 'border-gray-300'} ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
-                      >
-                        <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
-                          {key === 'select' ? (
+          <div className="mt-3">
+            <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
+              <table className="table-auto text-sm w-full">
+                <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
+                  <tr>
+                    {columnKeys.map((key, index) => {
+                      if (!columnVisibility[key]) return null;
+                      return (
+                        <th
+                          key={key}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group ${dark ? 'border-gray-700' : 'border-gray-300'} ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
+                        >
+                          <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
+                            {key === 'select' ? (
+                              <input
+                                type="checkbox"
+                                checked={selected.length === users.length}
+                                onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
+                                className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                              />
+                            ) : (
+                              columnLabels[key]
+                            )}
+                          </div>
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation(); // avoid bubbling to th
+                              autoResizeColumn(index);
+                            }}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                          />
+                        </th>
+                      );
+                    })}
+                    {dynamicColumns.map(({ dbKey, label }, i) => {
+                      const index = 5 + i; // after 7 static columns
+                      const isEditing = editingHeader === dbKey;
+                      return columnVisibility[dbKey] && (
+                        <th
+                          key={`dynamic-${i}`}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group  
+        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
+                          onDoubleClick={() => {
+                            setEditingHeader(dbKey);
+                            setNewHeaderLabel(label);
+                          }}
+                        >
+                          {isEditing ? (
                             <input
-                              type="checkbox"
-                              checked={selected.length === users.length}
-                              onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
-                              className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                              className="text-sm px-1 py-0.5 border rounded w-28 text-center"
+                              value={newHeaderLabel}
+                              onChange={(e) => setNewHeaderLabel(e.target.value)}
+                              onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
+                              autoFocus
                             />
                           ) : (
-                            columnLabels[key]
+                            label
                           )}
-                        </div>
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation(); // avoid bubbling to th
-                            autoResizeColumn(index);
-                          }}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    );
-                  })}
-                  {dynamicColumns.map(({ dbKey, label }, i) => {
-                    const index = 5 + i; // after 7 static columns
-                    const isEditing = editingHeader === dbKey;
-                    return columnVisibility[dbKey] && (
-                      <th
-                        key={`dynamic-${i}`}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group  
-        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
-                        onDoubleClick={() => {
-                          setEditingHeader(dbKey);
-                          setNewHeaderLabel(label);
-                        }}
-                      >
-                        {isEditing ? (
-                          <input
-                            className="text-sm px-1 py-0.5 border rounded w-28 text-center"
-                            value={newHeaderLabel}
-                            onChange={(e) => setNewHeaderLabel(e.target.value)}
-                            onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
-                            autoFocus
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation(); // avoid bubbling to th
+                              autoResizeColumn(index);
+                            }}
+                            // onDoubleClick={() => autoResizeColumn(index)}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
                           />
-                        ) : (
-                          label
-                        )}
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation(); // avoid bubbling to th
-                            autoResizeColumn(index);
-                          }}
-                          // onDoubleClick={() => autoResizeColumn(index)}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {Array.isArray(filteredData) && filteredData.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-6 text-gray-500 text-sm">No search result found</td></tr>
-                ) : (
-                  // Array.isArray(filteredData) && filteredData.map(user => (
-                  sortedData.map(user => (
-                    <tr key={user.id}>
-                      {columnKeys.map((key, index) => {
-                        if (!columnVisibility[key]) return null;
-                        if (key === 'select') {
-                          return <td key={key} className="text-left px-2 py-2"><input type="checkbox" checked={selected.includes(user.id)} onChange={() => {
-                            setSelected(prev => {
-                              return prev.includes(user.id)
-                                ? prev.filter(id => id !== user.id)
-                                : [...prev, user.id];
-                            });
-                          }} className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`} /></td>;
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(filteredData) && filteredData.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-6 text-gray-500 text-sm">No search result found</td></tr>
+                  ) : (
+                    // Array.isArray(filteredData) && filteredData.map(user => (
+                    sortedData.map(user => (
+                      <tr key={user.id}
+                        className="transition-all duration-300 ease-in-out transform animate-fade-in">
+                        {columnKeys.map((key, index) => {
+                          if (!columnVisibility[key]) return null;
+                          if (key === 'select') {
+                            return <td key={key} className="text-left px-2 py-2"><input type="checkbox" checked={selected.includes(user.id)} onChange={() => {
+                              setSelected(prev => {
+                                return prev.includes(user.id)
+                                  ? prev.filter(id => id !== user.id)
+                                  : [...prev, user.id];
+                              });
+                            }} className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`} /></td>;
 
-                        }
-                        if (['name', 'username', 'role'].includes(key)) {
-                          return (
-                            <td key={key} style={{ width: columnWidths[index] }} className="px-2 py-2 text-center">
-                              <div className="w-full whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
-                                {user[key]}
-                              </div>
-                            </td>
-                          )
-                        }
+                          }
+                          if (['name', 'username', 'role'].includes(key)) {
+                            return (
+                              <td key={key} style={{ width: columnWidths[index] }} className="px-2 py-2 text-center">
+                                <div className="w-full whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
+                                  {user[key]}
+                                </div>
+                              </td>
+                            )
+                          }
 
-                        if (key === 'action') {
-                          return (
-                            <td key={key} className="text-center px-2 py-2">
-                              <div className="flex justify-center gap-2">
-                                <button
-                                  onClick={() => handleDeleteUser(user.id)}
-                                  className={`px-3 py-1.5 text-xs font-medium border rounded ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`}
-                                >Delete</button>
+                          if (key === 'action') {
+                            return (
+                              <td key={key} className="text-center px-2 py-2">
+                                <div className="flex justify-center gap-2">
+                                  <button
+                                    onClick={() => handleDeleteUser(user.id)}
+                                    className={`px-3 py-1.5 text-xs font-medium border rounded ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`}
+                                  >Delete</button>
 
-                                {/* {user.is_restricted === 1 ? (
+                                  {/* {user.is_restricted === 1 ? (
                                 <button
                                   
                                   className={`px-3 py-1.5 text-xs font-medium border rounded cursor-not-allowed opacity-50 $${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} bg-transparent`}
@@ -1240,97 +1243,250 @@ export default function UserManagementSettings() {
                                   className={`px-3 py-1.5 text-xs font-medium border rounded ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} bg-transparent`}
                                 >Restrict</button>
                               )} */}
-                                <button
-                                  onClick={() => handleRestrictUser(user.id)}
-                                  className={`px-3 py-1.5 text-xs font-medium border rounded 
+                                  <button
+                                    onClick={() => handleRestrictUser(user.id)}
+                                    className={`px-3 py-1.5 text-xs font-medium border rounded 
     ${dark
-                                      ? 'hover:bg-gray-500 text-slate-300 border-slate-300'
-                                      : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'
-                                    } bg-transparent`}
-                                >
-                                  {user.is_restricted === 1 ? 'Restricted' : 'Restrict'}
-                                </button>
+                                        ? 'hover:bg-gray-500 text-slate-300 border-slate-300'
+                                        : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'
+                                      } bg-transparent`}
+                                  >
+                                    {user.is_restricted === 1 ? 'Restricted' : 'Restrict'}
+                                  </button>
 
-                              </div>
+                                </div>
+                              </td>
+                            );
+                          }
+
+                          return <td key={key} className="text-center px-2 py-2">{user[key]}</td>;
+                        })}
+                        {dynamicColumns.map(({ dbKey }, i) => {
+                          const index = 5 + i;
+                          return columnVisibility[dbKey] && (
+                            <td
+                              key={dbKey}
+                              style={{ width: columnWidths[index], minWidth: 40 }}
+                              className="px-2 py-2 text-center cursor-pointer"
+                              onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
+                            >
+                              {editingCell.id === user.id && editingCell.key === dbKey ? (
+                                <input
+                                  value={editingCell.value}
+                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                  onBlur={async () => {
+                                    const updatedValue = editingCell.value;
+                                    setUsers(prev =>
+                                      prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
+                                    );
+                                    setEditingCell({ id: null, key: null, value: '' });
+                                    await axios.patch(`/admin/update-service-access/${user.id}`, {
+                                      [dbKey]: updatedValue
+                                    });
+                                  }}
+                                  autoFocus
+                                  className="w-full text-sm px-1 py-0.5 border rounded"
+                                />
+                              ) : (
+                                <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
+                                  {user[dbKey] || ''}
+                                </div>
+                              )}
                             </td>
                           );
-                        }
-
-                        return <td key={key} className="text-center px-2 py-2">{user[key]}</td>;
-                      })}
-                      {dynamicColumns.map(({ dbKey }, i) => {
-                        const index = 5 + i;
-                        return columnVisibility[dbKey] && (
-                          <td
-                            key={dbKey}
-                            style={{ width: columnWidths[index], minWidth: 40 }}
-                            className="px-2 py-2 text-center cursor-pointer"
-                            onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
-                          >
-                            {editingCell.id === user.id && editingCell.key === dbKey ? (
-                              <input
-                                value={editingCell.value}
-                                onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                onBlur={async () => {
-                                  const updatedValue = editingCell.value;
-                                  setUsers(prev =>
-                                    prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
-                                  );
-                                  setEditingCell({ id: null, key: null, value: '' });
-                                  await axios.patch(`/admin/update-service-access/${user.id}`, {
-                                    [dbKey]: updatedValue
-                                  });
-                                }}
-                                autoFocus
-                                className="w-full text-sm px-1 py-0.5 border rounded"
-                              />
-                            ) : (
-                              <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
-                                {user[dbKey] || ''}
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                        })}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {showAddUserModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center ">
-            <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"}  rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Add New User</h2>
-                <button onClick={() => setShowAddUserModal(false)}><XMarkIcon className={`w-5 h-5 font-bold ${dark ? "text-slate-300" : "text-blue-900"} hover:text-red-500 cursor-pointer`} />
-                </button>
-              </div>
+          {showAddUserModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center ">
+              <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"}  rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Add New User</h2>
+                  <button onClick={() => setShowAddUserModal(false)}><XMarkIcon className={`w-5 h-5 font-bold ${dark ? "text-slate-300" : "text-blue-900"} hover:text-red-500 cursor-pointer`} />
+                  </button>
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {['name', 'username', 'email', 'phone', 'password'].map(field => (
-                  <div key={field} className="col-span-1">
-                    <label className="block text-sm font-medium mb-1 capitalize">
-                      {field.replace('_', ' ')}
-                      {field !== 'phone' && (
-                        <span className={`${dark ? "text-slate-300" : " text-blue-900"}`}>*</span>
-                      )}
-                    </label>
-                    <input
-                      type={field === 'password' ? 'password' : 'text'}
-                      value={newUser[field]}
-                      onChange={e => setNewUser({ ...newUser, [field]: e.target.value })}
-                      autoComplete="new-password"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
-                      placeholder={`Enter ${field}`}
+                <div className="grid grid-cols-2 gap-4">
+                  {['name', 'username', 'email', 'phone', 'password'].map(field => (
+                    <div key={field} className="col-span-1">
+                      <label className="block text-sm font-medium mb-1 capitalize">
+                        {field.replace('_', ' ')}
+                        {field !== 'phone' && (
+                          <span className={`${dark ? "text-slate-300" : " text-blue-900"}`}>*</span>
+                        )}
+                      </label>
+                      <input
+                        type={field === 'password' ? 'password' : 'text'}
+                        value={newUser[field]}
+                        onChange={e => setNewUser({ ...newUser, [field]: e.target.value })}
+                        autoComplete="new-password"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                        placeholder={`Enter ${field}`}
+                      />
+                      {formErrors[field] && <p className="text-red-500 text-xs">{formErrors[field]}</p>}
+                    </div>
+                  ))}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium mb-1">Set Role<span className={`${dark ? "text-slate-300" : " text-blue-900"}`}>*</span></label>
+                    <Select
+                      components={{
+                        IndicatorSeparator: () => null,
+                        DropdownIndicator: (props) => (
+                          <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
+                        )
+                      }}
+                      value={newUser.role ? { label: newUser.role, value: newUser.role } : null}
+                      onChange={(opt) => setNewUser({ ...newUser, role: opt.value })}
+                      options={[
+                        { label: 'Admin', value: 'admin' },
+                        { label: 'Middleman', value: 'middleman' }
+                      ]}
+                      className="text-md"
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          boxShadow: 'none',
+                          backgroundColor: dark ? '#1F2937' : '#ffffff',
+                          color: dark ? '#99C2FF' : '#1F2937',
+                          borderColor: '#E5E7EB',
+                          '&:hover': {
+                            borderColor: '#CBD5E1',
+                          },
+                        }),
+                        menu: (base) => ({
+                          ...base,
+                          backgroundColor: dark ? '#1F2937' : '#ffffff',
+                          zIndex: 99,
+                          padding: '4px',
+                          borderRadius: '8px',
+                          overflowX: 'hidden'
+                        }),
+                        option: (base, state) => ({
+                          ...base,
+                          backgroundColor: state.isFocused
+                            ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
+                            : 'transparent',
+                          color: dark ? '#99C2FF' : '#1e3a8a',
+                          borderRadius: '6px',
+                          margin: '4px 0',
+                          padding: '8px 10px',
+                          cursor: 'pointer',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }),
+                        singleValue: (base) => ({
+                          ...base,
+                          color: dark ? '#ffffff' : '#1e3a8a',
+                        }),
+                        valueContainer: (base) => ({
+                          ...base,
+                          paddingLeft: 8,
+                          paddingRight: 4, // shrink right padding
+                        }),
+
+                        placeholder: (base) => ({
+                          ...base,
+                          color: dark ? '#9CA3AF' : '#a3aed0',
+                        }),
+                      }}
                     />
-                    {formErrors[field] && <p className="text-red-500 text-xs">{formErrors[field]}</p>}
+                    {formErrors.role && <p className="text-red-500 text-xs">{formErrors.role}</p>}
                   </div>
-                ))}
+                </div>
+
+                {/* Conditional toggles */}
+                {(newUser.role === 'admin' || newUser.role === 'middleman') && (
+                  <div className="mt-4 ">
+                    <h3 className={`text-sm font-semibold mb-1 ${dark ? "text-slate-300" : "text-blue-900"}`}>
+                      {newUser.role === 'admin' ? 'Access to Services and Panel' : 'Access to Panel'}
+                    </h3>
+                    <div className="grid grid-cols-3 mb-1 gap-2 border border-slate-200 rounded w-full px-3 py-2">
+                      {[
+                        ...(newUser.role === 'admin' ? ['is_cerberus', 'is_vps', 'is_proxy', 'is_storage', 'is_varys'] : []),
+                        'is_notification', 'is_mail', 'is_reports', 'is_settings'
+                      ].map(key => (
+                        <label key={key} className="text-sm flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={newUser[key] === 1}
+                            onChange={() => setNewUser({ ...newUser, [key]: newUser[key] ? 0 : 1 })}
+                            className={`${dark ? 'accent-slate-200' : 'accent-indigo-600'}`}
+                          />
+                          <span>{labelMap[key] || key}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit button */}
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={handleAddUserSubmit}
+                    className={`px-4 py-2 font-medium border ${dark ? 'bg-gray-700 text-slate-300 border-gray-700 hover:bg-gray-600' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} rounded`}
+                  >
+                    Add User
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showEditUserModal && editedUser && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"} rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Edit User</h2>
+                  <button onClick={() => setShowEditUserModal(false)}>
+                    <XMarkIcon className={`w-5 h-5 ${dark ? "text-slate-300" : "text-blue-900"} hover:text-red-500 cursor-pointer`} />
+                  </button>
+                </div>
+
+                {/* User Form */}
+                <div className="grid grid-cols-2 gap-4">
+                  {['name', 'username', 'email', 'phone', 'password'].map(field => (
+                    <div key={field} className="col-span-1">
+                      <label className="block text-sm font-medium mb-1 capitalize">{field.replace('_', ' ')}
+                        {field !== 'phone' && (
+                          <span className={`${dark ? "text-slate-300" : " text-blue-900"}`}>*</span>
+                        )}</label>
+                      {/* <input
+                    type={field === 'password' ? 'password' : 'text'}
+                    value={editedUser?.[field] ?? ''}
+                    onChange={(e) => setEditedUser({ ...editedUser, [field]: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                  /> */}
+                      {field === 'password' ? (
+                        <input
+                          type="password"
+                          value={editedUser?.password ?? ''}
+                          onChange={(e) => setEditedUser({ ...editedUser, password: e.target.value })}
+                          autoComplete="new-password"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                          placeholder="Enter new password"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={editedUser[field] ?? ''}
+                          onChange={(e) => setEditedUser({ ...editedUser, [field]: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Role and toggles */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium mb-1">Set Role<span className={`${dark ? "text-slate-300" : " text-blue-900"}`}>*</span></label>
+                  <label className="block text-sm mt-4 font-medium mb-1">Set Role*</label>
                   <Select
                     components={{
                       IndicatorSeparator: () => null,
@@ -1338,12 +1494,9 @@ export default function UserManagementSettings() {
                         <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
                       )
                     }}
-                    value={newUser.role ? { label: newUser.role, value: newUser.role } : null}
-                    onChange={(opt) => setNewUser({ ...newUser, role: opt.value })}
-                    options={[
-                      { label: 'Admin', value: 'admin' },
-                      { label: 'Middleman', value: 'middleman' }
-                    ]}
+                    value={{ label: editedUser.role, value: editedUser.role }}
+                    onChange={(opt) => setEditedUser({ ...editedUser, role: opt.value })}
+                    options={[{ label: 'Admin', value: 'admin' }, { label: 'Middleman', value: 'middleman' }]}
                     className="text-md"
                     styles={{
                       control: (base) => ({
@@ -1394,359 +1547,210 @@ export default function UserManagementSettings() {
                       }),
                     }}
                   />
-                  {formErrors.role && <p className="text-red-500 text-xs">{formErrors.role}</p>}
                 </div>
-              </div>
 
-              {/* Conditional toggles */}
-              {(newUser.role === 'admin' || newUser.role === 'middleman') && (
-                <div className="mt-4 ">
-                  <h3 className={`text-sm font-semibold mb-1 ${dark ? "text-slate-300" : "text-blue-900"}`}>
-                    {newUser.role === 'admin' ? 'Access to Services and Panel' : 'Access to Panel'}
-                  </h3>
-                  <div className="grid grid-cols-3 mb-1 gap-2 border border-slate-200 rounded w-full px-3 py-2">
-                    {[
-                      ...(newUser.role === 'admin' ? ['is_cerberus', 'is_vps', 'is_proxy', 'is_storage', 'is_varys'] : []),
-                      'is_notification', 'is_mail', 'is_reports', 'is_settings'
-                    ].map(key => (
-                      <label key={key} className="text-sm flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={newUser[key] === 1}
-                          onChange={() => setNewUser({ ...newUser, [key]: newUser[key] ? 0 : 1 })}
-                          className={`${dark ? 'accent-slate-200' : 'accent-indigo-600'}`}
-                        />
-                        <span>{labelMap[key] || key}</span>
-                      </label>
-                    ))}
+                {/* Toggles */}
+                {(editedUser.role === 'admin' || editedUser.role === 'middleman') && (
+                  <div className="mt-4">
+                    <h3 className={`text-sm font-semibold mb-1 ${dark ? "text-slate-300" : "text-blue-900"}`}>
+                      {editedUser.role === 'admin' ? 'Access to Services and Panel' : 'Access to Panel'}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2 mb-1 border border-slate-200 rounded w-full px-3 py-2">
+                      {[...(editedUser.role === 'admin' ? ['is_cerberus', 'is_vps', 'is_proxy', 'is_storage', 'is_varys'] : []),
+                        'is_notification', 'is_mail', 'is_reports', 'is_settings'
+                      ].map(key => (
+                        <label key={key} className="text-sm flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={editedUser[key] === 1}
+                            onChange={() => setEditedUser({ ...editedUser, [key]: editedUser[key] ? 0 : 1 })}
+                            className={`${dark ? 'accent-slate-200' : 'accent-indigo-600'}`}
+                          />
+                          <span>{labelMap[key]}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Submit button */}
-              <div className="mt-6 text-center">
-                <button
-                  onClick={handleAddUserSubmit}
-                  className={`px-4 py-2 font-medium border ${dark ? 'bg-gray-700 text-slate-300 border-gray-700 hover:bg-gray-600' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} rounded`}
-                >
-                  Add User
-                </button>
+                {/* Save button */}
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={handleEditUserSubmit}
+                    className={`px-4 py-2 font-medium border ${dark ? 'bg-gray-700 text-slate-300 border-gray-700 hover:bg-gray-600' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} rounded`}
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {showEditUserModal && editedUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"} rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Edit User</h2>
-                <button onClick={() => setShowEditUserModal(false)}>
-                  <XMarkIcon className={`w-5 h-5 ${dark ? "text-slate-300" : "text-blue-900"} hover:text-red-500 cursor-pointer`} />
-                </button>
-              </div>
-
-              {/* User Form */}
-              <div className="grid grid-cols-2 gap-4">
-                {['name', 'username', 'email', 'phone', 'password'].map(field => (
-                  <div key={field} className="col-span-1">
-                    <label className="block text-sm font-medium mb-1 capitalize">{field.replace('_', ' ')}
-                      {field !== 'phone' && (
-                        <span className={`${dark ? "text-slate-300" : " text-blue-900"}`}>*</span>
-                      )}</label>
-                    {/* <input
-                    type={field === 'password' ? 'password' : 'text'}
-                    value={editedUser?.[field] ?? ''}
-                    onChange={(e) => setEditedUser({ ...editedUser, [field]: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
-                  /> */}
-                    {field === 'password' ? (
-                      <input
-                        type="password"
-                        value={editedUser?.password ?? ''}
-                        onChange={(e) => setEditedUser({ ...editedUser, password: e.target.value })}
-                        autoComplete="new-password"
-                        className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
-                        placeholder="Enter new password"
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        value={editedUser[field] ?? ''}
-                        onChange={(e) => setEditedUser({ ...editedUser, [field]: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Role and toggles */}
-              <div className="col-span-2">
-                <label className="block text-sm mt-4 font-medium mb-1">Set Role*</label>
-                <Select
-                  components={{
-                    IndicatorSeparator: () => null,
-                    DropdownIndicator: (props) => (
-                      <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
-                    )
-                  }}
-                  value={{ label: editedUser.role, value: editedUser.role }}
-                  onChange={(opt) => setEditedUser({ ...editedUser, role: opt.value })}
-                  options={[{ label: 'Admin', value: 'admin' }, { label: 'Middleman', value: 'middleman' }]}
-                  className="text-md"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      boxShadow: 'none',
-                      backgroundColor: dark ? '#1F2937' : '#ffffff',
-                      color: dark ? '#99C2FF' : '#1F2937',
-                      borderColor: '#E5E7EB',
-                      '&:hover': {
-                        borderColor: '#CBD5E1',
-                      },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      backgroundColor: dark ? '#1F2937' : '#ffffff',
-                      zIndex: 99,
-                      padding: '4px',
-                      borderRadius: '8px',
-                      overflowX: 'hidden'
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isFocused
-                        ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
-                        : 'transparent',
-                      color: dark ? '#99C2FF' : '#1e3a8a',
-                      borderRadius: '6px',
-                      margin: '4px 0',
-                      padding: '8px 10px',
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }),
-                    singleValue: (base) => ({
-                      ...base,
-                      color: dark ? '#ffffff' : '#1e3a8a',
-                    }),
-                    valueContainer: (base) => ({
-                      ...base,
-                      paddingLeft: 8,
-                      paddingRight: 4, // shrink right padding
-                    }),
-
-                    placeholder: (base) => ({
-                      ...base,
-                      color: dark ? '#9CA3AF' : '#a3aed0',
-                    }),
-                  }}
-                />
-              </div>
-
-              {/* Toggles */}
-              {(editedUser.role === 'admin' || editedUser.role === 'middleman') && (
-                <div className="mt-4">
-                  <h3 className={`text-sm font-semibold mb-1 ${dark ? "text-slate-300" : "text-blue-900"}`}>
-                    {editedUser.role === 'admin' ? 'Access to Services and Panel' : 'Access to Panel'}
-                  </h3>
-                  <div className="grid grid-cols-3 gap-2 mb-1 border border-slate-200 rounded w-full px-3 py-2">
-                    {[...(editedUser.role === 'admin' ? ['is_cerberus', 'is_vps', 'is_proxy', 'is_storage', 'is_varys'] : []),
-                      'is_notification', 'is_mail', 'is_reports', 'is_settings'
-                    ].map(key => (
-                      <label key={key} className="text-sm flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={editedUser[key] === 1}
-                          onChange={() => setEditedUser({ ...editedUser, [key]: editedUser[key] ? 0 : 1 })}
-                          className={`${dark ? 'accent-slate-200' : 'accent-indigo-600'}`}
-                        />
-                        <span>{labelMap[key]}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Save button */}
-              <div className="mt-6 text-center">
-                <button
-                  onClick={handleEditUserSubmit}
-                  className={`px-4 py-2 font-medium border ${dark ? 'bg-gray-700 text-slate-300 border-gray-700 hover:bg-gray-600' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} rounded`}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
 
 
-        {contextMenu.visible && (
-          <div
-            className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
-            style={{ position: 'fixed', top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, minWidth: '190px', zIndex: 1000, }}
-          >
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex)
-                const newConfig = { key: col, direction: 'asc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
-              <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Ascending</span>
-            </button>
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex)
-                const newConfig = { key: col, direction: 'desc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+          {contextMenu.visible && (
+            <div
+              className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
+              style={{ position: 'fixed', top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, minWidth: '190px', zIndex: 1000, }}
             >
-              <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Descending</span>
-            </button>
-            <button
-              onClick={() => {
-                setSortConfig({ key: null, direction: null });
-                localStorage.removeItem(SORT_STORAGE_KEY);
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Cancel Sort</span>
-            </button>
-            <button
-              onClick={() => {
-                setContextMenu({ ...contextMenu, visible: false });
-                setShowAddColumnModal(true);
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Add Column</span>
-
-            </button>
-
-            {contextMenu.allowDelete && (
               <button
-                onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex)
+                  const newConfig = { key: col, direction: 'asc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Ascending</span>
+              </button>
+              <button
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex)
+                  const newConfig = { key: col, direction: 'desc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
                 className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
               >
-                <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Delete Column</span>
+                <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Descending</span>
               </button>
-            )}
-            <div
-              onMouseEnter={() => {
-                if (submenuTriggerRef.current) {
-                  const rect = submenuTriggerRef.current.getBoundingClientRect();
-                  const spaceRight = window.innerWidth - rect.right;
-                  const submenuWidth = 220;
-                  setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
-                }
-                setShowSubmenu(true);
-              }}
-              onMouseLeave={() => setShowSubmenu(false)}
-            >
               <button
-                ref={submenuTriggerRef}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
-                <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Column Show/Hide</span>
-                <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                onClick={() => {
+                  setSortConfig({ key: null, direction: null });
+                  localStorage.removeItem(SORT_STORAGE_KEY);
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Cancel Sort</span>
+              </button>
+              <button
+                onClick={() => {
+                  setContextMenu({ ...contextMenu, visible: false });
+                  setShowAddColumnModal(true);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Add Column</span>
 
               </button>
 
-              {showSubmenu && (
-                <div
-                  ref={submenuRef}
-                  className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-28 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
-                  style={{
-                    left: submenuFlipLeft ? 'auto' : '100%',
-                    right: submenuFlipLeft ? '100%' : 'auto',
-                    paddingLeft: submenuFlipLeft ? '0' : '8px',
-                    paddingRight: submenuFlipLeft ? '8px' : '0'
-                  }}>
-                  {[
-                    { key: 'name', label: 'Name' },
-                    { key: 'username', label: 'Username' },
-                    { key: 'role', label: 'Role' },
-
-                    { key: 'action', label: 'Action' },
-                    ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
-                  ].map(col => (
-                    <button
-                      key={col.key}
-                      onClick={() => toggleColumnVisibility(col.key)}
-                      className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-                    >
-                      <span>{col.label}</span>
-                      {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
-                    </button>
-                  ))}
-                </div>
+              {contextMenu.allowDelete && (
+                <button
+                  onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                >
+                  <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Delete Column</span>
+                </button>
               )}
-            </div>
-          </div>
-        )}
+              <div
+                onMouseEnter={() => {
+                  if (submenuTriggerRef.current) {
+                    const rect = submenuTriggerRef.current.getBoundingClientRect();
+                    const spaceRight = window.innerWidth - rect.right;
+                    const submenuWidth = 220;
+                    setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
+                  }
+                  setShowSubmenu(true);
+                }}
+                onMouseLeave={() => setShowSubmenu(false)}
+              >
+                <button
+                  ref={submenuTriggerRef}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                  <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Column Show/Hide</span>
+                  <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
 
+                </button>
 
-        {/* <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} /> */}
-        <AlertModal
-          isOpen={showAlert}
-          message={confirmMessage || alertMessage}
-          onClose={closeModal}
-          onConfirm={onConfirmAction}  // This will show Yes/No only if it's set
-          dark={dark}
-        />
+                {showSubmenu && (
+                  <div
+                    ref={submenuRef}
+                    className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-28 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
+                    style={{
+                      left: submenuFlipLeft ? 'auto' : '100%',
+                      right: submenuFlipLeft ? '100%' : 'auto',
+                      paddingLeft: submenuFlipLeft ? '0' : '8px',
+                      paddingRight: submenuFlipLeft ? '8px' : '0'
+                    }}>
+                    {[
+                      { key: 'name', label: 'Name' },
+                      { key: 'username', label: 'Username' },
+                      { key: 'role', label: 'Role' },
 
-
-        {showAddColumnModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Add New Column</h2>
-                <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
+                      { key: 'action', label: 'Action' },
+                      ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
+                    ].map(col => (
+                      <button
+                        key={col.key}
+                        onClick={() => toggleColumnVisibility(col.key)}
+                        className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                      >
+                        <span>{col.label}</span>
+                        {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+            </div>
+          )}
 
-              <label className="block text-sm font-medium mb-1">Column Name</label>
-              <input
-                type="text"
-                className={`w-full px-3 py-2 border rounded-md text-sm mb-4 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-                placeholder="e.g. whatsapp_number"
-              />
-              <div className="flex items-center space-x-2 mt-2">
+
+          {/* <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} /> */}
+          <AlertModal
+            isOpen={showAlert}
+            message={confirmMessage || alertMessage}
+            onClose={closeModal}
+            onConfirm={onConfirmAction}  // This will show Yes/No only if it's set
+            dark={dark}
+          />
+
+
+          {showAddColumnModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Add New Column</h2>
+                  <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
+                </div>
+
+                <label className="block text-sm font-medium mb-1">Column Name</label>
                 <input
-                  type="checkbox"
-                  id="visibleForAll"
-                  checked={visibleForAll}
-                  onChange={(e) => setVisibleForAll(e.target.checked)}
-                  className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                  type="text"
+                  className={`w-full px-3 py-2 border rounded-md text-sm mb-4 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
+                  value={newColumnName}
+                  onChange={(e) => setNewColumnName(e.target.value)}
+                  placeholder="e.g. whatsapp_number"
                 />
-                <label htmlFor="visibleForAll" className="text-sm"> Visible for all users
-                </label>
-              </div>
+                <div className="flex items-center space-x-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="visibleForAll"
+                    checked={visibleForAll}
+                    onChange={(e) => setVisibleForAll(e.target.checked)}
+                    className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                  />
+                  <label htmlFor="visibleForAll" className="text-sm"> Visible for all users
+                  </label>
+                </div>
 
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
-                <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
+                  <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

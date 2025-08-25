@@ -8,6 +8,7 @@ import Select from 'react-select';
 import useIsMobile from '../../hooks/useIsMobile';
 import MobileServiceAccessUI from './MobileServiceAccessUI';
 import { useSelector } from 'react-redux';
+import PageWrapper from '../../components/PageWrapper';
 
 export default function ServiceAccessSettings() {
   const [users, setUsers] = useState([]);
@@ -606,420 +607,422 @@ export default function ServiceAccessSettings() {
   }
 
   return (
-
-    <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto  min-h-[calc(100vh-12em)] ">
-      <div className="h-full max-h-[calc(100vh-14em)]">
-        <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
-          <div className="relative w-[180px]">
-            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-              <Search size={16} />
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search in Table"
-              className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
-            />
-          </div>
-          <div className="relative" ref={dropdownRef}>
-            <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
-              <MoreVertical size={18} />
-            </button>
-            {showDropdown && (
-              <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
-                <button onClick={() => openServiceActionModal('include')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <PlusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Include</span>
-                </button>
-                <button onClick={() => openServiceActionModal('exclude')} className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <MinusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Exclude</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className=" mt-3">
-          <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
-            {/* <div className="min-w-max" style={{ width: `${totalWidth}px`, maxWidth: '100%' }}> */}
-
-            <table className="table-auto text-sm w-full ">
-              <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
-                <tr>
-                  {['select', 'name', 'role', 'is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'].map((key, index) => {
-                    if (!columnVisibility[key]) return null;
-
-                    const labelMap = {
-                      select: '',
-                      name: 'Name',
-                      role: 'Role',
-                      is_vps: 'Cloud Server',
-                      is_cerberus: 'Cerberus',
-                      is_proxy: 'Proxy',
-                      is_storage: 'Storage Server',
-                      is_varys: 'Varys',
-                      '': ''
-                    };
-
-                    return (
-                      <th
-                        key={index}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group  
-        ${dark ? 'border-gray-700' : 'border-gray-300'}  
-        ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
-                      >
-                        <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
-                          {key === 'select' ? (
-                            <input
-                              type="checkbox"
-                              checked={selected.length === users.length}
-                              onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
-                              className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                            />
-                          ) : (
-                            labelMap[key]
-                          )}
-                        </div>
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation(); // avoid bubbling to th
-                            autoResizeColumn(index);
-                          }}
-                          // onDoubleClick={() => autoResizeColumn(index)}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    );
-                  })}
-                  {dynamicColumns.map(({ dbKey, label }, i) => {
-                    const index = 8 + i; // after 8 static columns
-                    const isEditing = editingHeader === dbKey;
-                    return columnVisibility[dbKey] && (
-                      <th
-                        key={`dynamic-${i}`}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group  
-        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
-                        onDoubleClick={() => {
-                          setEditingHeader(dbKey);
-                          setNewHeaderLabel(label);
-                        }}
-                      >
-                        {isEditing ? (
-                          <input
-                            className="text-sm px-1 py-0.5 border rounded w-28 text-center"
-                            value={newHeaderLabel}
-                            onChange={(e) => setNewHeaderLabel(e.target.value)}
-                            onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
-                            autoFocus
-                          />
-                        ) : (
-                          label
-                        )}
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation(); // avoid bubbling to th
-                            autoResizeColumn(index);
-                          }}
-                          // onDoubleClick={() => autoResizeColumn(index)}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    );
-                  })}
-
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredData.length === 0 ? (
-                  <tr><td colSpan={8} className="py-6 text-sm text-gray-500 text-center">No search result found</td></tr>
-                ) : (
-                  sortedData.map(user => (
-                    <tr key={user.id}>
-                      {columnVisibility['select'] && (
-                        <td className="px-2 py-2 text-left">
-                          <input
-                            type="checkbox"
-                            checked={selected.includes(user.id)}
-                            onChange={() => handleCheckboxChange(user.id)}
-                            className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                          />
-                        </td>
-                      )}
-                      {['name', 'role'].map((key, i) =>
-                        columnVisibility[key] && (
-                          <td key={key} style={{ width: columnWidths[i + 1] }} className="px-2 py-2 text-center">
-                            <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[i + 1] }}>
-                              {user[key]}
-                            </div>
-                          </td>
-                        )
-                      )}
-
-                      {['is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'].map((key, i) =>
-                        columnVisibility[key] && (
-                          <td key={key} className="px-2 py-2 text-center">
-                            {renderCell(user, key)}
-                          </td>
-                        )
-                      )}
-
-                      {dynamicColumns.map(({ dbKey }, i) => {
-                        const index = 8 + i;
-                        return columnVisibility[dbKey] && (
-                          <td
-                            key={dbKey}
-                            style={{ width: columnWidths[index], minWidth: 40 }}
-                            className="px-2 py-2 text-center cursor-pointer"
-                            onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
-                          >
-                            {editingCell.id === user.id && editingCell.key === dbKey ? (
-                              <input
-                                value={editingCell.value}
-                                onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                onBlur={async () => {
-                                  const updatedValue = editingCell.value;
-                                  setUsers(prev =>
-                                    prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
-                                  );
-                                  setEditingCell({ id: null, key: null, value: '' });
-                                  await axios.patch(`/admin/update-service-access/${user.id}`, {
-                                    [dbKey]: updatedValue
-                                  });
-                                }}
-                                autoFocus
-                                className="w-full text-sm px-1 py-0.5 border rounded"
-                              />
-                            ) : (
-                              <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
-                                {user[dbKey] || ''}
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-
-            </table>
-          </div>
-        </div>
-        {contextMenu.visible && (
-          <div
-            className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
-            style={{
-              position: 'fixed',
-              top: `${contextMenu.y}px`,
-              left: `${contextMenu.x}px`,
-              minWidth: '190px',
-              zIndex: 1000,
-            }}
-
-
-          >
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex);
-                const newConfig = { key: col, direction: 'asc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
-                // setSortConfig({ key: col, direction: 'asc' });
-                // setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Ascending</span>
-            </button>
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex);
-                const newConfig = { key: col, direction: 'desc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
-                // setSortConfig({ key: col, direction: 'desc' });
-                // setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Descending</span>
-            </button>
-            <button
-              onClick={() => {
-                setSortConfig({ key: null, direction: null });
-                localStorage.removeItem(SORT_STORAGE_KEY);
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Cancel Sort</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setContextMenu({ ...contextMenu, visible: false });
-                setShowAddColumnModal(true);
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Add Column</span>
-
-            </button>
-
-            {contextMenu.allowDelete && (
-              <button
-                onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-              >
-                <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Delete Column</span>
+    <PageWrapper>
+      <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto  min-h-[calc(100vh-12em)] ">
+        <div className="h-full max-h-[calc(100vh-14em)]">
+          <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
+            <div className="relative w-[180px]">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <Search size={16} />
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search in Table"
+                className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
+              />
+            </div>
+            <div className="relative" ref={dropdownRef}>
+              <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
+                <MoreVertical size={18} />
               </button>
-            )}
-
-            <div
-              className="relative"
-              onMouseEnter={() => {
-                if (submenuTriggerRef.current) {
-                  const rect = submenuTriggerRef.current.getBoundingClientRect();
-                  const spaceRight = window.innerWidth - rect.right;
-                  const submenuWidth = 220;
-                  setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
-                }
-                setShowSubmenu(true);
-              }}
-              onMouseLeave={() => setShowSubmenu(false)}
-            >
-              <button
-                ref={submenuTriggerRef}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
-                <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Column Show/Hide</span>
-                <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-
-              </button>
-
-              {showSubmenu && (
-                <div
-                  ref={submenuRef}
-                  className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border left-full top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
-                  style={{
-                    left: submenuFlipLeft ? 'auto' : '100%',
-                    right: submenuFlipLeft ? '100%' : 'auto',
-                    paddingLeft: submenuFlipLeft ? '0' : '8px',
-                    paddingRight: submenuFlipLeft ? '8px' : '0'
-                  }}>
-                  {[
-                    { key: 'name', label: 'Name' },
-                    { key: 'role', label: 'Role' },
-                    { key: 'is_vps', label: 'Cloud Server' },
-                    { key: 'is_cerberus', label: 'Cerberus' },
-                    { key: 'is_proxy', label: 'Proxy' },
-                    { key: 'is_storage', label: 'Storage Server' },
-                    { key: 'is_varys', label: 'Varys' },
-                    ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
-                  ].map(col => (
-                    <button
-                      key={col.key}
-                      onClick={() => toggleColumnVisibility(col.key)}
-                      className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-                    >
-                      <span>{col.label}</span>
-                      {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
-                    </button>
-                  ))}
+              {showDropdown && (
+                <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
+                  <button onClick={() => openServiceActionModal('include')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <PlusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Include</span>
+                  </button>
+                  <button onClick={() => openServiceActionModal('exclude')} className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <MinusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Exclude</span>
+                  </button>
                 </div>
               )}
             </div>
           </div>
-        )}
 
+          <div className=" mt-3">
+            <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
+              {/* <div className="min-w-max" style={{ width: `${totalWidth}px`, maxWidth: '100%' }}> */}
 
-        <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
+              <table className="table-auto text-sm w-full ">
+                <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
+                  <tr>
+                    {['select', 'name', 'role', 'is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'].map((key, index) => {
+                      if (!columnVisibility[key]) return null;
 
-        {showAddColumnModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Add New Column</h2>
-                <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
-              </div>
+                      const labelMap = {
+                        select: '',
+                        name: 'Name',
+                        role: 'Role',
+                        is_vps: 'Cloud Server',
+                        is_cerberus: 'Cerberus',
+                        is_proxy: 'Proxy',
+                        is_storage: 'Storage Server',
+                        is_varys: 'Varys',
+                        '': ''
+                      };
 
-              <label className="block text-sm font-medium mb-1">Column Name</label>
-              <input
-                type="text"
-                className={`w-full px-3 py-2 border rounded-md text-sm mb-2 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-                placeholder="e.g. whatsapp_number"
-              />
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="visibleForAll"
-                  checked={visibleForAll}
-                  onChange={(e) => setVisibleForAll(e.target.checked)}
-                  className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                />
-                <label htmlFor="visibleForAll" className="text-sm"> Visible for all users
-                </label>
-              </div>
+                      return (
+                        <th
+                          key={index}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group  
+        ${dark ? 'border-gray-700' : 'border-gray-300'}  
+        ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
+                        >
+                          <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
+                            {key === 'select' ? (
+                              <input
+                                type="checkbox"
+                                checked={selected.length === users.length}
+                                onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
+                                className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                              />
+                            ) : (
+                              labelMap[key]
+                            )}
+                          </div>
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation(); // avoid bubbling to th
+                              autoResizeColumn(index);
+                            }}
+                            // onDoubleClick={() => autoResizeColumn(index)}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                          />
+                        </th>
+                      );
+                    })}
+                    {dynamicColumns.map(({ dbKey, label }, i) => {
+                      const index = 8 + i; // after 8 static columns
+                      const isEditing = editingHeader === dbKey;
+                      return columnVisibility[dbKey] && (
+                        <th
+                          key={`dynamic-${i}`}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group  
+        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
+                          onDoubleClick={() => {
+                            setEditingHeader(dbKey);
+                            setNewHeaderLabel(label);
+                          }}
+                        >
+                          {isEditing ? (
+                            <input
+                              className="text-sm px-1 py-0.5 border rounded w-28 text-center"
+                              value={newHeaderLabel}
+                              onChange={(e) => setNewHeaderLabel(e.target.value)}
+                              onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
+                              autoFocus
+                            />
+                          ) : (
+                            label
+                          )}
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation(); // avoid bubbling to th
+                              autoResizeColumn(index);
+                            }}
+                            // onDoubleClick={() => autoResizeColumn(index)}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                          />
+                        </th>
+                      );
+                    })}
 
+                  </tr>
+                </thead>
 
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
-                <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
-              </div>
+                <tbody>
+                  {filteredData.length === 0 ? (
+                    <tr><td colSpan={8} className="py-6 text-sm text-gray-500 text-center">No search result found</td></tr>
+                  ) : (
+                    sortedData.map(user => (
+                      <tr key={user.id}
+                        className="transition-all duration-300 ease-in-out transform animate-fade-in">
+                        {columnVisibility['select'] && (
+                          <td className="px-2 py-2 text-left">
+                            <input
+                              type="checkbox"
+                              checked={selected.includes(user.id)}
+                              onChange={() => handleCheckboxChange(user.id)}
+                              className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                            />
+                          </td>
+                        )}
+                        {['name', 'role'].map((key, i) =>
+                          columnVisibility[key] && (
+                            <td key={key} style={{ width: columnWidths[i + 1] }} className="px-2 py-2 text-center">
+                              <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[i + 1] }}>
+                                {user[key]}
+                              </div>
+                            </td>
+                          )
+                        )}
+
+                        {['is_vps', 'is_cerberus', 'is_proxy', 'is_storage', 'is_varys'].map((key, i) =>
+                          columnVisibility[key] && (
+                            <td key={key} className="px-2 py-2 text-center">
+                              {renderCell(user, key)}
+                            </td>
+                          )
+                        )}
+
+                        {dynamicColumns.map(({ dbKey }, i) => {
+                          const index = 8 + i;
+                          return columnVisibility[dbKey] && (
+                            <td
+                              key={dbKey}
+                              style={{ width: columnWidths[index], minWidth: 40 }}
+                              className="px-2 py-2 text-center cursor-pointer"
+                              onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
+                            >
+                              {editingCell.id === user.id && editingCell.key === dbKey ? (
+                                <input
+                                  value={editingCell.value}
+                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                  onBlur={async () => {
+                                    const updatedValue = editingCell.value;
+                                    setUsers(prev =>
+                                      prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
+                                    );
+                                    setEditingCell({ id: null, key: null, value: '' });
+                                    await axios.patch(`/admin/update-service-access/${user.id}`, {
+                                      [dbKey]: updatedValue
+                                    });
+                                  }}
+                                  autoFocus
+                                  className="w-full text-sm px-1 py-0.5 border rounded"
+                                />
+                              ) : (
+                                <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
+                                  {user[dbKey] || ''}
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+
+              </table>
             </div>
           </div>
-        )}
-        {showServiceModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`rounded-lg p-6 max-w-sm w-80 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Access to Service Panels</h2>
-                <button onClick={closeServiceModal} className="text-xl font-bold">×</button>
-              </div>
-              <label className="text-sm font-medium mb-1 block">Services</label>
-              <Select
-                isMulti
-                options={allServiceKeys.map(service => ({ label: service.label, value: service.key }))}
-                value={allServiceKeys.filter(service => selectedServices.includes(service.key)).map(service => ({ label: service.label, value: service.key }))}
-                onChange={(selectedOptions) => setSelectedServices(selectedOptions.map(opt => opt.value))}
-                className="mb-4 text-sm"
-                classNamePrefix="react-select"
-                placeholder="Select services"
-                styles={{
-                  control: (base) => ({ ...base, borderRadius: '6px', padding: '2px 4px', borderColor: dark ? '#4B5563' : '#CBD5E0', backgroundColor: dark ? '#374151' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
-                  multiValue: (base) => ({ ...base, backgroundColor: dark ? '#4B5563' : '#E0E7FF' }),
-                  menu: (base) => ({ ...base, zIndex: 99, backgroundColor: dark ? '#1F2937' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
-                  option: (base, state) => ({ ...base, backgroundColor: state.isFocused ? (dark ? '#374151' : '#E0E7FF') : (dark ? '#1F2937' : '#fff'), color: dark ? '#E5E7EB' : '#111827', cursor: 'pointer' }),
-                  singleValue: (base) => ({ ...base, color: dark ? '#E5E7EB' : '#1F2937' }),
-                  placeholder: (base) => ({ ...base, color: dark ? '#9CA3AF' : '#6B7280' }),
-                  input: (base) => ({ ...base, color: dark ? '#F9FAFB' : '#1F2937' })
+          {contextMenu.visible && (
+            <div
+              className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
+              style={{
+                position: 'fixed',
+                top: `${contextMenu.y}px`,
+                left: `${contextMenu.x}px`,
+                minWidth: '190px',
+                zIndex: 1000,
+              }}
+
+
+            >
+              <button
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex);
+                  const newConfig = { key: col, direction: 'asc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                  // setSortConfig({ key: col, direction: 'asc' });
+                  // setContextMenu({ ...contextMenu, visible: false });
                 }}
-              />
-              <button onClick={handleApplyServiceAction} className={`w-full py-2 rounded-md ${dark ? 'bg-gray-600 text-slate-300 border-gray-600 hover:bg-gray-700' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} text-sm`}>
-                {serviceModalType === 'include' ? 'Include' : 'Exclude'}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Ascending</span>
               </button>
+              <button
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex);
+                  const newConfig = { key: col, direction: 'desc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                  // setSortConfig({ key: col, direction: 'desc' });
+                  // setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Descending</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSortConfig({ key: null, direction: null });
+                  localStorage.removeItem(SORT_STORAGE_KEY);
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Cancel Sort</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setContextMenu({ ...contextMenu, visible: false });
+                  setShowAddColumnModal(true);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Add Column</span>
+
+              </button>
+
+              {contextMenu.allowDelete && (
+                <button
+                  onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                >
+                  <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Delete Column</span>
+                </button>
+              )}
+
+              <div
+                className="relative"
+                onMouseEnter={() => {
+                  if (submenuTriggerRef.current) {
+                    const rect = submenuTriggerRef.current.getBoundingClientRect();
+                    const spaceRight = window.innerWidth - rect.right;
+                    const submenuWidth = 220;
+                    setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
+                  }
+                  setShowSubmenu(true);
+                }}
+                onMouseLeave={() => setShowSubmenu(false)}
+              >
+                <button
+                  ref={submenuTriggerRef}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                  <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Column Show/Hide</span>
+                  <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+
+                </button>
+
+                {showSubmenu && (
+                  <div
+                    ref={submenuRef}
+                    className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border left-full top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
+                    style={{
+                      left: submenuFlipLeft ? 'auto' : '100%',
+                      right: submenuFlipLeft ? '100%' : 'auto',
+                      paddingLeft: submenuFlipLeft ? '0' : '8px',
+                      paddingRight: submenuFlipLeft ? '8px' : '0'
+                    }}>
+                    {[
+                      { key: 'name', label: 'Name' },
+                      { key: 'role', label: 'Role' },
+                      { key: 'is_vps', label: 'Cloud Server' },
+                      { key: 'is_cerberus', label: 'Cerberus' },
+                      { key: 'is_proxy', label: 'Proxy' },
+                      { key: 'is_storage', label: 'Storage Server' },
+                      { key: 'is_varys', label: 'Varys' },
+                      ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
+                    ].map(col => (
+                      <button
+                        key={col.key}
+                        onClick={() => toggleColumnVisibility(col.key)}
+                        className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                      >
+                        <span>{col.label}</span>
+                        {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+
+          <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
+
+          {showAddColumnModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Add New Column</h2>
+                  <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
+                </div>
+
+                <label className="block text-sm font-medium mb-1">Column Name</label>
+                <input
+                  type="text"
+                  className={`w-full px-3 py-2 border rounded-md text-sm mb-2 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
+                  value={newColumnName}
+                  onChange={(e) => setNewColumnName(e.target.value)}
+                  placeholder="e.g. whatsapp_number"
+                />
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="visibleForAll"
+                    checked={visibleForAll}
+                    onChange={(e) => setVisibleForAll(e.target.checked)}
+                    className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                  />
+                  <label htmlFor="visibleForAll" className="text-sm"> Visible for all users
+                  </label>
+                </div>
+
+
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
+                  <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                </div>
+              </div>
+            </div>
+          )}
+          {showServiceModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`rounded-lg p-6 max-w-sm w-80 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Access to Service Panels</h2>
+                  <button onClick={closeServiceModal} className="text-xl font-bold">×</button>
+                </div>
+                <label className="text-sm font-medium mb-1 block">Services</label>
+                <Select
+                  isMulti
+                  options={allServiceKeys.map(service => ({ label: service.label, value: service.key }))}
+                  value={allServiceKeys.filter(service => selectedServices.includes(service.key)).map(service => ({ label: service.label, value: service.key }))}
+                  onChange={(selectedOptions) => setSelectedServices(selectedOptions.map(opt => opt.value))}
+                  className="mb-4 text-sm"
+                  classNamePrefix="react-select"
+                  placeholder="Select services"
+                  styles={{
+                    control: (base) => ({ ...base, borderRadius: '6px', padding: '2px 4px', borderColor: dark ? '#4B5563' : '#CBD5E0', backgroundColor: dark ? '#374151' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
+                    multiValue: (base) => ({ ...base, backgroundColor: dark ? '#4B5563' : '#E0E7FF' }),
+                    menu: (base) => ({ ...base, zIndex: 99, backgroundColor: dark ? '#1F2937' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
+                    option: (base, state) => ({ ...base, backgroundColor: state.isFocused ? (dark ? '#374151' : '#E0E7FF') : (dark ? '#1F2937' : '#fff'), color: dark ? '#E5E7EB' : '#111827', cursor: 'pointer' }),
+                    singleValue: (base) => ({ ...base, color: dark ? '#E5E7EB' : '#1F2937' }),
+                    placeholder: (base) => ({ ...base, color: dark ? '#9CA3AF' : '#6B7280' }),
+                    input: (base) => ({ ...base, color: dark ? '#F9FAFB' : '#1F2937' })
+                  }}
+                />
+                <button onClick={handleApplyServiceAction} className={`w-full py-2 rounded-md ${dark ? 'bg-gray-600 text-slate-300 border-gray-600 hover:bg-gray-700' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} text-sm`}>
+                  {serviceModalType === 'include' ? 'Include' : 'Exclude'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

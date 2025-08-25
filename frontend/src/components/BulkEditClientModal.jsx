@@ -6,12 +6,13 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-export default function BulkEditClientModal({ selectedClientIds, onClose, onUpdated, dark }) {
+export default function BulkEditClientModal({ selectedClientIds, onClose, onUpdated, dark, contextService = '' }) {
     const [formData, setFormData] = useState({});
     const [fieldsToUpdate, setFieldsToUpdate] = useState({});
     const [allUsers, setAllUsers] = useState([]);
     const [middlemen, setMiddlemen] = useState([]);
     const [planOptions, setPlanOptions] = useState([]);
+    const [isClosing, setIsClosing] = useState(false);
     const [services, setServices] = useState([]);
     const currencyOptions = [
         { value: 'INR', label: 'INR' },
@@ -21,6 +22,13 @@ export default function BulkEditClientModal({ selectedClientIds, onClose, onUpda
     useEffect(() => {
         fetchDropdowns();
     }, []);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 250); // match duration with animation
+    };
 
     useEffect(() => {
         if (!formData.service) return;
@@ -41,8 +49,20 @@ export default function BulkEditClientModal({ selectedClientIds, onClose, onUpda
             value: s.id,             // numeric id
             service_key: s.service_key
         })));
+        if (contextService) {
+            const matchingService = servicesRes.data.find(s => s.service_key === contextService);
+            if (matchingService) {
+                setFormData(prev => ({ ...prev, service: matchingService.id }));
+            }
+        }
         setAllUsers(usersRes.data.map(u => ({ label: u.name, value: u.name })));
     };
+    useEffect(() => {
+        // Automatically check 'service' if contextService is set
+        if (contextService) {
+            setFieldsToUpdate(prev => ({ ...prev, service: true }));
+        }
+    }, [contextService]);
 
     const renderServiceSpecificFields = () => {
         // const key = formData.service;
@@ -236,7 +256,11 @@ export default function BulkEditClientModal({ selectedClientIds, onClose, onUpda
 
         // ✅ Check if any form field is filled but its checkbox is not selected
         const filledFields = Object.keys(formData).filter(key => formData[key] !== '' && formData[key] !== null && formData[key] !== undefined);
-        const missingCheckbox = filledFields.find(field => formData[field] && !fieldsToUpdate[field]);
+        // const missingCheckbox = filledFields.find(field => formData[field] && !fieldsToUpdate[field]);
+        const missingCheckbox = filledFields.find(field => {
+            if (field === 'service' && contextService) return false; // allow hidden + auto-checked
+            return formData[field] && !fieldsToUpdate[field];
+        });
 
         if (missingCheckbox) {
             alert("Please select checkbox for the fields you have filled.");
@@ -260,11 +284,39 @@ export default function BulkEditClientModal({ selectedClientIds, onClose, onUpda
         });
 
         onUpdated();
+        handleClose();
     };
 
 
-    const editableFields = ['middleman_name', 'service', 'plan', 'ip_address', 'instance_no', 'proxy_set', 'proxy_count',
+    let editableFields = ['middleman_name', 'service', 'plan', 'ip_address', 'instance_no', 'proxy_set', 'proxy_count',
         'accounts_count', 'user_address', 'currency', 'price', 'middleman_share', 'amount_paid', 'start_date', 'expiry_date', 'paid_to', 'notes'];
+
+    // ✅ Exclude irrelevant fields based on contextService
+    if (contextService === 'vps') {
+        editableFields = editableFields.filter(field =>
+            !['service', 'instance_no', 'proxy_set', 'proxy_count', 'accounts_count', 'user_address'].includes(field)
+        );
+    }
+    else if (contextService === 'proxy') {
+        editableFields = editableFields.filter(field =>
+            !['service', 'instance_no', 'ip_address', 'accounts_count', 'user_address'].includes(field)
+        );
+    }
+    else if (contextService === 'cerberus') {
+        editableFields = editableFields.filter(field =>
+            !['service', 'proxy_set', 'proxy_count', 'ip_address', 'accounts_count', 'user_address'].includes(field)
+        );
+    }
+    else if (contextService === 'storage') {
+        editableFields = editableFields.filter(field =>
+            !['service', 'instance_no', 'ip_address', 'proxy_set', 'proxy_count', 'accounts_count'].includes(field)
+        );
+    }
+    else if (contextService === 'varys') {
+        editableFields = editableFields.filter(field =>
+            !['plan', 'service', 'instance_no', 'ip_address', 'proxy_set', 'proxy_count', 'user_address'].includes(field)
+        );
+    }
 
     const fieldLabels = {
         middleman_name: "Middleman Name",
@@ -288,10 +340,10 @@ export default function BulkEditClientModal({ selectedClientIds, onClose, onUpda
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"}  rounded-lg p-6 w-full max-w-2xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
+            <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"} ${isClosing ? "animate-fade-out-modal" : "animate-fade-in-modal"} rounded-lg p-6 w-full max-w-2xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Bulk Edit Clients</h2>
-                    <button onClick={onClose}>
+                    <button onClick={handleClose}>
                         <XMarkIcon className={`w-5 h-5 font-bold ${dark ? "text-slate-300" : "text-blue-900"} hover:text-red-500 cursor-pointer`} />
                     </button>
                 </div>
@@ -371,78 +423,80 @@ export default function BulkEditClientModal({ selectedClientIds, onClose, onUpda
                                     }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Service</label>
-                                {/* <input placeholder="Service" onChange={e => handleChange('service', e.target.value)} /> */}
-                                <Select
-                                    components={{
-                                        IndicatorSeparator: () => null,
-                                        DropdownIndicator: (props) => (
-                                            <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
-                                        )
-                                    }}
-                                    options={services}
-                                    value={services.find(s => s.value === formData.service)}
-                                    onChange={opt => handleChange('service', opt.value)}
-                                    placeholder="Service"
-                                    className="text-md"
-                                    styles={{
-                                        control: (base) => ({
-                                            ...base,
-                                            boxShadow: 'none',
-                                            backgroundColor: dark ? '#1F2937' : '#ffffff',
-                                            color: dark ? '#99C2FF' : '#1F2937',
-                                            borderColor: '#E5E7EB',
-                                            '&:hover': {
-                                                borderColor: '#CBD5E1',
-                                            },
-                                        }),
-                                        menu: (base) => ({
-                                            ...base,
-                                            backgroundColor: dark ? '#1F2937' : '#ffffff',
-                                            zIndex: 99,
-                                            padding: '4px',
-                                            borderRadius: '8px',
-                                            overflowX: 'hidden',
-                                            maxHeight: 'none',
-                                            overflowY: 'visible',
-                                        }),
-                                        menuList: (provided) => ({
-                                            ...provided,
-                                            maxHeight: '120px',
-                                            overflowY: 'auto',
-                                        }),
-                                        option: (base, state) => ({
-                                            ...base,
-                                            backgroundColor: state.isFocused
-                                                ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
-                                                : 'transparent',
-                                            color: dark ? '#99C2FF' : '#1e3a8a',
-                                            borderRadius: '6px',
-                                            margin: '4px 0',
-                                            padding: '8px 10px',
-                                            cursor: 'pointer',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
-                                        }),
-                                        singleValue: (base) => ({
-                                            ...base,
-                                            color: dark ? '#ffffff' : '#1e3a8a',
-                                        }),
-                                        valueContainer: (base) => ({
-                                            ...base,
-                                            paddingLeft: 8,
-                                            paddingRight: 4, // shrink right padding
-                                        }),
+                            {!contextService && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Service</label>
+                                    {/* <input placeholder="Service" onChange={e => handleChange('service', e.target.value)} /> */}
+                                    <Select
+                                        components={{
+                                            IndicatorSeparator: () => null,
+                                            DropdownIndicator: (props) => (
+                                                <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
+                                            )
+                                        }}
+                                        options={services}
+                                        value={services.find(s => s.value === formData.service)}
+                                        onChange={opt => handleChange('service', opt.value)}
+                                        placeholder="Service"
+                                        className="text-md"
+                                        styles={{
+                                            control: (base) => ({
+                                                ...base,
+                                                boxShadow: 'none',
+                                                backgroundColor: dark ? '#1F2937' : '#ffffff',
+                                                color: dark ? '#99C2FF' : '#1F2937',
+                                                borderColor: '#E5E7EB',
+                                                '&:hover': {
+                                                    borderColor: '#CBD5E1',
+                                                },
+                                            }),
+                                            menu: (base) => ({
+                                                ...base,
+                                                backgroundColor: dark ? '#1F2937' : '#ffffff',
+                                                zIndex: 99,
+                                                padding: '4px',
+                                                borderRadius: '8px',
+                                                overflowX: 'hidden',
+                                                maxHeight: 'none',
+                                                overflowY: 'visible',
+                                            }),
+                                            menuList: (provided) => ({
+                                                ...provided,
+                                                maxHeight: '120px',
+                                                overflowY: 'auto',
+                                            }),
+                                            option: (base, state) => ({
+                                                ...base,
+                                                backgroundColor: state.isFocused
+                                                    ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
+                                                    : 'transparent',
+                                                color: dark ? '#99C2FF' : '#1e3a8a',
+                                                borderRadius: '6px',
+                                                margin: '4px 0',
+                                                padding: '8px 10px',
+                                                cursor: 'pointer',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                            }),
+                                            singleValue: (base) => ({
+                                                ...base,
+                                                color: dark ? '#ffffff' : '#1e3a8a',
+                                            }),
+                                            valueContainer: (base) => ({
+                                                ...base,
+                                                paddingLeft: 8,
+                                                paddingRight: 4, // shrink right padding
+                                            }),
 
-                                        placeholder: (base) => ({
-                                            ...base,
-                                            color: dark ? '#9CA3AF' : '#a3aed0',
-                                        }),
-                                    }}
-                                />
-                            </div>
+                                            placeholder: (base) => ({
+                                                ...base,
+                                                color: dark ? '#9CA3AF' : '#a3aed0',
+                                            }),
+                                        }}
+                                    />
+                                </div>
+                            )}
                             {renderServiceSpecificFields()}
                             {/* <input placeholder="Plan" onChange={e => handleChange('plan', e.target.value)} /> */}
                             {/* <input placeholder="Price" type="number" onChange={e => handleChange('price', e.target.value)} /> */}

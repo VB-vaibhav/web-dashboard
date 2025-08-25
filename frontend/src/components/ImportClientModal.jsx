@@ -14,6 +14,7 @@ export default function ImportClientModal({ onClose, onImport, dark }) {
   const [validatedRows, setValidatedRows] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const [isClosing, setIsClosing] = useState(false);
 
   const requiredFields = ['client_name', 'email_or_phone', 'service', 'middleman_name', 'plan', 'price', 'start_date', 'expiry_date'];
 
@@ -120,7 +121,7 @@ export default function ImportClientModal({ onClose, onImport, dark }) {
       }
 
       alert('✅ Import successful!');
-      onClose();
+      handleClose();
       onImport(); // Refresh table
     } catch (err) {
       alert("❌ Failed to import clients");
@@ -129,14 +130,19 @@ export default function ImportClientModal({ onClose, onImport, dark }) {
       setIsLoading(false);
     }
   };
-
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 250); // match duration with animation
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"}  rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
+      <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"} ${isClosing ? "animate-fade-out-modal" : "animate-fade-in-modal"}  rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Import Clients</h2>
-          <button onClick={onClose}>
+          <button onClick={handleClose}>
             <XMarkIcon className={`w-5 h-5 font-bold ${dark ? "text-slate-300" : "text-blue-900"} hover:text-red-500 cursor-pointer`} />
           </button>
         </div>

@@ -12,6 +12,7 @@ import {
   Search, MoreVertical, Plus, PlusCircle, MinusCircle, Trash2, ChevronRight, Layout, Columns, Check,
   ArrowUpAZ, ArrowDownAZ, ListFilter, XCircle
 } from "lucide-react";
+import PageWrapper from "../../components/PageWrapper";
 
 export default function ExcludeClientsSettings() {
   const [clients, setClients] = useState([]);
@@ -841,51 +842,52 @@ export default function ExcludeClientsSettings() {
   }
   // min-h-[calc(100vh-190px)]
   return (
-    <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto  min-h-[calc(100vh-12em)] ">
-      <div className="h-full max-h-[calc(100vh-14em)]">
-        <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
-          <div className="relative w-[180px]">
-            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-              <Search size={16} />
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search in Table"
-              className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
-            />
+    <PageWrapper>
+      <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto  min-h-[calc(100vh-12em)] ">
+        <div className="h-full max-h-[calc(100vh-14em)]">
+          <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
+            <div className="relative w-[180px]">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <Search size={16} />
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search in Table"
+                className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
+              />
+            </div>
+            <div className="relative" ref={dropdownRef}>
+              <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
+                <MoreVertical size={18} />
+              </button>
+              {showDropdown && (
+                <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
+                  <button onClick={() => handleBulkExclusionAction('include')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <PlusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Include</span>
+                  </button>
+                  <button onClick={() => handleBulkExclusionAction('exclude')} className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <MinusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Exclude</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="relative" ref={dropdownRef}>
-            <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
-              <MoreVertical size={18} />
-            </button>
-            {showDropdown && (
-              <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
-                <button onClick={() => handleBulkExclusionAction('include')} className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <PlusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Include</span>
-                </button>
-                <button onClick={() => handleBulkExclusionAction('exclude')} className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <MinusCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Exclude</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
 
-        <div
-          className=" mt-3"
-        // ref={tableRef}
-        // onMouseMove={handleMouseMove}
-        // onMouseUp={stopResizing}
-        >
           <div
-            style={{ width: `${totalWidth}px`, minWidth: `100%` }}
+            className=" mt-3"
+          // ref={tableRef}
+          // onMouseMove={handleMouseMove}
+          // onMouseUp={stopResizing}
           >
-            <table className="table-auto text-sm w-full ">
-              {/* <thead>
+            <div
+              style={{ width: `${totalWidth}px`, minWidth: `100%` }}
+            >
+              <table className="table-auto text-sm w-full ">
+                {/* <thead>
               <tr>
                 {['select', 'client_name', 'service', 'expiry_date', 'excluded_admins', 'admin_dropdown', 'actions'].map((key, index) => {
                   if (!columnVisibility[key]) return null;
@@ -992,82 +994,82 @@ export default function ExcludeClientsSettings() {
                   )
                 ))}
               </tr> */}
-              {/* </thead> */}
-              <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
-                <tr>
-                  {Object.entries(columnVisibility).map(([key, visible], index) =>
-                    visible && (
-                      <th
-                        key={key}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        // onMouseDown={(e) => startResizing(index, e)}   // ✅ Add this
-                        // onDoubleClick={() => autoResizeColumn(index)}   // ✅ Add this
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`px-2 py-3 font-semibold border-r group relative ${dark ? 'border-gray-700' : 'border-gray-300'} ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
-                      >
-                        <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
-                          {key === 'select' ? (
-                            <input
-                              type="checkbox"
-                              checked={selected.length === filteredData.length}
-                              onChange={() => setSelected(selected.length === clients.length ? [] : clients.map(u => u.client_id))}
-                              className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                            />
-                          ) : formatHeader(key)}
-                        </div>
-                        <div
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            autoResizeColumn(index);
-                          }}
+                {/* </thead> */}
+                <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
+                  <tr>
+                    {Object.entries(columnVisibility).map(([key, visible], index) =>
+                      visible && (
+                        <th
+                          key={key}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          // onMouseDown={(e) => startResizing(index, e)}   // ✅ Add this
+                          // onDoubleClick={() => autoResizeColumn(index)}   // ✅ Add this
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`px-2 py-3 font-semibold border-r group relative ${dark ? 'border-gray-700' : 'border-gray-300'} ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
+                        >
+                          <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
+                            {key === 'select' ? (
+                              <input
+                                type="checkbox"
+                                checked={selected.length === filteredData.length}
+                                onChange={() => setSelected(selected.length === clients.length ? [] : clients.map(u => u.client_id))}
+                                className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                              />
+                            ) : formatHeader(key)}
+                          </div>
+                          <div
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              autoResizeColumn(index);
+                            }}
 
-                        />
-                      </th>
-                    )
-                  )}
-                  {dynamicColumns.map(({ dbKey, label }, i) => {
-                    const index = 7 + i;
-                    const isEditing = editingHeader === dbKey;
-                    return columnVisibility[dbKey] && (
-                      <th
-                        key={`dynamic-${i}`}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group  
-        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
-                        onDoubleClick={() => {
-                          setEditingHeader(dbKey);
-                          setNewHeaderLabel(label);
-                        }}
-                      >
-                        {isEditing ? (
-                          <input
-                            className="text-sm px-1 py-0.5 border rounded w-28 text-center"
-                            value={newHeaderLabel}
-                            onChange={(e) => setNewHeaderLabel(e.target.value)}
-                            onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
-                            autoFocus
                           />
-                        ) : (
-                          label
-                        )}
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation();
-                            autoResizeColumn(index);
+                        </th>
+                      )
+                    )}
+                    {dynamicColumns.map(({ dbKey, label }, i) => {
+                      const index = 7 + i;
+                      const isEditing = editingHeader === dbKey;
+                      return columnVisibility[dbKey] && (
+                        <th
+                          key={`dynamic-${i}`}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group  
+        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
+                          onDoubleClick={() => {
+                            setEditingHeader(dbKey);
+                            setNewHeaderLabel(label);
                           }}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
+                        >
+                          {isEditing ? (
+                            <input
+                              className="text-sm px-1 py-0.5 border rounded w-28 text-center"
+                              value={newHeaderLabel}
+                              onChange={(e) => setNewHeaderLabel(e.target.value)}
+                              onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
+                              autoFocus
+                            />
+                          ) : (
+                            label
+                          )}
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              autoResizeColumn(index);
+                            }}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                          />
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
 
-              {/* <tbody>
+                {/* <tbody>
               {sortedClients.length === 0 ? (
                 <tr>
                   <td colSpan={Object.keys(columnVisibility).length} className="text-center py-6 text-gray-500">
@@ -1113,40 +1115,41 @@ export default function ExcludeClientsSettings() {
               )
               }
             </tbody> */}
-              <tbody>
-                {sortedClients.length === 0 ? (
-                  <tr>
-                    <td colSpan={Object.keys(columnVisibility).length} className="text-center py-6 text-sm text-gray-500">
-                      No search result found
-                    </td>
-                  </tr>
-                ) : (
-                  sortedClients.map((client) => (
-                    <tr key={client.client_id}>
-                      {Object.keys(columnVisibility).map((key, index) => {
-                        if (!columnVisibility[key]) return null;
-                        return (
-                          <td key={index} style={{ width: columnWidths[index] }} className={`px-2 py-2 ${index === 0 ? 'text-left' : 'text-center'}`}>
-                            {key === 'select' ? (
-                              <input
-                                type="checkbox"
-                                checked={selected.includes(client.client_id)}
-                                onChange={() => handleCheckboxChange(client.client_id)}
-                                className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                              />
-                            ) : key === 'admin_dropdown' ? (
-                              <div className="w-full flex justify-center items-center">
-                                {renderCell(client, key)}
-                              </div>
-                            ) : (
-                              <div className="w-full whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
-                                {renderCell(client, key)}
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                      {/* {dynamicColumns.map(({ dbKey }, i) => {
+                <tbody>
+                  {sortedClients.length === 0 ? (
+                    <tr>
+                      <td colSpan={Object.keys(columnVisibility).length} className="text-center py-6 text-sm text-gray-500">
+                        No search result found
+                      </td>
+                    </tr>
+                  ) : (
+                    sortedClients.map((client) => (
+                      <tr key={client.client_id}
+                        className="transition-all duration-300 ease-in-out transform animate-fade-in">
+                        {Object.keys(columnVisibility).map((key, index) => {
+                          if (!columnVisibility[key]) return null;
+                          return (
+                            <td key={index} style={{ width: columnWidths[index] }} className={`px-2 py-2 ${index === 0 ? 'text-left' : 'text-center'}`}>
+                              {key === 'select' ? (
+                                <input
+                                  type="checkbox"
+                                  checked={selected.includes(client.client_id)}
+                                  onChange={() => handleCheckboxChange(client.client_id)}
+                                  className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                                />
+                              ) : key === 'admin_dropdown' ? (
+                                <div className="w-full flex justify-center items-center">
+                                  {renderCell(client, key)}
+                                </div>
+                              ) : (
+                                <div className="w-full whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
+                                  {renderCell(client, key)}
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                        {/* {dynamicColumns.map(({ dbKey }, i) => {
                       const index = 7 + i;
                       return columnVisibility[dbKey] && (
                         <td
@@ -1183,188 +1186,189 @@ export default function ExcludeClientsSettings() {
                         </td>
                       );
                     })} */}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {contextMenu.visible && (
-          <div
-            className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
-            style={{
-              position: 'fixed',
-              top: `${contextMenu.y}px`,
-              left: `${contextMenu.x}px`,
-              minWidth: '190px',
-              zIndex: 1000,
-            }}
-          >
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex);
-                const newConfig = { key: col, direction: 'asc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
+          {contextMenu.visible && (
+            <div
+              className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
+              style={{
+                position: 'fixed',
+                top: `${contextMenu.y}px`,
+                left: `${contextMenu.x}px`,
+                minWidth: '190px',
+                zIndex: 1000,
               }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
             >
-              <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Ascending</span>
-            </button>
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex);
-                const newConfig = { key: col, direction: 'desc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Descending</span>
-            </button>
-            <button
-              onClick={() => {
-                setSortConfig({ key: null, direction: null });
-                localStorage.removeItem(SORT_STORAGE_KEY);
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Cancel Sort</span>
-            </button>
-            <button
-              onClick={() => {
-                setContextMenu({ ...contextMenu, visible: false });
-                setShowAddColumnModal(true);
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Add Column</span>
-            </button>
-
-            {contextMenu.allowDelete && (
               <button
-                onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex);
+                  const newConfig = { key: col, direction: 'asc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
                 className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
               >
-                <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Delete Column</span>
+                <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Ascending</span>
               </button>
-            )}
-
-            <div
-              className="relative"
-              onMouseEnter={() => setShowSubmenu(true)}
-              onMouseLeave={() => setShowSubmenu(false)}
-            >
               <button
-                ref={submenuTriggerRef}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
-                <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Column Show/Hide</span>
-                <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex);
+                  const newConfig = { key: col, direction: 'desc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Descending</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSortConfig({ key: null, direction: null });
+                  localStorage.removeItem(SORT_STORAGE_KEY);
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Cancel Sort</span>
+              </button>
+              <button
+                onClick={() => {
+                  setContextMenu({ ...contextMenu, visible: false });
+                  setShowAddColumnModal(true);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Add Column</span>
               </button>
 
-              {showSubmenu && (
-                <div
-                  ref={submenuRef}
-                  className={`absolute ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
-                  style={{
-                    left: submenuFlipLeft ? 'auto' : '100%',
-                    right: submenuFlipLeft ? '100%' : 'auto',
-                    paddingLeft: submenuFlipLeft ? '0' : '8px',
-                    paddingRight: submenuFlipLeft ? '8px' : '0'
-                  }}
+              {contextMenu.allowDelete && (
+                <button
+                  onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
                 >
-                  {[...staticColumns, ...dynamicColumns.map(col => col.dbKey)].filter(key => key !== 'select').map((key) => (
-                    <button
-                      key={key}
-                      onClick={() => toggleColumnVisibility(key)}
-                      className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-                    >
-                      <span>{formatHeader(key)}</span>
-                      {columnVisibility[key] && <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />}
-                    </button>
-                  ))}
-                </div>
+                  <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Delete Column</span>
+                </button>
               )}
-            </div>
-          </div>
-        )}
 
+              <div
+                className="relative"
+                onMouseEnter={() => setShowSubmenu(true)}
+                onMouseLeave={() => setShowSubmenu(false)}
+              >
+                <button
+                  ref={submenuTriggerRef}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                  <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Column Show/Hide</span>
+                  <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                </button>
 
-        <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
-
-        {showAddColumnModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? "bg-gray-800 text-white" : "bg-white text-gray-800"}`}>
-              <h2 className="text-lg font-semibold mb-4">Add New Column</h2>
-              <input
-                type="text"
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-                placeholder="Enter column name"
-                className={`w-full px-3 py-2 border rounded-md mb-4 text-sm ${dark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-800"}`}
-              />
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
-                <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                {showSubmenu && (
+                  <div
+                    ref={submenuRef}
+                    className={`absolute ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
+                    style={{
+                      left: submenuFlipLeft ? 'auto' : '100%',
+                      right: submenuFlipLeft ? '100%' : 'auto',
+                      paddingLeft: submenuFlipLeft ? '0' : '8px',
+                      paddingRight: submenuFlipLeft ? '8px' : '0'
+                    }}
+                  >
+                    {[...staticColumns, ...dynamicColumns.map(col => col.dbKey)].filter(key => key !== 'select').map((key) => (
+                      <button
+                        key={key}
+                        onClick={() => toggleColumnVisibility(key)}
+                        className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                      >
+                        <span>{formatHeader(key)}</span>
+                        {columnVisibility[key] && <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
-        {showActionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} p-6 rounded-lg shadow-lg max-w-sm`}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">
-                  {actionType === 'exclude' ? 'Exclude Clients from Admin' : 'Include Clients for Admin'}
-                </h2>
-                <button onClick={() => setShowActionModal(false)} className="text-xl font-bold ml-2">&times;</button>
-              </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium">Admin</label>
-                <Select
-                  isMulti
-                  // options={admins.map(admin => ({ label: admin.name, value: admin.id }))}
-                  // value={admins.find(a => a.id === selectedAdminForAction)}
-                  // onChange={(opt) => setSelectedAdminForAction(opt.value)}
-                  options={adminOptions}
-                  value={adminOptions.filter(opt => selectedAdminForAction.includes(opt.value))}
-                  onChange={(opts) => setSelectedAdminForAction(opts.map(opt => opt.value))}
-                  className="mb-4 text-sm"
-                  classNamePrefix="react-select"
-                  placeholder="Select admin(s)"
-                  styles={{
-                    control: (base) => ({ ...base, borderRadius: '6px', padding: '2px 4px', borderColor: dark ? '#4B5563' : '#CBD5E0', backgroundColor: dark ? '#374151' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
-                    multiValue: (base) => ({ ...base, backgroundColor: dark ? '#4B5563' : '#E0E7FF' }),
-                    menu: (base) => ({ ...base, zIndex: 99, backgroundColor: dark ? '#1F2937' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
-                    option: (base, state) => ({ ...base, backgroundColor: state.isFocused ? (dark ? '#374151' : '#E0E7FF') : (dark ? '#1F2937' : '#fff'), color: dark ? '#E5E7EB' : '#111827', cursor: 'pointer' }),
-                    singleValue: (base) => ({ ...base, color: dark ? '#E5E7EB' : '#1F2937' }),
-                    placeholder: (base) => ({ ...base, color: dark ? '#9CA3AF' : '#6B7280' }),
-                    input: (base) => ({ ...base, color: dark ? '#F9FAFB' : '#1F2937' })
-                  }}
+          )}
+
+
+          <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
+
+          {showAddColumnModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? "bg-gray-800 text-white" : "bg-white text-gray-800"}`}>
+                <h2 className="text-lg font-semibold mb-4">Add New Column</h2>
+                <input
+                  type="text"
+                  value={newColumnName}
+                  onChange={(e) => setNewColumnName(e.target.value)}
+                  placeholder="Enter column name"
+                  className={`w-full px-3 py-2 border rounded-md mb-4 text-sm ${dark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-800"}`}
                 />
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
+                  <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                </div>
               </div>
-              <button
-                onClick={handleConfirmBulkAction}
-                className={`w-full py-2 rounded-md ${dark ? 'bg-gray-600 text-slate-300 border-gray-600 hover:bg-gray-700' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} text-sm`}>
-                Save
-              </button>
             </div>
-          </div>
-        )}
+          )}
+          {showActionModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} p-6 rounded-lg shadow-lg max-w-sm`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">
+                    {actionType === 'exclude' ? 'Exclude Clients from Admin' : 'Include Clients for Admin'}
+                  </h2>
+                  <button onClick={() => setShowActionModal(false)} className="text-xl font-bold ml-2">&times;</button>
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Admin</label>
+                  <Select
+                    isMulti
+                    // options={admins.map(admin => ({ label: admin.name, value: admin.id }))}
+                    // value={admins.find(a => a.id === selectedAdminForAction)}
+                    // onChange={(opt) => setSelectedAdminForAction(opt.value)}
+                    options={adminOptions}
+                    value={adminOptions.filter(opt => selectedAdminForAction.includes(opt.value))}
+                    onChange={(opts) => setSelectedAdminForAction(opts.map(opt => opt.value))}
+                    className="mb-4 text-sm"
+                    classNamePrefix="react-select"
+                    placeholder="Select admin(s)"
+                    styles={{
+                      control: (base) => ({ ...base, borderRadius: '6px', padding: '2px 4px', borderColor: dark ? '#4B5563' : '#CBD5E0', backgroundColor: dark ? '#374151' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
+                      multiValue: (base) => ({ ...base, backgroundColor: dark ? '#4B5563' : '#E0E7FF' }),
+                      menu: (base) => ({ ...base, zIndex: 99, backgroundColor: dark ? '#1F2937' : '#fff', color: dark ? '#E5E7EB' : '#111827' }),
+                      option: (base, state) => ({ ...base, backgroundColor: state.isFocused ? (dark ? '#374151' : '#E0E7FF') : (dark ? '#1F2937' : '#fff'), color: dark ? '#E5E7EB' : '#111827', cursor: 'pointer' }),
+                      singleValue: (base) => ({ ...base, color: dark ? '#E5E7EB' : '#1F2937' }),
+                      placeholder: (base) => ({ ...base, color: dark ? '#9CA3AF' : '#6B7280' }),
+                      input: (base) => ({ ...base, color: dark ? '#F9FAFB' : '#1F2937' })
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={handleConfirmBulkAction}
+                  className={`w-full py-2 rounded-md ${dark ? 'bg-gray-600 text-slate-300 border-gray-600 hover:bg-gray-700' : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'} text-sm`}>
+                  Save
+                </button>
+              </div>
+            </div>
+          )}
 
+        </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }
 

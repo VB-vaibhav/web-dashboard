@@ -1,3 +1,3 @@
-﻿client_name,email_or_phone,middleman_name,service,plan,instance_no,ip_address,proxy_set,proxy_count,accounts_count,user_address,price,currency,start_date,expiry_date,middleman_share,payment_status,amount_paid,paid_to,notes
-Ayushi,ayushi@gmail.com,Tejasvi,vps,IX11,,192.168.1.10,,,,,120,USD,10-07-2025,10-08-2025,1,paid,120,Umang Agarwal,Monthly VPS client
-Chetan,chetan@gmail.com,Jitesh,Cerberus,D,123,,,,,,100,USD,15-07-2025,15-08-2025,5,parially paid,40,Umang Agarwal,
+﻿client_name,email_or_phone,middleman_name,service,plan,instance_no,ip_address,proxy_set,proxy_count,accounts_count,user_address,price,currency,start_date,expiry_date,jitesh_share,queen_share,umang_share,atlas_jitesh,middleman_share,payment_status,amount_paid,paid_to,notes
+Ayushi,ayushi@gmail.com,Tejasvi,vps,IX11,,192.168.1.10,,,,,120,USD,10-07-2025,10-08-2025,,,,,1,paid,120,Umang Agarwal,Monthly VPS client
+Chetan,chetan@gmail.com,Jitesh,Cerberus,D,123,,,,,,100,USD,15-07-2025,15-08-2025,0,0,0,0,5,parially paid,40,Umang Agarwal,

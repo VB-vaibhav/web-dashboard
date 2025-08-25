@@ -8,12 +8,13 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { NoSymbolIcon, CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Plus } from "lucide-react";
 
-export default function AddClientModal({ onClose, onClientAdded, dark }) {
+export default function AddClientModal({ onClose, onClientAdded, dark, contextService = '' }) {
     // State for form fields
     const [clientOptions, setClientOptions] = useState([]);
     const [middlemanOptions, setMiddlemanOptions] = useState([]);
     const [serviceOptions, setServiceOptions] = useState([]);
     const [planOptions, setPlanOptions] = useState([]);
+    const [isClosing, setIsClosing] = useState(false);
     const [showAddPlanField, setShowAddPlanField] = useState(false);
     const currencyOptions = [
         { value: 'INR', label: 'INR' },
@@ -89,6 +90,12 @@ export default function AddClientModal({ onClose, onClientAdded, dark }) {
                 value: s.id,
                 service_key: s.service_key
             })));
+            if (contextService) {
+                const matchingService = servicesRes.data.find(s => s.service_key === contextService);
+                if (matchingService) {
+                    setFormData(prev => ({ ...prev, service: matchingService.id }));
+                }
+            }
             setAllUsers(usersRes.data.map(u => ({ label: u.name, value: u.name })));
         };
 
@@ -166,7 +173,7 @@ export default function AddClientModal({ onClose, onClientAdded, dark }) {
 
             await axios.post('/clients', payload);
             onClientAdded();
-            onClose();
+            handleClose();
         } catch (err) {
             alert('Failed to add client/service.');
             console.error(err);
@@ -177,7 +184,7 @@ export default function AddClientModal({ onClose, onClientAdded, dark }) {
         const { data, innerRef, innerProps } = props;
 
         const isClient = data.label === 'Add new client';
-        const isMiddleman = data.label === 'Add Middleman name';
+        const isMiddleman = data.label === 'Add temporary MM name';
         const isPlan = data.label === 'Add new plan'
 
         if (isClient || isMiddleman || isPlan) {
@@ -413,12 +420,19 @@ export default function AddClientModal({ onClose, onClientAdded, dark }) {
     //     </div>
     // );
 
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 250); // match duration with animation
+    };
+
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50 ">
-            <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"}  rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
+            <div className={`${dark ? "bg-gray-800 text-slate-300" : "bg-white text-blue-900"} ${isClosing ? "animate-fade-out-modal" : "animate-fade-in-modal"}  rounded-lg p-6 w-full max-w-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_-4px_6px_-1px_rgba(0,0,0,0.06)]`}>
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Add New Client/Services</h2>
-                    <button onClick={onClose} >
+                    <button onClick={handleClose} >
                         <XMarkIcon className={`w-5 h-5 font-bold ${dark ? "text-slate-300" : "text-blue-900"} hover:text-red-500 cursor-pointer`} />
                     </button>
                 </div>
@@ -553,7 +567,7 @@ export default function AddClientModal({ onClose, onClientAdded, dark }) {
                                 ),
                                 Option: CustomOption
                             }}
-                            options={[...middlemanOptions, { label: 'Add Middleman name', value: 'add_new' }]}
+                            options={[...middlemanOptions, { label: 'Add temporary MM name', value: 'add_new' }]}
                             onChange={(option) => {
                                 if (option.value === 'add_new') {
                                     setShowAddMiddlemanField(true);
@@ -632,79 +646,80 @@ export default function AddClientModal({ onClose, onClientAdded, dark }) {
                         )}
                         {errors.middleman_name && <p className="text-red-500 text-xs mt-1">{errors.middleman_name}</p>}
                     </div>
+                    {!contextService && (
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Service*</label>
+                            <Select
+                                components={{
+                                    IndicatorSeparator: () => null,
+                                    DropdownIndicator: (props) => (
+                                        <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
+                                    )
+                                }}
+                                isDisabled={serviceOptions.length === 0}
+                                options={serviceOptions}
+                                onChange={(option) => handleChange('service', option.value)}
+                                className="text-md"
+                                placeholder={serviceOptions.length === 0 ? "No services available" : "Select Service"}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        boxShadow: 'none',
+                                        backgroundColor: dark ? '#1F2937' : '#ffffff',
+                                        color: dark ? '#99C2FF' : '#1F2937',
+                                        borderColor: '#E5E7EB',
+                                        '&:hover': {
+                                            borderColor: '#CBD5E1',
+                                        },
+                                    }),
+                                    menu: (base) => ({
+                                        ...base,
+                                        backgroundColor: dark ? '#1F2937' : '#ffffff',
+                                        zIndex: 99,
+                                        padding: '4px',
+                                        borderRadius: '8px',
+                                        overflowX: 'hidden',
+                                        maxHeight: 'none',
+                                        overflowY: 'visible',
+                                    }),
+                                    menuList: (provided) => ({
+                                        ...provided,
+                                        maxHeight: '120px',
+                                        overflowY: 'auto',
+                                    }),
+                                    option: (base, state) => ({
+                                        ...base,
+                                        backgroundColor: state.isFocused
+                                            ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
+                                            : 'transparent',
+                                        color: dark ? '#99C2FF' : '#1e3a8a',
+                                        borderRadius: '6px',
+                                        margin: '4px 0',
+                                        padding: '8px 10px',
+                                        cursor: 'pointer',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                    }),
+                                    singleValue: (base) => ({
+                                        ...base,
+                                        color: dark ? '#ffffff' : '#1e3a8a',
+                                    }),
+                                    valueContainer: (base) => ({
+                                        ...base,
+                                        paddingLeft: 8,
+                                        paddingRight: 4, // shrink right padding
+                                    }),
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Service*</label>
-                        <Select
-                            components={{
-                                IndicatorSeparator: () => null,
-                                DropdownIndicator: (props) => (
-                                    <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
-                                )
-                            }}
-                            isDisabled={serviceOptions.length === 0}
-                            options={serviceOptions}
-                            onChange={(option) => handleChange('service', option.value)}
-                            className="text-md"
-                            placeholder={serviceOptions.length === 0 ? "No services available" : "Select Service"}
-                            styles={{
-                                control: (base) => ({
-                                    ...base,
-                                    boxShadow: 'none',
-                                    backgroundColor: dark ? '#1F2937' : '#ffffff',
-                                    color: dark ? '#99C2FF' : '#1F2937',
-                                    borderColor: '#E5E7EB',
-                                    '&:hover': {
-                                        borderColor: '#CBD5E1',
-                                    },
-                                }),
-                                menu: (base) => ({
-                                    ...base,
-                                    backgroundColor: dark ? '#1F2937' : '#ffffff',
-                                    zIndex: 99,
-                                    padding: '4px',
-                                    borderRadius: '8px',
-                                    overflowX: 'hidden',
-                                    maxHeight: 'none',
-                                    overflowY: 'visible',
-                                }),
-                                menuList: (provided) => ({
-                                    ...provided,
-                                    maxHeight: '120px',
-                                    overflowY: 'auto',
-                                }),
-                                option: (base, state) => ({
-                                    ...base,
-                                    backgroundColor: state.isFocused
-                                        ? (dark ? '#374151' : '#E0E7FF') // gray-700 or indigo-100
-                                        : 'transparent',
-                                    color: dark ? '#99C2FF' : '#1e3a8a',
-                                    borderRadius: '6px',
-                                    margin: '4px 0',
-                                    padding: '8px 10px',
-                                    cursor: 'pointer',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                }),
-                                singleValue: (base) => ({
-                                    ...base,
-                                    color: dark ? '#ffffff' : '#1e3a8a',
-                                }),
-                                valueContainer: (base) => ({
-                                    ...base,
-                                    paddingLeft: 8,
-                                    paddingRight: 4, // shrink right padding
-                                }),
-
-                                placeholder: (base) => ({
-                                    ...base,
-                                    color: dark ? '#9CA3AF' : '#a3aed0',
-                                }),
-                            }}
-                        />
-                        {errors.service && <p className="text-red-500 text-xs mt-1">{errors.service}</p>}
-                    </div>
+                                    placeholder: (base) => ({
+                                        ...base,
+                                        color: dark ? '#9CA3AF' : '#a3aed0',
+                                    }),
+                                }}
+                            />
+                            {errors.service && <p className="text-red-500 text-xs mt-1">{errors.service}</p>}
+                        </div>
+                    )}
 
                     {renderServiceSpecificFields()}
 
@@ -738,7 +753,7 @@ export default function AddClientModal({ onClose, onClientAdded, dark }) {
                                         backgroundColor: dark ? '#1F2937' : '#ffffff',
                                         color: dark ? '#99C2FF' : '#1F2937',
                                         borderColor: '#E5E7EB',
-                                        width:'85px',
+                                        width: '85px',
                                         maxWidth: '85px',
                                         '&:hover': {
                                             borderColor: '#CBD5E1',

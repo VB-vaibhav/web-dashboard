@@ -313,13 +313,12 @@
 
 
 // main.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import store, { persistor } from './store';
 import { PersistGate } from 'redux-persist/integration/react';
-
 import AdminLayout from './layouts/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import ForgotPassword from './pages/ForgotPassword';
@@ -335,7 +334,7 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import NotificationSchedulerPage from './pages/NotificationSchedulerPage';
 import MailSchedulerPage from './pages/MailSchedulerPage';
-import CloudServerClientsPage from './pages/CloudServerClientsPage';
+import CloudClientsPage from './pages/CloudClientsPage';
 import CerberusClientsPage from './pages/CerberusClientsPage';
 import ProxyClientsPage from './pages/ProxyClientsPage';
 import StorageServerClientsPage from './pages/StorageServerClientsPage';
@@ -349,18 +348,23 @@ import PanelAccessSettings from './pages/settings/PanelAccessSettings';
 import UserManagementSettings from './pages/settings/UserManagementSettings';
 import ExcludeClientSettings from './pages/settings/ExcludeClientsSettings';
 import ForbiddenPage from './pages/ForbiddenPage';
+import ClientReportPage from './pages/ClientReportPage';
 
 import { RefreshProvider } from './context/RefreshContext';
 import { ProfileProvider } from './context/ProfileContext';
 import { hasAccess } from './utils/accessUtils';
 import { setCredentials } from './slices/authSlice';
-
+import 'react-date-range/dist/styles.css';        // 📦 Base styles (layout, arrows, positioning)
+import 'react-date-range/dist/theme/default.css'; // 🎨 Theme (colors, buttons, etc.)
 import './index.css';
 
 const isLoggedIn = () => !!localStorage.getItem('accessToken');
 
 // ✅ PROTECTED ROUTES
 const ProtectedRoutes = () => {
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
   const dispatch = useDispatch();
   const role = useSelector(state => state.auth.role);
   const permissions = useSelector(state => state.auth.permissions);
@@ -415,7 +419,20 @@ const ProtectedRoutes = () => {
   }, [dispatch, navigate]);
 
   if (!checked) {
-    return <div className="p-6 text-center text-sm text-gray-500">Checking session...</div>;
+    return (
+      <div className={`flex flex-col items-center justify-center h-screen gap-4 transition-opacity ${dark ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="flex items-end space-x-2">
+          <div className={`w-3 h-3 rounded-full animate-fade-bounce [animation-delay:-0.3s] 
+                ${dark ? 'bg-blue-300' : 'bg-blue-500'} `}></div>
+          <div className={`w-3 h-3 rounded-full animate-fade-bounce [animation-delay:-0.15s] 
+                ${dark ? 'bg-blue-300' : 'bg-blue-500'} `}></div>
+          <div className={`w-3 h-3 rounded-full animate-fade-bounce 
+                ${dark ? 'bg-blue-300' : 'bg-blue-500'} `}></div>
+        </div>
+        <p className="text-sm mt-2 text-blue-600 dark:text-blue-300 font-medium">Checking session...</p>
+      </div>
+
+    )
   }
 
   return (
@@ -423,7 +440,7 @@ const ProtectedRoutes = () => {
       <Route path="/" element={<AdminLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
-
+        <Route path="/client-report/:id" element={<ClientReportPage />} />
         <Route path="renewals" element={<ManageRenewalsPage />}>
           <Route index element={<Navigate to="expiring-clients" />} />
           <Route path="expiring-clients" element={<ExpiringClientsTable />} />
@@ -431,7 +448,7 @@ const ProtectedRoutes = () => {
           <Route path="deleted-clients" element={<DeletedClientsTable />} />
         </Route>
         <Route path="clients" element={['superadmin', 'admin', 'middleman'].includes(role) ? <ClientsPage /> : <Navigate to="/unauthorized" />} />
-        <Route path="clients/cloud" element={hasAccess(role, permissions, 'is_vps') ? <CloudServerClientsPage /> : <Navigate to="/unauthorized" />} />
+        <Route path="clients/cloud" element={hasAccess(role, permissions, 'is_vps') ? <CloudClientsPage /> : <Navigate to="/unauthorized" />} />
         <Route path="clients/cerberus" element={hasAccess(role, permissions, 'is_cerberus') ? <CerberusClientsPage /> : <Navigate to="/unauthorized" />} />
         <Route path="clients/proxy" element={hasAccess(role, permissions, 'is_proxy') ? <ProxyClientsPage /> : <Navigate to="/unauthorized" />} />
         <Route path="clients/storage" element={hasAccess(role, permissions, 'is_storage') ? <StorageServerClientsPage /> : <Navigate to="/unauthorized" />} />
@@ -465,18 +482,19 @@ createRoot(document.getElementById('root')).render(
       <PersistGate loading={<div className="p-8">Loading session...</div>} persistor={persistor}>
         <RefreshProvider>
           <ProfileProvider>
-            <Router>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/verify-otp" element={<OtpVerify />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/403" element={<ForbiddenPage />} />
+              <Router>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/verify-otp" element={<OtpVerify />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/403" element={<ForbiddenPage />} />
 
-                {/* ✅ KEY CHANGE HERE */}
-                <Route path="/*" element={isLoggedIn() ? <ProtectedRoutes /> : <Navigate to="/login" replace />} />
-              </Routes>
-            </Router>
+                  {/* ✅ KEY CHANGE HERE */}
+                  {/* <Route path="/*" element={isLoggedIn() ? <ProtectedRoutes /> : <Navigate to="/login" replace />} /> */}
+                  <Route path="/*" element={<ProtectedRoutes />} />
+                </Routes>
+              </Router>
           </ProfileProvider>
         </RefreshProvider>
       </PersistGate>

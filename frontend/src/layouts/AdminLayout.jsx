@@ -9,6 +9,7 @@ import HelpPopover from '../components/HelpPopover';
 import { useSelector, useDispatch } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import { setCredentials } from '../slices/authSlice';
+import { AnimatePresence } from 'framer-motion';
 
 // import { Search } from 'lucide-react';
 
@@ -65,7 +66,6 @@ const AdminLayout = () => {
   }, [dark]);
 
   const toggleTheme = () => setDark(prev => !prev);
-
 
   // useEffect(() => {
   //   if (isRestricted) {
@@ -170,7 +170,9 @@ const AdminLayout = () => {
       ${dark ? 'bg-gray-800' : 'bg-white'}`}
             style={{ minHeight: 'calc(100vh - 100px)' }} // 🧠 Ensure true fill height inside layout
           > */}
-            <Outlet context={{ dark }} />
+            <AnimatePresence mode="wait"> 
+              <Outlet context={{ dark }} key={navigate.pathname} />
+            </AnimatePresence>
           </div>
           {/* </div> */}
         </main>

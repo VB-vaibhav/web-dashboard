@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-
+import { useEffect } from 'react';
 import {
   Sun, Moon, RefreshCcw, Bell, User, HelpCircle, Grid, Search
 } from 'lucide-react';
@@ -10,11 +10,15 @@ import useIsMobile from '../hooks/useIsMobile';
 import ProfilePanel from './ProfilePanel';
 import { useSelector } from 'react-redux';
 import { useProfile } from '../context/ProfileContext';
-
+import NotificationPopup from './NotificationPopup';
+import axios from '../api/axios';
 
 const routeTitles = {
-  '/dashboard': 'Dashboard',
+  '/dashboard-stats': 'Dashboard',
   '/renewals': 'Manage Renewals',
+  '/renewals/expiring-clients': 'Manage Renewals',
+  '/renewals/cancelled-clients': 'Manage Renewals',
+  '/renewals/deleted-clients': 'Manage Renewals',
   '/clients': 'Clients',
   '/clients/cloud': 'Cloud Server Clients',
   '/clients/cerberus': 'Cerberus Clients',
@@ -25,7 +29,7 @@ const routeTitles = {
   '/mail-scheduler': 'Mail Scheduler',
   '/reports': 'Reports',
   // '/settings': 'Settings',
-  '/settings/service-access': 'Settings',                           
+  '/settings/service-access': 'Settings',
   '/settings/panel-access': 'Settings',
   '/settings/exclude-clients': 'Settings',
   '/settings/role-management': 'Settings',
@@ -33,16 +37,34 @@ const routeTitles = {
   '/profile': 'Profile',
   '/profile/edit': 'Edit Profile',
   '/help': 'Help',
+  "/client-report/:id": "Client Report",
 };
 
 const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon, showMobileSearch, setShowMobileSearch }) => {
   const location = useLocation();
   const pathname = location.pathname;
-  const pageTitle = routeTitles[location.pathname] || 'Dashboard';
+  // const pageTitle = routeTitles[location.pathname] || 'Dashboard';
+  let pageTitle = 'Dashboard';
+  for (const route in routeTitles) {
+    const pattern = new RegExp('^' + route.replace(/:[^\s/]+/g, '[^/]+') + '$');
+    if (pattern.test(pathname)) {
+      pageTitle = routeTitles[route];
+      break;
+    }
+  }
   // const [showMobileSearch, setShowMobileSearch] = useState(false);
   const isMobile = useIsMobile();
   const { toggleProfile } = useProfile();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
+  useEffect(() => {
+  if (notificationCount > 0) {
+    document.title = `(${notificationCount > 9 ? '9+' : notificationCount}) Management Panel`;
+  } else {
+    document.title = 'Management Panel';
+  }
+}, [notificationCount]);
   const iconClass = (icon) => {
     const isActive =
       (icon === 'help' && showHelp) ||
@@ -57,8 +79,22 @@ const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon, sh
       }`;
   };
   const { triggerRefresh } = useRefresh();
+  useEffect(() => {
+    fetchNotificationCount();
+  }, []);
+
+  const fetchNotificationCount = async () => {
+    try {
+      const res = await axios.get('/notifications/count');
+      setNotificationCount(res.data.count || 0);
+    } catch (err) {
+      console.error('Failed to fetch notification count:', err);
+    }
+  };
+
   const [showHelp, setShowHelp] = useState(false);
   const helpRef = useRef();
+  const notificationRef = useRef();
 
   const username = useSelector(state => state.auth.username);
   const name = useSelector(state => state.auth.name);
@@ -118,13 +154,45 @@ const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon, sh
             </button>
           )}
 
-          <button onClick={triggerRefresh} className={iconClass('refresh')} title="Refresh">
+          <button onClick={() => {
+            triggerRefresh();
+            fetchNotificationCount();
+          }} className={iconClass('refresh')} title="Refresh">
             <RefreshCcw size={18} />
           </button>
 
-          <button className={iconClass('notifications')} title="Notifications">
+          {/* <button className={iconClass('notifications')} title="Notifications">
             <Bell size={18} />
+          </button> */}
+          <button
+            ref={notificationRef}
+            onClick={() => setShowNotifications(prev => !prev)}
+            className={`${iconClass('notifications')} relative`}
+            title="Notifications"
+          >
+            <Bell size={18} />
+            {notificationCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {notificationCount > 9 ? '9+' : notificationCount}
+              </span>
+            )}
           </button>
+          {/* <button
+            onClick={async () => {
+              try {
+                await axios.post('/notifications/generate');  // 🔁 Force create notifications
+                setShowNotifications(prev => !prev);          // Toggle popup
+              } catch (err) {
+                console.error("Failed to generate notifications:", err);
+              }
+            }}
+            className={iconClass('notifications')}
+            title="Notifications"
+            ref={notificationRef}
+          >
+            <Bell size={18} />
+          </button> */}
+
 
           {/* Desktop-only Icons */}
           <div className="hidden md:flex items-center gap-2">
@@ -158,6 +226,10 @@ const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon, sh
             <HelpPopover isOpen={showHelp} onClose={() => setShowHelp(false)} anchorRef={helpRef} dark={dark} />
           )}
         </div>
+        {showNotifications && (
+          <NotificationPopup isOpen={showNotifications} dark={dark} onClose={() => setShowNotifications(false)} anchorRef={notificationRef} 
+          setNotificationCount={setNotificationCount}/>
+        )}
       </header>
       <ProfilePanel
         user={{
@@ -179,7 +251,7 @@ const Header = ({ dark, collapsed, onToggleMobile, onToggleTheme, activeIcon, sh
         <div className={`w-full fixed top-[60px] left-0 right-0 xl:hidden px-4 py-2 z-40 ${dark
           ? 'text-white border-gray-600 placeholder-gray-400'
           : 'border-gray-300 text-gray-800 placeholder-gray-500'}`}
-          // style={{ borderTop: 'none', borderBottom: 'none', boxShadow: 'none' }}
+        // style={{ borderTop: 'none', borderBottom: 'none', boxShadow: 'none' }}
         >
           <div className="w-full max-w-md relative mx-auto">
             <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">

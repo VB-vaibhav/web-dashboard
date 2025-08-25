@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import Select from 'react-select';
 import { components } from 'react-select';
 import useIsMobile from '../hooks/useIsMobile';
+import { AnimatePresence } from 'framer-motion';
 
 const SETTINGS_SECTIONS = [
   { label: 'Access to Service Panels', value: 'service-access' },
@@ -99,9 +100,9 @@ export default function SettingsPage() {
         ${dark
             ? 'bg-gray-800 text-slate-300'
             : 'bg-white text-gray-800'}`}>
-
-          <Outlet context={{ dark }} />
-
+          <AnimatePresence mode="wait">
+            <Outlet context={{ dark }} key={location.pathname}/>
+          </AnimatePresence>
         </div>
       </div>
     </div>

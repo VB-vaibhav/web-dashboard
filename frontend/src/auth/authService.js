@@ -57,7 +57,7 @@ export const logout = async () => {
 };
 
 export const refreshAccessToken = async () => {
-  const res = await axios.post(`${API_URL}/refresh`, {}, { withCredentials: true });
+  const res = await axios.post(`${API_URL}/refresh`, { withCredentials: true });
   localStorage.setItem('accessToken', res.data.accessToken);
   return res.data.accessToken;
 };
@@ -121,6 +121,16 @@ export const uploadAvatar = async (file) => {
   });
 };
 
+// export const updateProfile = async ({ name, email, phone }) => {
+//   return await axios.post('/auth/update-profile', { name, email, phone });
+// };
+
 export const updateProfile = async ({ name, email, phone }) => {
-  return await axios.post('/auth/update-profile', { name, email, phone });
+  const token = localStorage.getItem('accessToken');
+
+  return await axios.post('/auth/update-profile', { name, email, phone }, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
 };

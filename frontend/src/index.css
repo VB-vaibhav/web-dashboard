@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 body {
   font-family: 'DM Sans', sans-serif;
 }
@@ -9,6 +10,138 @@ body,
 #root {
   height: 100%;
   overflow: hidden;
+}
+
+@keyframes fadeInModal {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-modal {
+  animation: fadeInModal 0.3s ease-out forwards;
+}
+
+@keyframes fadeOutModal {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.animate-fade-out-modal {
+  animation: fadeOutModal 0.25s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* index.css */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+
+.animate-slide-out {
+  animation: slide-out 0.2s ease-in forwards;
+}
+
+@keyframes menu-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-menu-pop {
+  animation: menu-pop 0.2s ease-out forwards;
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.25s ease-out forwards;
+}
+
+@keyframes fade-bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  25% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+  75% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-bounce {
+  animation: fade-bounce 1s infinite ease-in-out;
 }
 
 @keyframes blinkFade {
@@ -81,13 +214,16 @@ body,
 }
 
 .calendar-dark .rdrDay.rdrDaySelected .rdrDayNumber span {
-  background: #6366f1 !important;   /* Tailwind indigo-500 */
+  background: #6366f1 !important;
+  /* Tailwind indigo-500 */
   color: #ffffff !important;
-  border-radius: 9999px;            /* Fully rounded */
+  border-radius: 9999px;
+  /* Fully rounded */
 }
 
 .calendar-dark .rdrDay.rdrDaySelected:hover .rdrDayNumber span {
-  background: #4f46e5 !important;   /* Slightly darker on hover (indigo-600) */
+  background: #4f46e5 !important;
+  /* Slightly darker on hover (indigo-600) */
 }
 
 
@@ -110,8 +246,8 @@ body,
   /* yellow-400 for current day dot */
 }
 
-.calendar-dark .rdrDateDisplayWrapper  {
-   background-color: #374151 !important;
+.calendar-dark .rdrDateDisplayWrapper {
+  background-color: #374151 !important;
   color: #f9fafb !important;
   border: 1px solid #4b5563 !important;
   border-radius: 5px;
@@ -135,4 +271,63 @@ body,
 
 .react-datepicker-wrapper {
   width: 100%;
+}
+
+.rdrNextPrevButton {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+}
+
+.rdrMonthAndYearWrapper select {
+  pointer-events: auto !important;
+  z-index: 1000 !important;
+  background-color: transparent;
+}
+
+/* .rdrPprevButton::after {
+  content: "<";
+  color: white;
+  font-size: 18px;
+}
+
+.rdrNextButton::after {
+  content: ">";
+  color: white;
+  font-size: 18px;
+} */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.jodit_theme_dark .jodit-ui-group, 
+.jodit_theme_dark .jodit-ui-group_size_middle,
+.jodit_theme_dark .jodit-status-bar{
+  background-color: #374151;
+  border-color: #374151;
+}
+
+
+
+/* Scrollbar for Message Body field (Jodit) */
+.message-editor .jodit-workplace,
+.message-editor .jodit-wysiwyg {
+  max-height: 320px;     /* must match config */
+  overflow-y: auto;      /* show vertical scrollbar when needed */
+}
+
+/* (optional) smoother look for dark mode */
+.jodit_theme_dark .message-editor .jodit-wysiwyg {
+  scrollbar-color: #475569 transparent; /* thumb, track */
+  scrollbar-width: thin;
 }

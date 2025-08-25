@@ -10,6 +10,7 @@ import MobileRoleManagementUI from './MobileRoleManagementUI';
 import { components } from 'react-select';
 import { usePersistentWidths } from '../../hooks/usePersistentWidths';
 import { Search, MoreVertical, PlusCircle, Users, Plus, Trash2, ArrowUpAZ, ArrowDownAZ, XCircle, Columns, ChevronRight, Check } from 'lucide-react';
+import PageWrapper from '../../components/PageWrapper';
 
 export default function ManageRoleSettings() {
   const [users, setUsers] = useState([]);
@@ -552,361 +553,363 @@ export default function ManageRoleSettings() {
   }
 
   return (
-    <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto min-h-[calc(100vh-12em)]">
-      <div className="h-full max-h-[calc(100vh-14em)]">
-        <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
-          <div className="relative w-[180px]">
-            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-              <Search size={16} />
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search in Table"
-              className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
-            />
+    <PageWrapper>
+      <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto min-h-[calc(100vh-12em)]">
+        <div className="h-full max-h-[calc(100vh-14em)]">
+          <div className="absolute right-4 top-3 flex items-center gap-2 z-10">
+            <div className="relative w-[180px]">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <Search size={16} />
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search in Table"
+                className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
+              />
+            </div>
+            <div className="relative"
+              // ref={headerCheckboxRef}
+              ref={dropdownRef}
+            >
+              <button
+                onClick={() => setShowBulkRoleDropdown(prev => !prev)}
+                className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
+                <MoreVertical size={18} />
+              </button>
+              {showBulkRoleDropdown && (
+                <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
+                  <button
+                    onClick={() => {
+                      setShowBulkRoleDropdown(false);
+                      setShowBulkRoleModal(true);
+                    }}
+                    className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
+                    <Users size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                    <span>Manage Role</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="relative"
-            // ref={headerCheckboxRef}
-            ref={dropdownRef}
-          >
-            <button
-              onClick={() => setShowBulkRoleDropdown(prev => !prev)}
-              className={`p-1.5 ml-3 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
-              <MoreVertical size={18} />
-            </button>
-            {showBulkRoleDropdown && (
-              <div className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
-                <button
-                  onClick={() => {
-                    setShowBulkRoleDropdown(false);
-                    setShowBulkRoleModal(true);
-                  }}
-                  className={`w-full flex items-center px-3 py-1.5 gap-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'} rounded-md`}>
-                  <Users size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                  <span>Manage Role</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
 
-        <div className=" mt-3">
-          <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
-            <table className="table-auto text-sm w-full">
-              <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
-                <tr>
-                  {columnKeys.map((key, index) => {
-                    if (!columnVisibility[key]) return null;
-                    return (
-                      <th
-                        key={key}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group ${dark ? 'border-gray-700' : 'border-gray-300'} ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
-                      >
-                        <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
-                          {key === 'select' ? (
-                            <input
-                              type="checkbox"
-                              checked={selected.length === users.length}
-                              onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
-                              className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                            />
-                          ) : (
-                            columnLabels[key]
-                          )}
-                        </div>
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation(); // avoid bubbling to th
-                            autoResizeColumn(index);
-                          }}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    );
-                  })}
-                  {dynamicColumns.map(({ dbKey, label }, i) => {
-                    const index = 7 + i; // after 7 static columns
-                    const isEditing = editingHeader === dbKey;
-                    return columnVisibility[dbKey] && (
-                      <th
-                        key={`dynamic-${i}`}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group  
-        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
-                        onDoubleClick={() => {
-                          setEditingHeader(dbKey);
-                          setNewHeaderLabel(label);
-                        }}
-                      >
-                        {isEditing ? (
-                          <input
-                            className="text-sm px-1 py-0.5 border rounded w-28 text-center"
-                            value={newHeaderLabel}
-                            onChange={(e) => setNewHeaderLabel(e.target.value)}
-                            onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
-                            autoFocus
-                          />
-                        ) : (
-                          label
-                        )}
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation(); // avoid bubbling to th
-                            autoResizeColumn(index);
-                          }}
-                          // onDoubleClick={() => autoResizeColumn(index)}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {Array.isArray(filteredData) && filteredData.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-6 text-gray-500 text-sm">No search result found</td></tr>
-                ) : (
-                  // Array.isArray(filteredData) && filteredData.map(user => (
-                  sortedData.map(user => (
-                    <tr key={user.id}>
-                      {columnKeys.map((key, index) => {
-                        if (!columnVisibility[key]) return null;
-                        if (key === 'select') {
-                          return <td key={key} className="text-left px-2 py-2"><input type="checkbox" checked={selected.includes(user.id)} onChange={() => {
-                            setSelected(prev => {
-                              return prev.includes(user.id)
-                                ? prev.filter(id => id !== user.id)
-                                : [...prev, user.id];
-                            });
-                          }} className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`} /></td>;
-
-                        }
-                        if (['name', 'username', 'email', 'role'].includes(key)) {
-                          return (
-                            <td key={key} style={{ width: columnWidths[index] }} className="px-2 py-2 text-center">
-                              <div className="w-full whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
-                                {user[key]}
-                              </div>
-                            </td>
-                          )
-                        }
-                        if (key === 'change') {
-                          return (
-                            <td key={key} className="text-center px-2 py-2">
-                              <div className="flex justify-center items-center">
-                                <Select
-                                  components={{
-                                    IndicatorSeparator: () => null,
-                                    DropdownIndicator: (props) => (
-                                      <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
-                                    )
-                                  }}
-                                  options={roleOptions}
-                                  value={roleOptions.find(opt => opt.value === (editedRoles[user.id] || user.role))}
-                                  onChange={(opt) =>
-                                    setEditedRoles((prev) => ({ ...prev, [user.id]: opt.value }))
-                                  }
-                                  styles={{
-                                    control: (base, state) => ({
-                                      ...base,
-                                      backgroundColor: dark ? '#1F2937' : '#ffffff',
-                                      width: '120px',
-                                      minHeight: '31px',
-                                      height: '31px',
-                                      fontSize: '0.85rem',
-                                      color: dark ? '#E5E7EB' : '#1F2937',
-                                      borderColor: dark ? '#4B5563' : '#D1D5DB',
-                                      boxShadow: state.isFocused ? 'none' : undefined,
-                                      outline: 'none',
-                                      '&:hover': {
-                                        borderColor: dark ? '#6B7280' : '#9CA3AF',
-                                      }
-                                    }),
-                                    option: (base, state) => ({
-                                      ...base,
-                                      backgroundColor: state.isFocused
-                                        ? dark ? '#374151' : '#E0E7FF'
-                                        : 'transparent',
-                                      color: dark ? '#F9FAFB' : '#1F2937',
-                                      borderRadius: '6px',
-                                      margin: '4px 0',
-                                      padding: '8px 10px',
-                                      cursor: 'pointer',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                    }),
-                                    menu: (base) => ({
-                                      ...base,
-                                      zIndex: 99,
-                                      backgroundColor: dark ? '#1F2937' : '#ffffff',
-                                      padding: '4px',
-                                      borderRadius: '8px',
-                                      overflowX: 'hidden'
-                                    }),
-                                    singleValue: (base) => ({
-                                      ...base,
-                                      color: dark ? '#BAC4D1' : '#1F2937', // this sets the visible text inside the box
-                                    }),
-                                    placeholder: (base) => ({
-                                      ...base,
-                                      color: dark ? '#BAC4D1' : '#6B7280', // optional: if you use placeholder text
-                                    }),
-                                    indicatorsContainer: (base) => ({
-                                      ...base,
-                                      height: '30px',
-                                    }),
-                                  }}
-                                />
-                              </div>
-                            </td>
-                          );
-                        }
-                        if (key === 'action') {
-                          return (
-                            <td key={key} className="text-center px-2 py-2">
-                              <button
-                                onClick={() => handleRoleSave(user.id)}
-                                className={`px-3 py-1 rounded-sm ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`}
-                              >Save</button>
-                            </td>
-                          );
-                        }
-                        return <td key={key} className="text-center px-2 py-2">{user[key]}</td>;
-                      })}
-                      {dynamicColumns.map(({ dbKey }, i) => {
-                        const index = 7 + i;
-                        return columnVisibility[dbKey] && (
-                          <td
-                            key={dbKey}
-                            style={{ width: columnWidths[index], minWidth: 40 }}
-                            className="px-2 py-2 text-center cursor-pointer"
-                            onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
-                          >
-                            {editingCell.id === user.id && editingCell.key === dbKey ? (
+          <div className=" mt-3">
+            <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
+              <table className="table-auto text-sm w-full">
+                <thead className={`sticky top-0 ${dark ? "bg-gray-800" : "bg-white"}`}>
+                  <tr>
+                    {columnKeys.map((key, index) => {
+                      if (!columnVisibility[key]) return null;
+                      return (
+                        <th
+                          key={key}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group ${dark ? 'border-gray-700' : 'border-gray-300'} ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
+                        >
+                          <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
+                            {key === 'select' ? (
                               <input
-                                value={editingCell.value}
-                                onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                onBlur={async () => {
-                                  const updatedValue = editingCell.value;
-                                  setUsers(prev =>
-                                    prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
-                                  );
-                                  setEditingCell({ id: null, key: null, value: '' });
-                                  await axios.patch(`/admin/update-service-access/${user.id}`, {
-                                    [dbKey]: updatedValue
-                                  });
-                                }}
-                                autoFocus
-                                className="w-full text-sm px-1 py-0.5 border rounded"
+                                type="checkbox"
+                                checked={selected.length === users.length}
+                                onChange={() => setSelected(selected.length === users.length ? [] : users.map(u => u.id))}
+                                className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
                               />
                             ) : (
-                              <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
-                                {user[dbKey] || ''}
-                              </div>
+                              columnLabels[key]
                             )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                          </div>
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation(); // avoid bubbling to th
+                              autoResizeColumn(index);
+                            }}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                          />
+                        </th>
+                      );
+                    })}
+                    {dynamicColumns.map(({ dbKey, label }, i) => {
+                      const index = 7 + i; // after 7 static columns
+                      const isEditing = editingHeader === dbKey;
+                      return columnVisibility[dbKey] && (
+                        <th
+                          key={`dynamic-${i}`}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group  
+        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
+                          onDoubleClick={() => {
+                            setEditingHeader(dbKey);
+                            setNewHeaderLabel(label);
+                          }}
+                        >
+                          {isEditing ? (
+                            <input
+                              className="text-sm px-1 py-0.5 border rounded w-28 text-center"
+                              value={newHeaderLabel}
+                              onChange={(e) => setNewHeaderLabel(e.target.value)}
+                              onBlur={() => handleRenameColumn(dbKey, newHeaderLabel)}
+                              autoFocus
+                            />
+                          ) : (
+                            label
+                          )}
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation(); // avoid bubbling to th
+                              autoResizeColumn(index);
+                            }}
+                            // onDoubleClick={() => autoResizeColumn(index)}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                          />
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(filteredData) && filteredData.length === 0 ? (
+                    <tr><td colSpan={7} className="text-center py-6 text-gray-500 text-sm">No search result found</td></tr>
+                  ) : (
+                    // Array.isArray(filteredData) && filteredData.map(user => (
+                    sortedData.map(user => (
+                      <tr key={user.id}
+                        className="transition-all duration-300 ease-in-out transform animate-fade-in">
+                        {columnKeys.map((key, index) => {
+                          if (!columnVisibility[key]) return null;
+                          if (key === 'select') {
+                            return <td key={key} className="text-left px-2 py-2"><input type="checkbox" checked={selected.includes(user.id)} onChange={() => {
+                              setSelected(prev => {
+                                return prev.includes(user.id)
+                                  ? prev.filter(id => id !== user.id)
+                                  : [...prev, user.id];
+                              });
+                            }} className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`} /></td>;
+
+                          }
+                          if (['name', 'username', 'email', 'role'].includes(key)) {
+                            return (
+                              <td key={key} style={{ width: columnWidths[index] }} className="px-2 py-2 text-center">
+                                <div className="w-full whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
+                                  {user[key]}
+                                </div>
+                              </td>
+                            )
+                          }
+                          if (key === 'change') {
+                            return (
+                              <td key={key} className="text-center px-2 py-2">
+                                <div className="flex justify-center items-center">
+                                  <Select
+                                    components={{
+                                      IndicatorSeparator: () => null,
+                                      DropdownIndicator: (props) => (
+                                        <components.DropdownIndicator {...props} style={{ paddingLeft: 2, paddingRight: 2 }} />
+                                      )
+                                    }}
+                                    options={roleOptions}
+                                    value={roleOptions.find(opt => opt.value === (editedRoles[user.id] || user.role))}
+                                    onChange={(opt) =>
+                                      setEditedRoles((prev) => ({ ...prev, [user.id]: opt.value }))
+                                    }
+                                    styles={{
+                                      control: (base, state) => ({
+                                        ...base,
+                                        backgroundColor: dark ? '#1F2937' : '#ffffff',
+                                        width: '120px',
+                                        minHeight: '31px',
+                                        height: '31px',
+                                        fontSize: '0.85rem',
+                                        color: dark ? '#E5E7EB' : '#1F2937',
+                                        borderColor: dark ? '#4B5563' : '#D1D5DB',
+                                        boxShadow: state.isFocused ? 'none' : undefined,
+                                        outline: 'none',
+                                        '&:hover': {
+                                          borderColor: dark ? '#6B7280' : '#9CA3AF',
+                                        }
+                                      }),
+                                      option: (base, state) => ({
+                                        ...base,
+                                        backgroundColor: state.isFocused
+                                          ? dark ? '#374151' : '#E0E7FF'
+                                          : 'transparent',
+                                        color: dark ? '#F9FAFB' : '#1F2937',
+                                        borderRadius: '6px',
+                                        margin: '4px 0',
+                                        padding: '8px 10px',
+                                        cursor: 'pointer',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                      }),
+                                      menu: (base) => ({
+                                        ...base,
+                                        zIndex: 99,
+                                        backgroundColor: dark ? '#1F2937' : '#ffffff',
+                                        padding: '4px',
+                                        borderRadius: '8px',
+                                        overflowX: 'hidden'
+                                      }),
+                                      singleValue: (base) => ({
+                                        ...base,
+                                        color: dark ? '#BAC4D1' : '#1F2937', // this sets the visible text inside the box
+                                      }),
+                                      placeholder: (base) => ({
+                                        ...base,
+                                        color: dark ? '#BAC4D1' : '#6B7280', // optional: if you use placeholder text
+                                      }),
+                                      indicatorsContainer: (base) => ({
+                                        ...base,
+                                        height: '30px',
+                                      }),
+                                    }}
+                                  />
+                                </div>
+                              </td>
+                            );
+                          }
+                          if (key === 'action') {
+                            return (
+                              <td key={key} className="text-center px-2 py-2">
+                                <button
+                                  onClick={() => handleRoleSave(user.id)}
+                                  className={`px-3 py-1 rounded-sm ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`}
+                                >Save</button>
+                              </td>
+                            );
+                          }
+                          return <td key={key} className="text-center px-2 py-2">{user[key]}</td>;
+                        })}
+                        {dynamicColumns.map(({ dbKey }, i) => {
+                          const index = 7 + i;
+                          return columnVisibility[dbKey] && (
+                            <td
+                              key={dbKey}
+                              style={{ width: columnWidths[index], minWidth: 40 }}
+                              className="px-2 py-2 text-center cursor-pointer"
+                              onDoubleClick={() => setEditingCell({ id: user.id, key: dbKey, value: user[dbKey] || '' })}
+                            >
+                              {editingCell.id === user.id && editingCell.key === dbKey ? (
+                                <input
+                                  value={editingCell.value}
+                                  onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                  onBlur={async () => {
+                                    const updatedValue = editingCell.value;
+                                    setUsers(prev =>
+                                      prev.map(u => u.id === user.id ? { ...u, [dbKey]: updatedValue } : u)
+                                    );
+                                    setEditingCell({ id: null, key: null, value: '' });
+                                    await axios.patch(`/admin/update-service-access/${user.id}`, {
+                                      [dbKey]: updatedValue
+                                    });
+                                  }}
+                                  autoFocus
+                                  className="w-full text-sm px-1 py-0.5 border rounded"
+                                />
+                              ) : (
+                                <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[index] }}>
+                                  {user[dbKey] || ''}
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {contextMenu.visible && (
-          <div
-            className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
-            style={{ position: 'fixed', top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, minWidth: '190px', zIndex: 1000, }}
-          >
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex)
-                const newConfig = { key: col, direction: 'asc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
-              <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Ascending</span>
-            </button>
-            <button
-              onClick={() => {
-                const col = getColumnKeyFromIndex(contextMenu.columnIndex)
-                const newConfig = { key: col, direction: 'desc' };
-                setSortConfig(newConfig);
-                localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+          {contextMenu.visible && (
+            <div
+              className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
+              style={{ position: 'fixed', top: `${contextMenu.y}px`, left: `${contextMenu.x}px`, minWidth: '190px', zIndex: 1000, }}
             >
-              <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Sort Descending</span>
-            </button>
-            <button
-              onClick={() => {
-                setSortConfig({ key: null, direction: null });
-                localStorage.removeItem(SORT_STORAGE_KEY);
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Cancel Sort</span>
-            </button>
-            <button
-              onClick={() => {
-                setContextMenu({ ...contextMenu, visible: false });
-                setShowAddColumnModal(true);
-              }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-            >
-              <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Add Column</span>
-
-            </button>
-
-            {contextMenu.allowDelete && (
               <button
-                onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex)
+                  const newConfig = { key: col, direction: 'asc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Ascending</span>
+              </button>
+              <button
+                onClick={() => {
+                  const col = getColumnKeyFromIndex(contextMenu.columnIndex)
+                  const newConfig = { key: col, direction: 'desc' };
+                  setSortConfig(newConfig);
+                  localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(newConfig));
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
                 className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
               >
-                <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Delete Column</span>
+                <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Sort Descending</span>
               </button>
-            )}
-            <div
-              onMouseEnter={() => {
-                if (submenuTriggerRef.current) {
-                  const rect = submenuTriggerRef.current.getBoundingClientRect();
-                  const spaceRight = window.innerWidth - rect.right;
-                  const submenuWidth = 220;
-                  setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
-                }
-                setShowSubmenu(true);
-              }}
-              onMouseLeave={() => setShowSubmenu(false)}
-            >
               <button
-                ref={submenuTriggerRef}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
-                <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-                <span>Column Show/Hide</span>
-                <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                onClick={() => {
+                  setSortConfig({ key: null, direction: null });
+                  localStorage.removeItem(SORT_STORAGE_KEY);
+                  setContextMenu({ ...contextMenu, visible: false });
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Cancel Sort</span>
+              </button>
+              <button
+                onClick={() => {
+                  setContextMenu({ ...contextMenu, visible: false });
+                  setShowAddColumnModal(true);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+              >
+                <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Add Column</span>
 
               </button>
-              {/* Submenu */}
-              {/* {submenuVisible && (
+
+              {contextMenu.allowDelete && (
+                <button
+                  onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                >
+                  <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Delete Column</span>
+                </button>
+              )}
+              <div
+                onMouseEnter={() => {
+                  if (submenuTriggerRef.current) {
+                    const rect = submenuTriggerRef.current.getBoundingClientRect();
+                    const spaceRight = window.innerWidth - rect.right;
+                    const submenuWidth = 220;
+                    setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
+                  }
+                  setShowSubmenu(true);
+                }}
+                onMouseLeave={() => setShowSubmenu(false)}
+              >
+                <button
+                  ref={submenuTriggerRef}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                  <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                  <span>Column Show/Hide</span>
+                  <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+
+                </button>
+                {/* Submenu */}
+                {/* {submenuVisible && (
               <div
                 className={`absolute top-0 left-full z-50 ml-1 rounded-md shadow-lg border ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
               >
@@ -925,45 +928,45 @@ export default function ManageRoleSettings() {
                 ))}
               </div>
             )} */}
-              {showSubmenu && (
-                <div
-                  ref={submenuRef}
-                  className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-28 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
-                  style={{
-                    left: submenuFlipLeft ? 'auto' : '100%',
-                    right: submenuFlipLeft ? '100%' : 'auto',
-                    paddingLeft: submenuFlipLeft ? '0' : '8px',
-                    paddingRight: submenuFlipLeft ? '8px' : '0'
-                  }}>
-                  {[
-                    { key: 'name', label: 'Name' },
-                    { key: 'username', label: 'Username' },
-                    { key: 'email', label: 'Email' },
-                    { key: 'role', label: 'Current Role' },
-                    { key: 'change', label: 'Change Role' },
-                    { key: 'action', label: 'Action' },
-                    ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
-                  ].map(col => (
-                    <button
-                      key={col.key}
-                      onClick={() => toggleColumnVisibility(col.key)}
-                      className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-                    >
-                      <span>{col.label}</span>
-                      {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
-                    </button>
-                  ))}
-                </div>
-              )}
+                {showSubmenu && (
+                  <div
+                    ref={submenuRef}
+                    className={`absolute  ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-28 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
+                    style={{
+                      left: submenuFlipLeft ? 'auto' : '100%',
+                      right: submenuFlipLeft ? '100%' : 'auto',
+                      paddingLeft: submenuFlipLeft ? '0' : '8px',
+                      paddingRight: submenuFlipLeft ? '8px' : '0'
+                    }}>
+                    {[
+                      { key: 'name', label: 'Name' },
+                      { key: 'username', label: 'Username' },
+                      { key: 'email', label: 'Email' },
+                      { key: 'role', label: 'Current Role' },
+                      { key: 'change', label: 'Change Role' },
+                      { key: 'action', label: 'Action' },
+                      ...dynamicColumns.map(col => ({ key: col.dbKey, label: col.label }))
+                    ].map(col => (
+                      <button
+                        key={col.key}
+                        onClick={() => toggleColumnVisibility(col.key)}
+                        className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                      >
+                        <span>{col.label}</span>
+                        {columnVisibility[col.key] && <span> <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} /> </span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {showBulkRoleModal && (
-          <div className="fixed inset-0 flex justify-center items-center z-50">
-            <div className={`rounded-md p-5 w-[320px] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-lg border ${dark ? 'border-gray-700' : 'border-gray-300'}`}>
-              <h2 className="text-lg font-semibold mb-3">Manage Role</h2>
-              {/* <select
+          {showBulkRoleModal && (
+            <div className="fixed inset-0 flex justify-center items-center z-50">
+              <div className={`rounded-md p-5 w-[320px] ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-lg border ${dark ? 'border-gray-700' : 'border-gray-300'}`}>
+                <h2 className="text-lg font-semibold mb-3">Manage Role</h2>
+                {/* <select
               value={bulkRoleValue}
               onChange={(e) => setBulkRoleValue(e.target.value)}
               className="w-full px-3 py-2 mb-4 border rounded-md text-sm outline-none focus:ring focus:ring-indigo-300"
@@ -971,128 +974,129 @@ export default function ManageRoleSettings() {
               <option value="admin">Admin</option>
               <option value="middleman">Middleman</option>
             </select> */}
-              <Select
-                options={roleOptions}
-                value={roleOptions.find(opt => opt.value === bulkRoleValue)}
-                onChange={(opt) => setBulkRoleValue(opt.value)}
-                className="mb-4 text-sm"
-                styles={{
-                  control: (base, state) => ({
-                    ...base,
-                    backgroundColor: dark ? '#1F2937' : '#ffffff',
-                    color: dark ? '#E5E7EB' : '#1F2937',
-                    borderColor: dark ? '#4B5563' : '#D1D5DB',
-                    boxShadow: state.isFocused ? (dark ? '0 0 0 1px #9CA3AF' : '0 0 0 1px #6366F1') : 'none',
-                    '&:hover': {
-                      borderColor: dark ? '#6B7280' : '#6366F1'
-                    },
-                    minHeight: '32px',
-                    height: '32px'
-                  }),
-                  singleValue: (base) => ({
-                    ...base,
-                    color: dark ? '#E5E7EB' : '#1F2937'
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    backgroundColor: dark ? '#1F2937' : '#fff',
-                    color: dark ? '#E5E7EB' : '#1F2937',
-                    zIndex: 99
-                  }),
-                  option: (base, state) => ({
-                    ...base,
-                    backgroundColor: state.isFocused
-                      ? (dark ? '#374151' : '#E0E7FF')
-                      : state.isFocused
-                        ? (dark ? '#1F2937' : '#E0E7FF')
-                        : (dark ? '#111827' : '#ffffff'),
-                    color: dark ? '#F3F4F6' : '#111827',
-                    cursor: 'pointer'
-                  }),
-                  placeholder: (base) => ({
-                    ...base,
-                    color: dark ? '#9CA3AF' : '#6B7280'
-                  }),
-                  dropdownIndicator: (base) => ({
-                    ...base,
-                    color: dark ? '#9CA3AF' : '#6B7280',
-                    '&:hover': {
-                      color: dark ? '#D1D5DB' : '#4F46E5'
-                    }
-                  }),
-                  indicatorSeparator: () => ({ display: 'none' })
-                }}
-              />
-
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setShowBulkRoleModal(false)}
-                  className={`px-4 py-1.5 rounded text-sm border ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'}`}
-                >Cancel</button>
-                <button
-                  onClick={async () => {
-                    if (selected.length === 0) {
-                      showModal("No user is selected");
-                      setShowBulkRoleModal(false);
-                      return;
-                    }
-                    try {
-                      await axios.patch('/admin/update-multiple-roles', {
-                        userIds: selected,
-                        newRole: bulkRoleValue
-                      });
-                      showModal("Roles updated successfully");
-                      fetchUsers();
-                    } catch (err) {
-                      showModal("Failed to update roles");
-                    }
-                    setShowBulkRoleModal(false);
+                <Select
+                  options={roleOptions}
+                  value={roleOptions.find(opt => opt.value === bulkRoleValue)}
+                  onChange={(opt) => setBulkRoleValue(opt.value)}
+                  className="mb-4 text-sm"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      backgroundColor: dark ? '#1F2937' : '#ffffff',
+                      color: dark ? '#E5E7EB' : '#1F2937',
+                      borderColor: dark ? '#4B5563' : '#D1D5DB',
+                      boxShadow: state.isFocused ? (dark ? '0 0 0 1px #9CA3AF' : '0 0 0 1px #6366F1') : 'none',
+                      '&:hover': {
+                        borderColor: dark ? '#6B7280' : '#6366F1'
+                      },
+                      minHeight: '32px',
+                      height: '32px'
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      color: dark ? '#E5E7EB' : '#1F2937'
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      backgroundColor: dark ? '#1F2937' : '#fff',
+                      color: dark ? '#E5E7EB' : '#1F2937',
+                      zIndex: 99
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isFocused
+                        ? (dark ? '#374151' : '#E0E7FF')
+                        : state.isFocused
+                          ? (dark ? '#1F2937' : '#E0E7FF')
+                          : (dark ? '#111827' : '#ffffff'),
+                      color: dark ? '#F3F4F6' : '#111827',
+                      cursor: 'pointer'
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: dark ? '#9CA3AF' : '#6B7280'
+                    }),
+                    dropdownIndicator: (base) => ({
+                      ...base,
+                      color: dark ? '#9CA3AF' : '#6B7280',
+                      '&:hover': {
+                        color: dark ? '#D1D5DB' : '#4F46E5'
+                      }
+                    }),
+                    indicatorSeparator: () => ({ display: 'none' })
                   }}
-                  className={`px-4 py-1.5 rounded text-sm ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`}
-                >Save</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
-
-        {showAddColumnModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Add New Column</h2>
-                <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
-              </div>
-
-              <label className="block text-sm font-medium mb-1">Column Name</label>
-              <input
-                type="text"
-                className={`w-full px-3 py-2 border rounded-md text-sm mb-4 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-                placeholder="e.g. whatsapp_number"
-              />
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="visibleForAll"
-                  checked={visibleForAll}
-                  onChange={(e) => setVisibleForAll(e.target.checked)}
-                  className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
                 />
-                <label htmlFor="visibleForAll" className="text-sm"> Visible for all users
-                </label>
-              </div>
 
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
-                <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowBulkRoleModal(false)}
+                    className={`px-4 py-1.5 rounded text-sm border ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'}`}
+                  >Cancel</button>
+                  <button
+                    onClick={async () => {
+                      if (selected.length === 0) {
+                        showModal("No user is selected");
+                        setShowBulkRoleModal(false);
+                        return;
+                      }
+                      try {
+                        await axios.patch('/admin/update-multiple-roles', {
+                          userIds: selected,
+                          newRole: bulkRoleValue
+                        });
+                        showModal("Roles updated successfully");
+                        fetchUsers();
+                      } catch (err) {
+                        showModal("Failed to update roles");
+                      }
+                      setShowBulkRoleModal(false);
+                    }}
+                    className={`px-4 py-1.5 rounded text-sm ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'}`}
+                  >Save</button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
+
+          {showAddColumnModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Add New Column</h2>
+                  <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
+                </div>
+
+                <label className="block text-sm font-medium mb-1">Column Name</label>
+                <input
+                  type="text"
+                  className={`w-full px-3 py-2 border rounded-md text-sm mb-4 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
+                  value={newColumnName}
+                  onChange={(e) => setNewColumnName(e.target.value)}
+                  placeholder="e.g. whatsapp_number"
+                />
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="visibleForAll"
+                    checked={visibleForAll}
+                    onChange={(e) => setVisibleForAll(e.target.checked)}
+                    className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                  />
+                  <label htmlFor="visibleForAll" className="text-sm"> Visible for all users
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
+                  <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

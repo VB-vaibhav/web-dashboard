@@ -7,9 +7,16 @@ npm install dayjs
 npm install react-datepicker
 npm install file-saver
 npm install papaparse
-
-
+npm install react-calendar
+npm install react-select apexcharts react-apexcharts react-datepicker
+npm install @headlessui/react
+npm install framer-motion
+npm i react-select jodit-react jodit dompurify dayjs --legacy-peer-deps
 
 backend: npm install multer
 backend: npm install dayjs
 backend:npm install moment
+backend:npm install axios
+backend:npm install node-cron
+backend: npm install bullmq ioredis
+backend: npm i sanitize-html node-cron

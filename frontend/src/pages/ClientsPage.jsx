@@ -12,13 +12,15 @@ import useIsMobile from '../hooks/useIsMobile';
 import { useOutletContext } from 'react-router-dom';
 import { useTableSearch } from '../hooks/useTableSearch';
 import { getClients, updateClient } from '../api/clientService';
-import { Search, MoreVertical, PlusCircle, Download, Upload, MinusCircle, Plus, Pencil, Trash2, ChevronRight, Layout, Columns, Check, ArrowUpAZ, ArrowDownAZ, ListFilter, XCircle, ChevronLeft } from 'lucide-react';
+import { Search, MoreVertical, PlusCircle, Download, Upload, MinusCircle, Plus, Pencil, Trash2, ChevronRight, Layout, Columns, Check, ArrowUpAZ, ArrowDownAZ, ListFilter, XCircle, ChevronLeft, BarChart2 } from 'lucide-react';
 import Select from 'react-select';
 import { components } from 'react-select';
 import { DateRange } from 'react-date-range';
 import { getDateRangeForFilter } from '../utils/dateUtils';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
+import { useNavigate } from 'react-router-dom';
+import PageWrapper from '../components/PageWrapper';
 
 export default function ClientsPage() {
   const dynamicKeysRef = useRef([]);
@@ -46,7 +48,7 @@ export default function ClientsPage() {
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
 
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20); // Page size
+  const [limit, setLimit] = useState(50); // Page size
   const [total, setTotal] = useState(0);  // Total client count
 
   const [dateFilter, setDateFilter] = useState('last30');
@@ -60,6 +62,8 @@ export default function ClientsPage() {
   const [editingHeader, setEditingHeader] = useState(null);
   const [newHeaderLabel, setNewHeaderLabel] = useState('');
 
+  const [contextClosing, setContextClosing] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const pageKey = 'clients';
   const COLUMN_WIDTHS_KEY = `columnWidths_${pageKey}`;
@@ -71,7 +75,7 @@ export default function ClientsPage() {
     'select', 'client_name', 'email_or_phone', 'middleman_name', 'service', 'plan',
     'instance_no', 'ip_address', 'proxy_set', 'proxy_count',
     'accounts_count', 'user_address', 'price', 'currency', 'start_date', 'expiry_date',
-    'middleman_share', 'payment_status', 'amount_paid', 'amount_due', 'paid_to', 'notes'
+    'middleman_share', 'payment_status', 'amount_paid', 'amount_due', 'paid_to', 'notes', 'logical_client_id'
   ];
 
   const filteredColumns = role === 'middleman'
@@ -105,7 +109,9 @@ export default function ClientsPage() {
     amount_paid: 'Amount Paid',
     amount_due: 'Amount Due',
     paid_to: 'Paid To',
-    notes: 'Notes'
+    notes: 'Notes',
+    logical_client_id: 'Logical ID', // ✅ Or any label, won't be visible
+
   };
 
   const formatDate = (raw) => {
@@ -124,41 +130,6 @@ export default function ClientsPage() {
   const SORT_STORAGE_KEY = `sortConfig_clients_${username}`;
   const SORT_KEY = `sortConfig_${pageKey}_${username}`;
   const VISIBILITY_KEY = `columnVisibility_${pageKey}`;
-
-  // const handleHeaderContextMenu = (e, index) => {
-  //   e.preventDefault();
-  //   const menuWidth = 190;
-  //   const screenWidth = window.innerWidth;
-  //   const buffer = 10;
-  //   const clickX = e.clientX;
-  //   const clickY = e.clientY;
-  //   const openLeft = (clickX + menuWidth + buffer) > screenWidth;
-  //   const finalX = openLeft ? (clickX - menuWidth) : clickX;
-
-  //   // ✅ Recompute visible keys
-  //   const visibleKeys = [
-  //     ...requiredColumns,
-  //     ...dynamicColumns.map(c => c.column_name)
-  //   ].filter(key => columnVisibility[key]);
-
-  //   // ✅ Get actual key
-  //   const columnKey = visibleKeys[index];
-
-  //   // ✅ Determine if dynamic
-  //   const isDynamic = !!dynamicColumns.find(col => col.column_name === columnKey);
-  //   const allowDelete = isDynamic === true;
-
-
-  //   // ✅ Show menu
-  //   setContextMenu({
-  //     visible: true,
-  //     x: finalX,
-  //     y: clickY,
-  //     columnIndex: index,
-  //     allowDelete: allowDelete,
-  //     openLeft
-  //   });
-  // };
 
   const handleHeaderContextMenu = (e, index) => {
     e.preventDefault();
@@ -422,7 +393,11 @@ export default function ClientsPage() {
 
         [...requiredColumns, ...dynamicKeys].forEach(k => {
           if (k !== 'select') {
-            defaultVisibility[k] = current[k] !== undefined ? current[k] : true;
+            // defaultVisibility[k] = current[k] !== undefined ? current[k] : true;
+            defaultVisibility[k] = (k === 'logical_client_id')
+              ? false  // 👈 hidden by default
+              : (current[k] !== undefined ? current[k] : true);
+
           }
         });
 
@@ -703,7 +678,8 @@ export default function ClientsPage() {
         isGlobal: visibleForAll
       });
 
-      setShowAddColumnModal(false);
+      // setShowAddColumnModal(false);
+      handleClose();
       setNewColumnName('');
       // ✅ Wait for updated dynamic columns
       const dynamicKeys = await fetchCustomColumns();
@@ -793,7 +769,8 @@ export default function ClientsPage() {
       setShowAlert(true);
     }
 
-    setContextMenu(prev => ({ ...prev, visible: false }));
+    // setContextMenu(prev => ({ ...prev, visible: false }));
+    handleContextMenuClose();
   };
 
   const handleDynamicCellSave = async () => {
@@ -815,11 +792,26 @@ export default function ClientsPage() {
     }
   };
 
+  // useEffect(() => {
+  //   const handleClickOutside = () => setContextMenu({ ...contextMenu, visible: false });
+  //   window.addEventListener('click', handleClickOutside);
+  //   return () => window.removeEventListener('click', handleClickOutside);
+  // }, [contextMenu]);
   useEffect(() => {
-    const handleClickOutside = () => setContextMenu({ ...contextMenu, visible: false });
+    const handleClickOutside = (e) => {
+      const isInCalendar = e.target.closest?.('.rdrCalendarWrapper');
+      const isDropdown = e.target.tagName?.toLowerCase() === 'select';
+
+      if (isInCalendar || isDropdown) return; // 🛑 Don't hide context menu on calendar interaction
+
+      // setContextMenu({ ...contextMenu, visible: false });
+      handleContextMenuClose();
+    };
+
     window.addEventListener('click', handleClickOutside);
     return () => window.removeEventListener('click', handleClickOutside);
   }, [contextMenu]);
+
 
   const closeModal = () => setShowAlert(false);
 
@@ -877,16 +869,87 @@ export default function ClientsPage() {
       setShowBulkEditModal(true);
     }
   };
+  const handleContextMenuClose = () => {
+    setContextClosing(true);
+    setTimeout(() => {
+      setContextClosing(false);
+      setContextMenu(prev => ({ ...prev, visible: false }));
+    }, 200); // match animation duration
+  };
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      setShowAddColumnModal(false);
+      onClose();
+    }, 200);
+  };
+
+
+  // const handleClientReport = () => {
+  //   if (selected.length === 0) return console.error("No client selected");
+  //   if (selected.length > 1) return console.error("Please select only 1 client");
+
+  //   // const row = selected[0];
+
+  //   // // ✅ SAFEGUARD: Log all values
+  //   // console.log("row:", row);
+
+  //   const selectedRow = finalData.find(row => row.id === selected[0]);
+  //   console.log("Selected row:", selectedRow); // Add this
+
+  //   if (!row.logical_client_id) {
+  //     console.error("Selected row has no logical_client_id");
+  //     return;
+  //   }
+
+  //   localStorage.setItem("selectedClientId", row.id);
+  //   localStorage.setItem("selectedClientName", row.client_name);
+  //   localStorage.setItem("selectedLogicalId", row.logical_client_id);
+  //   localStorage.setItem("selectedMiddleman", row.middleman_name);
+
+  //   navigate('/client-report');
+  // };
+  const navigate = useNavigate();
+  const handleClientReport = () => {
+    if (selected.length === 0) {
+      window.alert("No client selected");
+      return;
+    }
+    if (selected.length > 1) {
+      window.alert("Please select only 1 client");
+      return;
+    }
+
+    const selectedRow = finalData.find(row => row.id === selected[0]);
+    console.log("Selected row:", selectedRow);
+
+    if (!selectedRow?.logical_client_id) {
+      console.error("Selected client has no logical ID");
+      return;
+    }
+
+    localStorage.setItem("selectedLogicalId", selectedRow.logical_client_id);
+    localStorage.setItem("selectedClientName", selectedRow.client_name);
+    localStorage.setItem("selectedMiddleman", selectedRow.middleman_name);
+
+    // navigate('/client-report');
+    navigate(`/client-report/${selectedRow.logical_client_id}`);
+
+  };
+
+
 
   if (isMobile) return <div className="p-4">Mobile View Not Yet Implemented</div>;
 
   return (
-    <div className="p-4 ">
-      <div className={`flex ${isMobile ? 'flex-col items-start gap-2' : 'flex-row justify-between items-center'} mb-2`}>
-        <h1 className={`text-xl font-semibold ${dark ? "text-blue-300" : "text-indigo-600"}`}>Clients Table</h1>
+    <PageWrapper>
+      <div className="p-2">
+        <div className={`flex ${isMobile ? 'flex-col items-start gap-2' : 'flex-row justify-between items-center'} mb-2`}>
+          <h1 className={`text-xl font-semibold ${dark ? "text-blue-300" : "text-indigo-600"}`}>Clients Table</h1>
 
-        <div className="right-4 top-3 flex items-center gap-2 z-10">
-          {/* <div>
+          <div className="right-4 top-3 flex items-center gap-2 z-10">
+            {/* <div>
             <select
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
@@ -899,687 +962,713 @@ export default function ClientsPage() {
             </select>
           </div> */}
 
-          <div className="">
-            <Select
-              components={{
-                IndicatorSeparator: () => null,
-                DropdownIndicator: (props) => (
-                  <components.DropdownIndicator {...props} style={{ paddingLeft: 1, paddingRight: 1 }} />
-                )
-              }}
-              value={serviceOptions.find(opt => opt.value === serviceFilter)}
-              onChange={(selectedOption) => setServiceFilter(selectedOption.value)}
-              options={serviceOptions}
-              isSearchable={false}
-              classNamePrefix="react-select"
-              className="text-sm"
-              styles={{
-                control: (base, state) => ({
-                  ...base,
-                  backgroundColor: dark ? '#374151' : '#f3f4f6',
-                  color: dark ? 'white' : '#1f2937',
-                  borderColor: dark ? '#374151' : '#f3f4f6',
-                  minHeight: '34px',
-                  height: '34px',
-                  boxShadow: state.isFocused ? 'none' : undefined,
-                  outline: 'none',
-                }),
-                option: (base, state) => ({
-                  ...base,
-                  backgroundColor: state.isFocused
-                    ? dark ? '#374151' : '#E0E7FF'
-                    : 'transparent',
-                  color: dark ? '#F9FAFB' : '#1F2937',
-                  borderRadius: '6px',
-                  margin: '4px 0',
-                  padding: '8px 10px',
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 20,
-                  backgroundColor: dark ? '#1f2937' : 'white',
-                  color: dark ? 'white' : '#1f2937',
-                  padding: '4px',
-                }),
-                singleValue: (base) => ({
-                  ...base,
-                  color: dark ? 'white' : '#1f2937',
-                }),
-              }}
-            />
-          </div>
+            <div className="">
+              <Select
+                components={{
+                  IndicatorSeparator: () => null,
+                  DropdownIndicator: (props) => (
+                    <components.DropdownIndicator {...props} style={{ paddingLeft: 1, paddingRight: 1 }} />
+                  )
+                }}
+                value={serviceOptions.find(opt => opt.value === serviceFilter)}
+                onChange={(selectedOption) => setServiceFilter(selectedOption.value)}
+                options={serviceOptions}
+                isSearchable={false}
+                classNamePrefix="react-select"
+                className="text-sm"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    backgroundColor: dark ? '#374151' : '#f3f4f6',
+                    color: dark ? 'white' : '#1f2937',
+                    borderColor: dark ? '#374151' : '#f3f4f6',
+                    minHeight: '34px',
+                    height: '34px',
+                    boxShadow: state.isFocused ? 'none' : undefined,
+                    outline: 'none',
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused
+                      ? dark ? '#374151' : '#E0E7FF'
+                      : 'transparent',
+                    color: dark ? '#F9FAFB' : '#1F2937',
+                    borderRadius: '6px',
+                    margin: '4px 0',
+                    padding: '8px 10px',
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 20,
+                    backgroundColor: dark ? '#1f2937' : 'white',
+                    color: dark ? 'white' : '#1f2937',
+                    padding: '4px',
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: dark ? 'white' : '#1f2937',
+                  }),
+                }}
+              />
+            </div>
 
-          <div>
-            <Select
-              components={{
-                IndicatorSeparator: () => null,
-                DropdownIndicator: (props) => (
-                  <components.DropdownIndicator {...props} style={{ paddingLeft: 1, paddingRight: 1 }} />
-                )
-              }}
-              value={dateFilterOptions.find(opt => opt.value === dateFilter)}
-              onChange={(selected) => handleDateFilterChange(selected.value)}
-              options={dateFilterOptions}
-              className="text-sm w-[10em]"
-              isSearchable={false}
-              styles={{
-                control: (base, state) => ({
-                  ...base,
-                  backgroundColor: dark ? '#374151' : '#f3f4f6',
-                  color: dark ? 'white' : '#1f2937',
-                  borderColor: dark ? '#374151' : '#f3f4f6',
-                  minHeight: '34px',
-                  height: '34px',
-                  boxShadow: state.isFocused ? 'none' : undefined,
-                  outline: 'none',
-                }),
-                option: (base, state) => ({
-                  ...base,
-                  backgroundColor: state.isFocused
-                    ? dark ? '#374151' : '#E0E7FF'
-                    : 'transparent',
-                  color: dark ? '#F9FAFB' : '#1F2937',
-                  borderRadius: '6px',
-                  margin: '4px 0',
-                  padding: '8px 10px',
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 20,
-                  backgroundColor: dark ? '#1f2937' : 'white',
-                  color: dark ? 'white' : '#1f2937',
-                  padding: '4px',
-                }),
-                singleValue: (base) => ({
-                  ...base,
-                  color: dark ? 'white' : '#1f2937',
-                }),
-              }}
-            />
-          </div>
+            <div>
+              <Select
+                components={{
+                  IndicatorSeparator: () => null,
+                  DropdownIndicator: (props) => (
+                    <components.DropdownIndicator {...props} style={{ paddingLeft: 1, paddingRight: 1 }} />
+                  )
+                }}
+                value={dateFilterOptions.find(opt => opt.value === dateFilter)}
+                onChange={(selected) => handleDateFilterChange(selected.value)}
+                options={dateFilterOptions}
+                className="text-sm w-[10em]"
+                isSearchable={false}
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    backgroundColor: dark ? '#374151' : '#f3f4f6',
+                    color: dark ? 'white' : '#1f2937',
+                    borderColor: dark ? '#374151' : '#f3f4f6',
+                    minHeight: '34px',
+                    height: '34px',
+                    boxShadow: state.isFocused ? 'none' : undefined,
+                    outline: 'none',
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused
+                      ? dark ? '#374151' : '#E0E7FF'
+                      : 'transparent',
+                    color: dark ? '#F9FAFB' : '#1F2937',
+                    borderRadius: '6px',
+                    margin: '4px 0',
+                    padding: '8px 10px',
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 20,
+                    backgroundColor: dark ? '#1f2937' : 'white',
+                    color: dark ? 'white' : '#1f2937',
+                    padding: '4px',
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: dark ? 'white' : '#1f2937',
+                  }),
+                }}
+              />
+            </div>
 
-          <div className="relative">
-            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-              <Search size={16} />
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search in Table"
-              className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
-            />
-          </div>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <Search size={16} />
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search in Table"
+                className={`pl-10 pr-3 py-1.5 w-[180px] max-w-xs border rounded-md text-sm ${dark ? 'bg-gray-700 text-white border-gray-700 placeholder-gray-400' : 'bg-gray-100 border-gray-100 text-gray-800 placeholder-gray-500'}`}
+              />
+            </div>
 
-          {role !== 'middleman' && (
-            <div className="relative" ref={dropdownRef}>
-              <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
-                <MoreVertical size={18} />
-              </button>
-              {showDropdown && (
-                <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
-                  <>
-                    <button
-                      onClick={() => setShowAddClientModal(true)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'
-                        }`}
-                    >
-                      <PlusCircle size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
-                      <span>Add Client/Services</span>
-                    </button>
-                    <button
-                      onClick={handleEditClient}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-indigo-100"
-                    >
-                      <Pencil size={16} />
-                      <span>Edit Client</span>
-                    </button>
-                    {role !== 'admin' && (
+            {role !== 'middleman' && (
+              <div className="relative" ref={dropdownRef}>
+                <button onClick={() => setShowDropdown(prev => !prev)} className={`p-1.5 rounded-md border text-gray-400 ${dark ? 'border-gray-700 bg-gray-700' : 'border-gray-100 bg-gray-100'}`}>
+                  <MoreVertical size={18} />
+                </button>
+                {showDropdown && (
+                  <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 p-2 ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-blue-900 border border-gray-200'}`}>
+                    <>
                       <button
-                        onClick={handleDeleteClients}
+                        onClick={() => setShowAddClientModal(true)}
                         className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'
                           }`}
                       >
-                        <Trash2 size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
-                        <span>Delete Client</span>
+                        <PlusCircle size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
+                        <span>Add Client/Services</span>
                       </button>
-                    )}
-                    <button
-                      onClick={() => setShowImportModal(true)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-                    >
-                      <Upload size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
-                      <span>Import Clients</span>
-                    </button>
-                    <button
-                      onClick={() => setShowExportModal(true)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'
-                        }`}
-                    >
-                      <Download size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
-                      <span>Export Clients</span>
-                    </button>
-                  </>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
 
-      {showCalendar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className={`border ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-white"}  p-6 rounded-lg shadow-lg`}>
-            <h2 className={`text-lg font-semibold mb-2 text-center ${dark ? "text-slate-300" : "text-blue-900"}`}>Select Date Range</h2>
-            <div className={`${dark ? 'calendar-dark' : ''}`}>
-              <DateRange
-                editableDateInputs={true}
-                onChange={({ selection }) => setCustomRange({
-                  startDate: selection.startDate,
-                  endDate: selection.endDate,
-                  key: 'selection'
-                })}
-                moveRangeOnFirstSelection={false}
-                ranges={[customRange]}
-                // maxDate={new Date()}
-                maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 10))}
-              />
-            </div>
-            <div className="flex justify-end gap-4 mt-4">
-              <button onClick={() => setShowCalendar(false)} className={`border ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} px-4 py-2 rounded`}>Cancel</button>
-              <button onClick={() => setShowCalendar(false)} className={`border ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'} px-4 py-2 rounded`}>Apply</button>
-            </div>
+                      <button
+                        onClick={handleEditClient}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'
+                          }`}
+                      >
+                        <Pencil size={16} />
+                        <span>Edit Client</span>
+                      </button>
+                      {role !== 'admin' && (
+                        <button
+                          onClick={handleDeleteClients}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'
+                            }`}
+                        >
+                          <Trash2 size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
+                          <span>Delete Client</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setShowImportModal(true)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                      >
+                        <Upload size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
+                        <span>Import Clients</span>
+                      </button>
+
+                      <button
+                        onClick={() => setShowExportModal(true)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'
+                          }`}
+                      >
+                        <Download size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
+                        <span>Export Clients</span>
+                      </button>
+
+                      <button
+                        onClick={handleClientReport}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'
+                          }`}
+                      >
+                        <BarChart2 size={16} className={dark ? 'text-white' : 'text-indigo-900'} />
+                        <span>Client Report</span>
+                      </button>
+                    </>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto  min-h-[calc(100vh-14em)] ">
-        <div className="h-full max-h-[calc(100vh-16em)]">
+        {showCalendar && (
+          <>
+            {/* {console.log(document.querySelector('.rdrCalendarWrapper'))} */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className={`border ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-white"}  p-6 rounded-lg shadow-lg`}>
+                <h2 className={`text-lg font-semibold mb-2 text-center ${dark ? "text-slate-300" : "text-blue-900"}`}>Select Date Range</h2>
+                <div className={`${dark ? 'calendar-dark' : ''}`}>
+                  <DateRange
+                    editableDateInputs={true}
+                    onChange={({ selection }) => setCustomRange({
+                      startDate: selection.startDate,
+                      endDate: selection.endDate,
+                      key: 'selection'
+                    })}
+                    moveRangeOnFirstSelection={false}
+                    ranges={[customRange]}
+                    // maxDate={new Date()}
+                    maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 10))}
+                    showMonthAndYearPickers={true}
+                  />
+                </div>
+                <div className="flex justify-end gap-4 mt-4">
+                  <button onClick={() => setShowCalendar(false)} className={`border ${dark ? 'hover:bg-gray-500 text-slate-300 border-slate-300' : 'text-indigo-600 border-indigo-600 hover:bg-indigo-100'} px-4 py-2 rounded`}>Cancel</button>
+                  <button onClick={() => setShowCalendar(false)} className={`border ${dark ? 'bg-gray-700 text-slate-300 border-gray-700' : 'bg-indigo-600 text-white border-indigo-600'} px-4 py-2 rounded`}>Apply</button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
-          <div className=" mt-3">
-            <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
-              <table className="table-auto w-full text-sm">
-                <thead className={`sticky top-0 text-slate-400 border-b ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"}`}>
-                  <tr>
-                    {requiredColumns.map((key, index) => columnVisibility[key] && (
-                      <th
-                        key={key}
-                        onContextMenu={(e) => handleHeaderContextMenu(e, index)}
-                        style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                        className={`relative px-2 py-3 font-semibold border-r group  
+        <div className="w-full max-w-[calc(100vw-4rem)] overflow-x-auto  min-h-[calc(100vh-14em)] ">
+          <div className="h-full max-h-[calc(100vh-16em)]">
+
+            <div className=" mt-3">
+              <div style={{ width: `${totalWidth}px`, minWidth: `100%` }}>
+                <table className="table-auto w-full text-sm">
+                  <thead className={`sticky top-0 text-slate-400 border-b ${dark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"}`}>
+                    <tr>
+                      {requiredColumns.map((key, index) => columnVisibility[key] && (
+                        <th
+                          key={key}
+                          onContextMenu={(e) => handleHeaderContextMenu(e, index)}
+                          style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                          className={`relative px-2 py-3 font-semibold border-r group  
         ${dark ? 'border-gray-700' : 'border-gray-300'}  
         ${index === 0 ? 'text-left' : 'text-center'} whitespace-nowrap`}
-                      >
-                        <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
-                          {key === 'select' ? (
-                            <input
-                              type="checkbox"
-                              checked={selected.length === textFilteredData.length}
-                              onChange={() =>
-                                setSelected(selected.length === textFilteredData.length ? [] : textFilteredData.map(c => c.id))
-                              }
-                              className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
-                            />
-                          ) : (
-                            columnLabels[key]
-                          )}
-                        </div>
-                        <div
-                          onMouseDown={(e) => startResizing(index, e)}
-                          onDoubleClick={(e) => {
-                            e.stopPropagation(); // avoid bubbling to th
-                            autoResizeColumn(index);
-                          }}
-                          // onDoubleClick={() => autoResizeColumn(index)}
-                          className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                        />
-                      </th>
-                    ))}
-                    {dynamicColumns.map((col, index) => {
-                      const i = staticColumnWidths.length + index;
-                      if (!columnVisibility[col.column_name]) return null;
-                      return (
-                        <th
-                          key={col.column_name}
-                          onContextMenu={(e) => {
-                            const visibleKeys = [...requiredColumns, ...dynamicColumns.map(c => c.column_name)].filter(k => columnVisibility[k]);
-                            const dynamicKey = col.column_name;
-                            const visibleIndex = visibleKeys.indexOf(dynamicKey);
-                            handleHeaderContextMenu(e, visibleIndex);
-                          }}
-                          style={{ width: columnWidths[i] || 40, minWidth: 40 }}
-                          className={`relative px-2 py-3 font-semibold border-r group  
-        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
-                          onDoubleClick={() => {
-                            setEditingHeader(col.column_name);
-                            setNewHeaderLabel(col.label);
-                          }}
                         >
-                          {editingHeader === col.column_name ? (
-                            <input
-                              value={newHeaderLabel}
-                              onChange={(e) => setNewHeaderLabel(e.target.value)}
-                              onBlur={() => handleRenameColumn(col)}
-                              autoFocus
-                              className="text-sm px-1 py-0.5 border rounded w-28 text-center"
-                            />
-                          ) : (
-                            col.label
-                          )}
-                          <div
-                            onMouseDown={(e) => startResizing(i, e)}
-                            onDoubleClick={(e) => {
-                              e.stopPropagation(); // avoid bubbling to th
-                              autoResizeColumn(i);
-                            }}
-                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
-                          />
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-
-
-                <tbody className={`${dark ? "text-slate-300" : "text-blue-950"}`}>
-                  {finalData.length === 0 ? (
-                    <tr>
-                      <td colSpan={requiredColumns.length} className="text-center py-8 text-gray-400 text-sm">
-                        No search result found.
-                      </td>
-                    </tr>
-                  ) : (
-                    finalData.map((client, idx) => (
-                      <tr key={idx}>
-                        {requiredColumns.map((key, index) => columnVisibility[key] && (
-                          <td
-                            key={key}
-                            style={{ width: columnWidths[index] || 40, minWidth: 40 }}
-                            className={`px-2 py-2 text-center ${index === 0 ? 'text-left' : 'text-center'}`}
-                            onDoubleClick={() => {
-                              if (role !== 'middleman' && key !== 'select') {
-                                setEditingCell({ id: idx, key, value: client[key] });
-                              }
-                            }}
-                          >
+                          <div className={`${index === 0 ? 'flex justify-start' : 'flex justify-center'} items-center`}>
                             {key === 'select' ? (
                               <input
                                 type="checkbox"
-                                checked={selected.includes(client.id)}
-                                onChange={() => handleCheckboxChange(client.id)}
+                                checked={selected.length === textFilteredData.length}
+                                onChange={() =>
+                                  setSelected(selected.length === textFilteredData.length ? [] : textFilteredData.map(c => c.id))
+                                }
                                 className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
                               />
-                            ) : editingCell.id === idx && editingCell.key === key ? (
+                            ) : (
+                              columnLabels[key]
+                            )}
+                          </div>
+                          <div
+                            onMouseDown={(e) => startResizing(index, e)}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation(); // avoid bubbling to th
+                              autoResizeColumn(index);
+                            }}
+                            // onDoubleClick={() => autoResizeColumn(index)}
+                            className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                          />
+                        </th>
+                      ))}
+                      {dynamicColumns.map((col, index) => {
+                        const i = staticColumnWidths.length + index;
+                        if (!columnVisibility[col.column_name]) return null;
+                        return (
+                          <th
+                            key={col.column_name}
+                            onContextMenu={(e) => {
+                              const visibleKeys = [...requiredColumns, ...dynamicColumns.map(c => c.column_name)].filter(k => columnVisibility[k]);
+                              const dynamicKey = col.column_name;
+                              const visibleIndex = visibleKeys.indexOf(dynamicKey);
+                              handleHeaderContextMenu(e, visibleIndex);
+                            }}
+                            style={{ width: columnWidths[i] || 40, minWidth: 40 }}
+                            className={`relative px-2 py-3 font-semibold border-r group  
+        ${dark ? 'border-gray-700' : 'border-gray-300'} text-center whitespace-nowrap`}
+                            onDoubleClick={() => {
+                              setEditingHeader(col.column_name);
+                              setNewHeaderLabel(col.label);
+                            }}
+                          >
+                            {editingHeader === col.column_name ? (
                               <input
-                                value={editingCell.value}
+                                value={newHeaderLabel}
+                                onChange={(e) => setNewHeaderLabel(e.target.value)}
+                                onBlur={() => handleRenameColumn(col)}
                                 autoFocus
-                                onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                onBlur={() => {
-                                  const updated = editingCell.value;
-                                  setClients(prev => prev.map((c, i) => i === idx ? { ...c, [key]: updated } : c));
-                                  handleEdit(client.id, key, updated);
-                                  setEditingCell({ id: null, key: null, value: '' });
-                                }}
-                                onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
-                                className="w-full border px-1 rounded"
+                                className="text-sm px-1 py-0.5 border rounded w-28 text-center"
                               />
                             ) : (
-                              <div
-                                className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto"
-                                style={{ maxWidth: columnWidths[index] }}
-                              >
-                                {key === 'start_date' || key === 'expiry_date' ? (
-                                  formatDate(client[key])
-                                ) : key === 'payment_status' ? (
-                                  <span className={
-                                    client[key] === 'unpaid' ? 'text-red-600 font-semibold' :
-                                      client[key] === 'partially paid' ? 'text-yellow-500 font-semibold' :
-                                        client[key] === 'paid' ? 'text-green-600 font-semibold' : ''
-                                  }>
-                                    {client[key]}
-                                  </span>
-                                ) : (
-                                  client[key] ?? ''
-                                )}
-                              </div>
+                              col.label
                             )}
-                          </td>
-                        ))}
-                        {dynamicColumns.map((col, index) => {
-                          const i = staticColumnWidths.length + index;
-                          if (!columnVisibility[col.column_name]) return null;
-                          return (
+                            <div
+                              onMouseDown={(e) => startResizing(i, e)}
+                              onDoubleClick={(e) => {
+                                e.stopPropagation(); // avoid bubbling to th
+                                autoResizeColumn(i);
+                              }}
+                              className={`absolute -right-[1px] top-0 h-full w-1 cursor-col-resize ${dark ? 'group-hover:bg-slate-400' : 'group-hover:bg-indigo-400'} z-10`}
+                            />
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+
+
+                  <tbody className={`${dark ? "text-slate-300" : "text-blue-950"}`}>
+                    {finalData.length === 0 ? (
+                      <tr>
+                        <td colSpan={requiredColumns.length} className="text-center py-8 text-gray-400 text-sm">
+                          No search result found.
+                        </td>
+                      </tr>
+                    ) : (
+                      finalData.map((client, idx) => (
+                        <tr key={idx}
+                          className="transition-all duration-300 ease-in-out transform animate-fade-in"
+                        >
+                          {requiredColumns.map((key, index) => columnVisibility[key] && (
                             <td
-                              key={col.column_name}
-                              style={{ width: columnWidths[i], minWidth: 40 }}
-                              className="px-2 py-2 text-center cursor-pointer"
-                              onDoubleClick={() => setEditingCell({ id: client.id, key: col.column_name, value: client[col.column_name] || '' })}
+                              key={key}
+                              style={{ width: columnWidths[index] || 40, minWidth: 40 }}
+                              className={`px-2 py-2 text-center ${index === 0 ? 'text-left' : 'text-center'}`}
+                              onDoubleClick={() => {
+                                if (role !== 'middleman' && key !== 'select') {
+                                  setEditingCell({ id: idx, key, value: client[key] });
+                                }
+                              }}
                             >
-                              {editingCell.id === client.id && editingCell.key === col.column_name ? (
+                              {key === 'select' ? (
+                                <input
+                                  type="checkbox"
+                                  checked={selected.includes(client.id)}
+                                  onChange={() => handleCheckboxChange(client.id)}
+                                  className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                                />
+                              ) : editingCell.id === idx && editingCell.key === key ? (
                                 <input
                                   value={editingCell.value}
                                   autoFocus
                                   onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                                  onBlur={handleDynamicCellSave}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      e.target.blur(); // This triggers onBlur
-                                    }
+                                  onBlur={() => {
+                                    const updated = editingCell.value;
+                                    setClients(prev => prev.map((c, i) => i === idx ? { ...c, [key]: updated } : c));
+                                    handleEdit(client.id, key, updated);
+                                    setEditingCell({ id: null, key: null, value: '' });
                                   }}
-                                  className="w-full text-sm px-1 py-0.5 border rounded"
+                                  onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                                  className="w-full border px-1 rounded"
                                 />
                               ) : (
-                                <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[i] }}>{client[col.column_name] || ''}</div>
+                                <div
+                                  className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto"
+                                  style={{ maxWidth: columnWidths[index] }}
+                                >
+                                  {key === 'start_date' || key === 'expiry_date' ? (
+                                    formatDate(client[key])
+                                  ) : key === 'payment_status' ? (
+                                    <span className={
+                                      client[key] === 'unpaid' ? 'text-red-600 font-semibold capitalize' :
+                                        client[key] === 'partially paid' ? 'text-yellow-500 font-semibold capitalize' :
+                                          client[key] === 'paid' ? 'text-green-600 font-semibold capitalize' : ''
+                                    }>
+                                      {client[key]}
+                                    </span>
+                                  ) : (
+                                    client[key] ?? ''
+                                  )}
+                                </div>
                               )}
                             </td>
-                          );
-                        })}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
+                          ))}
+                          {dynamicColumns.map((col, index) => {
+                            const i = staticColumnWidths.length + index;
+                            if (!columnVisibility[col.column_name]) return null;
+                            return (
+                              <td
+                                key={col.column_name}
+                                style={{ width: columnWidths[i], minWidth: 40 }}
+                                className="px-2 py-2 text-center cursor-pointer"
+                                onDoubleClick={() => setEditingCell({ id: client.id, key: col.column_name, value: client[col.column_name] || '' })}
+                              >
+                                {editingCell.id === client.id && editingCell.key === col.column_name ? (
+                                  <input
+                                    value={editingCell.value}
+                                    autoFocus
+                                    onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
+                                    onBlur={handleDynamicCellSave}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        e.target.blur(); // This triggers onBlur
+                                      }
+                                    }}
+                                    className="w-full text-sm px-1 py-0.5 border rounded"
+                                  />
+                                ) : (
+                                  <div className="whitespace-nowrap overflow-hidden text-ellipsis mx-auto" style={{ maxWidth: columnWidths[i] }}>{client[col.column_name] || ''}</div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
 
-              </table>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {total > limit && (
-        <>
+        {/* {total > limit && (
+        <> */}
 
 
-          <div className="flex justify-between  gap-3 mt-2">
-            <div className="">
-              <label htmlFor="limitSelect" className="mr-2 text-sm">
-                Rows per page:
-              </label>
-              <select
-                id="limitSelect"
-                value={limit}
-                onChange={(e) => {
-                  setPage(1); // reset to page 1
-                  setLimit(Number(e.target.value)); // update how many rows per page
-                }}
-                className={`border rounded px-2 py-1 text-sm ${dark ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-800 border-gray-300'}`}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-                <option value={100}>200</option>
-              </select>
-            </div>
-            <div>
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(prev => Math.max(prev - 1, 1))}
-              >
-                <ChevronLeft size={20} className={`cursor-pointer ${dark ? 'text-white' : 'text-indigo-900'}`}/>
-              </button>
-              <span className="text-sm">
-                Page {page} of {Math.ceil(total / limit)}
-              </span>
-              <button
-                disabled={page >= Math.ceil(total / limit)}
-                onClick={() => setPage(prev => prev + 1)}
-                
-              >
-                <ChevronRight size={20} className={`cursor-pointer ${dark ? 'text-white' : 'text-indigo-900'}`}/>
-              </button>
-            </div>
+        <div className="flex justify-between items-center mt-4">
+          <div>
+            <label htmlFor="limitSelect" className="mr-2 text-sm">
+              Rows per page:
+            </label>
+            <select
+              id="limitSelect"
+              value={limit}
+              onChange={(e) => {
+                setPage(1); // reset to page 1
+                setLimit(Number(e.target.value)); // update how many rows per page
+              }}
+              className={`border rounded px-2 py-1 text-sm ${dark ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-800 border-gray-300'}`}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+            </select>
           </div>
-        </>
-      )}
+          <div className="flex items-center gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+              className={`p-1 ${page === 1 ? 'opacity-50  cursor-not-allowed' : ''}`}
+            >
+              <ChevronLeft />
+            </button>
+            <span>
+              Page {page} of {Math.ceil(total / limit)}
+            </span>
+            <button
+              disabled={page >= Math.ceil(total / limit)}
+              onClick={() => setPage(prev => prev + 1)}
+              className={`p-1 ${page >= Math.ceil(total / limit) ? 'opacity-50  cursor-not-allowed' : ''}`}
+            >
+              <ChevronRight />
+            </button>
+          </div>
+        </div>
+        {/* </>
+      )} */}
 
-      <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
+        <AlertModal isOpen={showAlert} message={alertMessage} onClose={closeModal} dark={dark} />
 
-      {contextMenu.visible && (
-        <div
-          className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'}`}
-          style={{
-            position: 'fixed',
-            top: `${contextMenu.y}px`,
-            left: `${contextMenu.x}px`,
-            minWidth: '190px',
-            zIndex: 1000,
-          }}
-        >
+        {contextMenu.visible && (
+          <div
+            className={`fixed z-50 rounded-md shadow-lg text-sm ${dark ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'} ${contextClosing ? 'animate-slide-out opacity-0' : 'animate-menu-pop'}`}
+            style={{
+              position: 'fixed',
+              top: `${contextMenu.y}px`,
+              left: `${contextMenu.x}px`,
+              minWidth: '190px',
+              zIndex: 1000,
+            }}
+          >
 
-          {/* TEMP DEBUG: show whether allowDelete is true or undefined */}
-          {/* {typeof contextMenu.allowDelete !== 'undefined' && (
+            {/* TEMP DEBUG: show whether allowDelete is true or undefined */}
+            {/* {typeof contextMenu.allowDelete !== 'undefined' && (
             <div className="text-xs p-1 italic text-gray-500">
               allowDelete: {String(contextMenu.allowDelete)}
             </div>
           )} */}
 
-          <button
-            onClick={() => {
-              const col = getColumnKeyFromIndex(contextMenu.columnIndex);
-              handleSort(col, 'asc');
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-          >
-            <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-            <span>Sort Ascending</span>
-          </button>
-
-          <button
-            onClick={() => {
-              const col = getColumnKeyFromIndex(contextMenu.columnIndex);
-              handleSort(col, 'desc');
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-          >
-            <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-            <span>Sort Descending</span>
-          </button>
-
-          <button
-            onClick={() => {
-              handleSort(null, null);
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-          >
-            <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-            <span>Cancel Sort</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setShowAddColumnModal(true);
-              setContextMenu({ ...contextMenu, visible: false });
-            }}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-          >
-            <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-            <span>Add Column</span>
-          </button>
-
-          {contextMenu.allowDelete && (
             <button
-              onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+              onClick={() => {
+                const col = getColumnKeyFromIndex(contextMenu.columnIndex);
+                handleSort(col, 'asc');
+                setContextMenu({ ...contextMenu, visible: false });
+              }}
               className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
             >
-              <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Delete Column</span>
+              <ArrowUpAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+              <span>Sort Ascending</span>
             </button>
-          )}
 
-
-          <div
-            className="relative"
-            onMouseEnter={() => {
-              if (submenuTriggerRef.current) {
-                const rect = submenuTriggerRef.current.getBoundingClientRect();
-                const spaceRight = window.innerWidth - rect.right;
-                const submenuWidth = 220;
-                setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
-              }
-              setShowSubmenu(true);
-            }}
-            onMouseLeave={() => setShowSubmenu(false)}
-          >
             <button
-              ref={submenuTriggerRef}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
-              <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
-              <span>Column Show/Hide</span>
-              <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+              onClick={() => {
+                const col = getColumnKeyFromIndex(contextMenu.columnIndex);
+                handleSort(col, 'desc');
+                setContextMenu({ ...contextMenu, visible: false });
+              }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+            >
+              <ArrowDownAZ size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+              <span>Sort Descending</span>
             </button>
 
-            {showSubmenu && (
-              <div
-                ref={submenuRef}
-                className={`absolute ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg`}
+            <button
+              onClick={() => {
+                handleSort(null, null);
+                setContextMenu({ ...contextMenu, visible: false });
+              }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+            >
+              <XCircle size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+              <span>Cancel Sort</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setShowAddColumnModal(true);
+                setContextMenu({ ...contextMenu, visible: false });
+              }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+            >
+              <Plus size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+              <span>Add Column</span>
+            </button>
+
+            {contextMenu.allowDelete && (
+              <button
+                onClick={() => handleDeleteColumn(contextMenu.columnIndex)}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
               >
-                {[
-                  ...requiredColumns.map(key => ({
-                    key,
-                    label: columnLabels[key] || key
-                  })),
-                  ...dynamicColumns.map(col => ({
-                    key: col.column_name,
-                    label: col.label
-                  }))
-                ].filter(col => col.key !== 'select')  // optional
-                  .map(col => (
-                    <button
-                      key={col.key}
-                      onClick={() => toggleColumnVisibility(col.key)}
-                      className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
-                    >
-                      <span>{col.label}</span>
-                      {columnVisibility[col.key] && <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />}
-                    </button>
-                  ))}
-              </div>
+                <Trash2 size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Delete Column</span>
+              </button>
             )}
-          </div>
-        </div>
-      )}
 
-      {showAddColumnModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Add New Column</h2>
-              <button onClick={() => setShowAddColumnModal(false)} className="text-xl font-bold">×</button>
+
+            <div
+              className="relative"
+              onMouseEnter={() => {
+                if (submenuTriggerRef.current) {
+                  const rect = submenuTriggerRef.current.getBoundingClientRect();
+                  const spaceRight = window.innerWidth - rect.right;
+                  const submenuWidth = 220;
+                  setSubmenuFlipLeft(spaceRight < submenuWidth + 10);
+                }
+                setShowSubmenu(true);
+              }}
+              onMouseLeave={() => setShowSubmenu(false)}
+            >
+              <button
+                ref={submenuTriggerRef}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}>
+                <Columns size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+                <span>Column Show/Hide</span>
+                <ChevronRight size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />
+              </button>
+
+              {showSubmenu && (
+                <div
+                  ref={submenuRef}
+                  className={`absolute ${submenuFlipLeft ? 'right-full pr-2' : 'left-full pl-2'} border top-0 mt-[-8px] min-w-[180px] max-h-[300px] overflow-y-auto z-50 ${dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded shadow-lg ${contextClosing ? 'animate-slide-out opacity-0' : 'animate-menu-pop'}`}
+                >
+                  {[
+                    ...requiredColumns.map(key => ({
+                      key,
+                      label: columnLabels[key] || key
+                    })),
+                    ...dynamicColumns.map(col => ({
+                      key: col.column_name,
+                      label: col.label
+                    }))
+                  ].filter(col => col.key !== 'select' && col.key !== 'logical_client_id')  // optional
+                    .map(col => (
+                      <button
+                        key={col.key}
+                        onClick={() => toggleColumnVisibility(col.key)}
+                        className={`flex items-center justify-between w-full px-4 py-2 text-sm ${dark ? 'hover:bg-gray-700' : 'hover:bg-indigo-100'}`}
+                      >
+                        <span>{col.label}</span>
+                        {columnVisibility[col.key] && <Check size={16} className={`${dark ? 'text-white' : 'text-indigo-900'}`} />}
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
+          </div>
+        )}
 
-            <label className="block text-sm font-medium mb-1">Column Name</label>
-            <input
-              type="text"
-              className={`w-full px-3 py-2 border rounded-md text-sm mb-2 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
-              value={newColumnName}
-              onChange={(e) => setNewColumnName(e.target.value)}
-              placeholder="e.g. whatsapp_number"
-            />
+        {showAddColumnModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className={`rounded-lg p-6 max-w-sm w-96 shadow-lg ${isClosing ? 'animate-slide-out' : 'animate-fade-up'} ${dark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Add New Column</h2>
+                <button onClick={() => handleClose()} className="text-xl font-bold">×</button>
+              </div>
 
-            <div className="flex items-center space-x-2">
+              <label className="block text-sm font-medium mb-1">Column Name</label>
               <input
-                type="checkbox"
-                id="visibleForAll"
-                checked={visibleForAll}
-                onChange={(e) => setVisibleForAll(e.target.checked)}
-                className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                type="text"
+                className={`w-full px-3 py-2 border rounded-md text-sm mb-2 ${dark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`}
+                value={newColumnName}
+                onChange={(e) => setNewColumnName(e.target.value)}
+                placeholder="e.g. whatsapp_number"
               />
-              <label htmlFor="visibleForAll" className="text-sm">Visible for all users</label>
-            </div>
 
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setShowAddColumnModal(false)} className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
-              <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="visibleForAll"
+                  checked={visibleForAll}
+                  onChange={(e) => setVisibleForAll(e.target.checked)}
+                  className={`${dark ? 'accent-gray-500' : 'accent-indigo-600'}`}
+                />
+                <label htmlFor="visibleForAll" className="text-sm">Visible for all users</label>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button onClick={() => handleClose()}
+                  className={`px-4 py-2 text-sm border ${dark ? 'border-slate-300 text-slate-300 ' : 'border-indigo-600 text-indigo-600'} rounded `}>Cancel</button>
+                <button onClick={handleAddColumn} className={`px-4 py-2 text-sm ${dark ? 'bg-gray-700 text-slate-300 hover:bg-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded`}>Add</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      {showAddClientModal && (
-        <AddClientModal
-          onClose={() => setShowAddClientModal(false)}
-          onClientAdded={() => {
-            fetchClients(dynamicKeysRef.current); // reload data
-            setShowAddClientModal(false);
-          }}
-          dark={dark}
-        />
-      )}
-      {showSingleEditModal && (
-        <EditClientModal
-          clientId={selectedClientId}
-          onClose={() => setShowSingleEditModal(false)}
-          onClientUpdated={() => {
-            fetchClients(dynamicKeysRef.current);
-            setShowSingleEditModal(false);
-          }}
-          dark={dark}
-        />
-      )}
-      {showBulkEditModal && (
-        <BulkEditClientModal
-          selectedClientIds={selectedClientIds}
-          onClose={() => setShowBulkEditModal(false)}
-          onUpdated={() => {
-            fetchClients(dynamicKeysRef.current);
-            setShowBulkEditModal(false);
-          }}
-          dark={dark}
-        />
-      )}
-      {showImportModal && (
-        <ImportClientModal
-          onClose={() => setShowImportModal(false)}
-          onImport={() => fetchClients(dynamicKeysRef.current)}
-          dark={dark}
-        />
-      )}
-      {showExportModal && (
-        <ExportClientModal
-          onClose={() => setShowExportModal(false)}
-          data={clients} // all client rows loaded in table
-          selectedIds={selected}
-          filters={{
-            from: range.from || range.start, // support both key names
-            to: range.to || range.end,
-            service: serviceFilter?.toLowerCase() || 'all'
-          }}
-          columns={[
-            { key: 'client_name', label: 'Client Name' },
-            { key: 'email_or_phone', label: 'Email / Number' },
-            { key: 'middleman_name', label: 'Middleman Name' },
-            { key: 'service', label: 'Service' },
-            { key: 'plan', label: 'Plan' },
-            { key: 'instance_no', label: 'Instance Number' },
-            { key: 'ip_address', label: 'IP Address' },
-            { key: 'proxy_set', label: 'Proxy Set' },
-            { key: 'proxy_count', label: 'Proxy Count' },
-            { key: 'accounts_count', label: 'Account Count' },
-            { key: 'user_address', label: 'User Address' },
-            { key: 'price', label: 'Price' },
-            { key: 'currency', label: 'Currency' },
-            { key: 'start_date', label: 'Start Date' },
-            { key: 'expiry_date', label: 'Expiry Date' },
-            { key: 'middleman_share', label: "Middleman's Share" },
-            { key: 'payment_status', label: 'Payment Status' },
-            { key: 'amount_paid', label: 'Amount Paid' },
-            { key: 'paid_to', label: 'Paid To Whom' },
-            { key: 'notes', label: 'Notes' }
-          ]}
-          dark={dark}
-        />
-      )}
-    </div>
+        )}
+        {showAddClientModal && (
+          <AddClientModal
+            onClose={() => setShowAddClientModal(false)}
+            onClientAdded={() => {
+              fetchClients(dynamicKeysRef.current); // reload data
+              setShowAddClientModal(false);
+            }}
+            dark={dark}
+            animate
+          />
+        )}
+        {showSingleEditModal && (
+          <EditClientModal
+            clientId={selectedClientId}
+            onClose={() => setShowSingleEditModal(false)}
+            onClientUpdated={() => {
+              fetchClients(dynamicKeysRef.current);
+              setShowSingleEditModal(false);
+            }}
+            dark={dark}
+            animate
+          />
+        )}
+        {showBulkEditModal && (
+          <BulkEditClientModal
+            selectedClientIds={selectedClientIds}
+            onClose={() => setShowBulkEditModal(false)}
+            onUpdated={() => {
+              fetchClients(dynamicKeysRef.current);
+              setShowBulkEditModal(false);
+            }}
+            dark={dark}
+            animate
+          />
+        )}
+        {showImportModal && (
+          <ImportClientModal
+            onClose={() => setShowImportModal(false)}
+            onImport={() => fetchClients(dynamicKeysRef.current)}
+            dark={dark}
+            animate
+          />
+        )}
+        {showExportModal && (
+          <ExportClientModal
+            onClose={() => setShowExportModal(false)}
+            data={clients} // all client rows loaded in table
+            selectedIds={selected}
+            filters={{
+              from: range.from || range.start, // support both key names
+              to: range.to || range.end,
+              service: serviceFilter?.toLowerCase() || 'all'
+            }}
+            columns={[
+              { key: 'client_name', label: 'Client Name' },
+              { key: 'email_or_phone', label: 'Email / Number' },
+              { key: 'middleman_name', label: 'Middleman Name' },
+              { key: 'service', label: 'Service' },
+              { key: 'plan', label: 'Plan' },
+              { key: 'instance_no', label: 'Instance Number' },
+              { key: 'ip_address', label: 'IP Address' },
+              { key: 'proxy_set', label: 'Proxy Set' },
+              { key: 'proxy_count', label: 'Proxy Count' },
+              { key: 'accounts_count', label: 'Account Count' },
+              { key: 'user_address', label: 'User Address' },
+              { key: 'price', label: 'Price' },
+              { key: 'currency', label: 'Currency' },
+              { key: 'start_date', label: 'Start Date' },
+              { key: 'expiry_date', label: 'Expiry Date' },
+              { key: 'middleman_share', label: "Middleman's Share" },
+              { key: 'payment_status', label: 'Payment Status' },
+              { key: 'amount_paid', label: 'Amount Paid' },
+              { key: 'paid_to', label: 'Paid To Whom' },
+              { key: 'notes', label: 'Notes' }
+            ]}
+            dark={dark}
+            animate
+          />
+        )}
+      </div>
+    </PageWrapper>
   );
 }
